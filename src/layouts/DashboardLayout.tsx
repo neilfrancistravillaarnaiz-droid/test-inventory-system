@@ -1,12 +1,47 @@
 import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Package,
+  Tags,
+  Truck,
+  ArrowDownToLine,
+  ArrowUpFromLine,
+  History,
+  LineChart,
+  FileText,
+  Bell,
+  ScrollText,
+  QrCode,
+  Search,
+  Settings,
+  User,
+  LogOut,
+} from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import AIInventoryAssistant from "../components/ai/AIInventoryAssistant";
+
+const navItems = [
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/inventory", label: "Inventory", icon: Package },
+  { to: "/categories", label: "Categories", icon: Tags },
+  { to: "/suppliers", label: "Suppliers", icon: Truck },
+  { to: "/stock-in", label: "Stock In", icon: ArrowDownToLine },
+  { to: "/stock-out", label: "Stock Out", icon: ArrowUpFromLine },
+  { to: "/stock-history", label: "History", icon: History },
+  { to: "/restock-predictor", label: "Restock", icon: LineChart },
+  { to: "/reports", label: "Reports", icon: FileText },
+  { to: "/notifications", label: "Alerts", icon: Bell },
+  { to: "/audit-logs", label: "Audit", icon: ScrollText },
+  { to: "/qr-codes", label: "Barcode", icon: QrCode },
+  { to: "/qr-search", label: "QR Search", icon: Search },
+];
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isLightMode, setIsLightMode] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -16,8 +51,6 @@ const DashboardLayout = () => {
       setIsLightMode(true);
     }
   }, []);
-
-  const closeSidebar = () => setSidebarOpen(false);
 
   const toggleTheme = () => {
     setIsLightMode((prev) => {
@@ -41,73 +74,17 @@ const DashboardLayout = () => {
   };
 
   return (
-    <div className="dashboard-layout">
-      <button
-        className="mobile-menu-btn"
-        type="button"
-        onClick={() => setSidebarOpen(true)}
-      >
-        ☰
-      </button>
-
-      <aside className={`sidebar ${sidebarOpen ? "show-sidebar" : ""}`}>
-        <div className="sidebar-header">
-          <h2 className="logo">StockFlow</h2>
-
-          <button
-            className="close-sidebar-btn"
-            type="button"
-            onClick={closeSidebar}
-          >
-            ×
-          </button>
-        </div>
-
-        <nav>
-          <NavLink to="/dashboard" onClick={closeSidebar}>Dashboard</NavLink>
-          <NavLink to="/inventory" onClick={closeSidebar}>Inventory</NavLink>
-          <NavLink to="/categories" onClick={closeSidebar}>Categories</NavLink>
-          <NavLink to="/suppliers" onClick={closeSidebar}>Suppliers</NavLink>
-          <NavLink to="/stock-in" onClick={closeSidebar}>Stock In</NavLink>
-          <NavLink to="/stock-out" onClick={closeSidebar}>Stock Out</NavLink>
-          <NavLink to="/stock-history" onClick={closeSidebar}>Stock History</NavLink>
-          <NavLink to="/reports" onClick={closeSidebar}>Reports</NavLink>
-          <NavLink to="/users" onClick={closeSidebar}>Users</NavLink>
-          <NavLink to="/notifications" onClick={closeSidebar}>Notifications</NavLink>
-          <NavLink to="/audit-logs" onClick={closeSidebar}>Audit Logs</NavLink>
-          <NavLink to="/qr-codes" onClick={closeSidebar}>QR Codes</NavLink>
-          <NavLink to="/qr-search" onClick={closeSidebar}>QR Search</NavLink>
-          <NavLink to="/settings" onClick={closeSidebar}>Settings</NavLink>
-        </nav>
-      </aside>
-
-      {sidebarOpen && (
-        <button
-          className="sidebar-overlay"
-          type="button"
-          onClick={closeSidebar}
-          aria-label="Close sidebar"
-        />
-      )}
-
-      <main className="dashboard-main">
-        <header className="topbar">
+    <div className="dashboard-layout command-layout">
+      <main className="dashboard-main command-main">
+        <header className="topbar command-topbar">
           <div>
-            <h1>Inventory Management</h1>
-            <p>Manage stocks, products, suppliers, and reports.</p>
+            <h1>StockFlow Command Center</h1>
+            <p>Control inventory, stocks, reports, QR tools, and alerts.</p>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              gap: "16px",
-              alignItems: "center",
-            }}
-          >
+          <div className="command-top-actions">
             <div className="theme-toggle">
-              <span>
-                {isLightMode ? "☀️" : "🌙"}
-              </span>
+              <span>{isLightMode ? "☀️" : "🌙"}</span>
 
               <label className="switch">
                 <input
@@ -115,22 +92,86 @@ const DashboardLayout = () => {
                   checked={isLightMode}
                   onChange={toggleTheme}
                 />
-
                 <span className="slider"></span>
               </label>
             </div>
 
-            <button
-              type="button"
-              onClick={handleLogout}
-            >
-              Logout
-            </button>
+            <div className="profile-menu">
+              <button
+                type="button"
+                className="supabase-avatar-btn"
+                onClick={() => setProfileOpen((prev) => !prev)}
+              >
+                <img
+                  src="https://i.pravatar.cc/120?img=12"
+                  alt="User Profile"
+                />
+              </button>
+
+              {profileOpen && (
+                <div className="supabase-profile-panel">
+                  <div className="profile-panel-header">
+                    <img
+                      src="https://i.pravatar.cc/120?img=12"
+                      alt="User Profile"
+                    />
+
+                    <div>
+                      <h3>StockFlow User</h3>
+                      <p>Administrator</p>
+                    </div>
+                  </div>
+
+                  <NavLink to="/users" onClick={() => setProfileOpen(false)}>
+                    <User size={18} />
+                    Manage Profile
+                  </NavLink>
+
+                  <NavLink
+                    to="/settings"
+                    onClick={() => setProfileOpen(false)}
+                  >
+                    <Settings size={18} />
+                    Account Settings
+                  </NavLink>
+
+                  <button type="button" onClick={handleLogout}>
+                    <LogOut size={18} />
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
         <Outlet />
       </main>
+
+      <div className="dock-hover-zone" aria-hidden="true" />
+
+      <nav className="command-dock">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+
+          return (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end
+              className={({ isActive }) =>
+                isActive ? "command-dock-item active" : "command-dock-item"
+              }
+              title={item.label}
+            >
+              <Icon size={23} strokeWidth={2.2} />
+              <span>{item.label}</span>
+            </NavLink>
+          );
+        })}
+      </nav>
+
+      <AIInventoryAssistant />
     </div>
   );
 };

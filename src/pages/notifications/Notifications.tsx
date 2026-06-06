@@ -49,7 +49,11 @@ const Notifications = () => {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    const loadNotifications = async () => {
+      await fetchNotifications();
+    };
+
+    loadNotifications();
   }, []);
 
   const generateLowStockAlerts = async () => {
@@ -186,11 +190,19 @@ const Notifications = () => {
               </div>
 
               <div className="notification-actions">
-                <button onClick={() => toggleStatus(item)}>
+                <button
+                  type="button"
+                  className="primary-link"
+                  onClick={() => toggleStatus(item)}
+                >
                   Mark as {item.status === "Unread" ? "Read" : "Unread"}
                 </button>
 
-                <button onClick={() => openDeleteModal(item.id)}>
+                <button
+                  type="button"
+                  className="danger-btn category-delete-btn"
+                  onClick={() => openDeleteModal(item.id)}
+                >
                   Delete
                 </button>
               </div>

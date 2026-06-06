@@ -1,6 +1,6 @@
-import { Bot } from "lucide-react";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useProducts } from "../../hooks/useProducts";
+import { getAIInventoryResponse } from "../../services/aiService";
 
 type Message = {
   sender: "user" | "ai";
@@ -17,6 +17,8 @@ const AIInventoryAssistant = () => {
       text: "Hi! I am your AI Inventory Assistant. Ask me about low stocks, suppliers, products, or restocking.",
     },
   ]);
+  const [loadingResponse, setLoadingResponse] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const answerQuestion = (input: string) => {
     const q = input.toLowerCase();
@@ -92,7 +94,7 @@ const AIInventoryAssistant = () => {
     return "I can answer questions about low stock, total products, total stocks, inventory value, suppliers, restocking, or a specific product name.";
   };
 
-  const handleAsk = (e: React.FormEvent) => {
+  const handleAsk = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!question.trim()) return;
@@ -102,13 +104,33 @@ const AIInventoryAssistant = () => {
       text: question,
     };
 
-    const aiMessage: Message = {
-      sender: "ai",
-      text: answerQuestion(question),
-    };
-
-    setMessages((prev) => [...prev, userMessage, aiMessage]);
+    setMessages((prev) => [...prev, userMessage]);
     setQuestion("");
+    setAiError(null);
+    setLoadingResponse(true);
+
+    try {
+      const aiResponse = await getAIInventoryResponse(question, products);
+      const aiMessage: Message = {
+        sender: "ai",
+        text: aiResponse,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } catch (error) {
+      const fallback = answerQuestion(question);
+      setAiError(
+        error instanceof Error && error.message
+          ? error.message
+          : "Unable to connect to the AI service."
+      );
+      const aiMessage: Message = {
+        sender: "ai",
+        text: fallback,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } finally {
+      setLoadingResponse(false);
+    }
   };
 
   return (
@@ -155,14 +177,21 @@ const AIInventoryAssistant = () => {
             ))}
           </div>
 
+          {aiError ? (
+            <div className="ai-error-message">{aiError}</div>
+          ) : null}
+
           <form className="ai-input-row" onSubmit={handleAsk}>
             <input
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
               placeholder="Ask: Which products are low stock?"
+              disabled={loadingResponse}
             />
 
-            <button type="submit">Ask</button>
+            <button type="submit" disabled={loadingResponse}>
+              {loadingResponse ? "Thinking..." : "Ask"}
+            </button>
           </form>
         </div>
       )}
