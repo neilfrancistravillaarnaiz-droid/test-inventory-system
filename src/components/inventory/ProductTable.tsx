@@ -73,7 +73,9 @@ const ProductTable = ({ products, refresh }: Props) => {
                       <img
                         src={
                           product.image_url ||
-                          "https://via.placeholder.com/50?text=No+Image"
+                          `https://picsum.photos/seed/${encodeURIComponent(
+                            product.id
+                          )}/120/120`
                         }
                         alt={product.name}
                         loading="lazy"

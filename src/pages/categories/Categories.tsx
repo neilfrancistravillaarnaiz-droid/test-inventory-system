@@ -39,7 +39,11 @@ const Categories = () => {
   };
 
   useEffect(() => {
-    fetchCategories();
+    const loadCategories = async () => {
+      await fetchCategories();
+    };
+
+    loadCategories();
   }, []);
 
   const handleAddCategory = async (e: React.FormEvent) => {
@@ -138,7 +142,11 @@ const Categories = () => {
                   <p>{category.description || "No description provided."}</p>
                 </div>
 
-                <button onClick={() => openDeleteModal(category.id)}>
+                <button
+                  type="button"
+                  className="danger-btn category-delete-btn"
+                  onClick={() => openDeleteModal(category.id)}
+                >
                   Delete Category
                 </button>
               </div>
