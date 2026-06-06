@@ -20,7 +20,7 @@ const Sidebar = () => {
         <NavLink to="/settings">Settings</NavLink>
         <NavLink to="/qr-codes">QR Codes</NavLink>
         <NavLink to="/qr-search">QR Search</NavLink>
-        
+        <NavLink to="/restock-predictor">Restock Predictor</NavLink>
       </nav>
     </aside>
   );

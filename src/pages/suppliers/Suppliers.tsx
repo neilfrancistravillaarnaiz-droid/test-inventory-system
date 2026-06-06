@@ -48,7 +48,11 @@ const Suppliers = () => {
   };
 
   useEffect(() => {
-    fetchSuppliers();
+    const loadSuppliers = async () => {
+      await fetchSuppliers();
+    };
+
+    loadSuppliers();
   }, []);
 
   const handleChange = (
@@ -195,6 +199,8 @@ const Suppliers = () => {
                 </div>
 
                 <button
+                  type="button"
+                  className="danger-btn category-delete-btn"
                   onClick={() => openDeleteModal(supplier.id, supplier.name)}
                 >
                   Delete Supplier

@@ -25,7 +25,7 @@ const Inventory = () => {
           <p>Manage all products.</p>
         </div>
 
-        <Link className="primary-link" to="/inventory/add">
+        <Link className="primary-link add-btn" to="/inventory/add">
           Add Product
         </Link>
       </div>

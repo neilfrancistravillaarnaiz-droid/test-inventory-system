@@ -1,3 +1,4 @@
+import RestockPredictor from "../pages/restock/RestockPredictor";
 import QRSearch from "../pages/qr/QRSearch";
 import ProductDetails from "../pages/products/ProductDetails";
 import ProductQR from "../pages/qr/ProductQR";
@@ -56,6 +57,7 @@ const AppRoutes = () => {
           <Route path="/qr-codes" element={<ProductQR />} />
           <Route path="/products/:id" element={<ProductDetails />} />
           <Route path="/qr-search" element={<QRSearch />} />
+          <Route path="/restock-predictor" element={<RestockPredictor />} />
 
         </Route>
       </Route>
