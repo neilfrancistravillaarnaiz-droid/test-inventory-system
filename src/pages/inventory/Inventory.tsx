@@ -6,7 +6,7 @@ import SearchBar from "../../components/inventory/SearchBar";
 import InventoryStats from "../../components/inventory/InventoryStats";
 
 const Inventory = () => {
-  const { products, loading, fetchProducts } = useProducts();
+  const { products, loading, refresh } = useProducts();
   const [search, setSearch] = useState("");
 
   const filteredProducts = products.filter((product) =>
@@ -34,12 +34,9 @@ const Inventory = () => {
 
       <br />
 
-      <SearchBar
-        value={search}
-        onChange={setSearch}
-      />
+      <SearchBar value={search} onChange={setSearch} />
 
-     <ProductTable products={filteredProducts} refresh={fetchProducts} />
+      <ProductTable products={filteredProducts} refresh={refresh} />
     </>
   );
 };

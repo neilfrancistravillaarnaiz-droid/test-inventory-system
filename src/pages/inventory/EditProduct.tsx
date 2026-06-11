@@ -2,28 +2,37 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader";
 import ProductForm from "../../components/inventory/ProductForm";
-import { getProductById, updateProduct } from "../../services/inventoryService";
+
+import {
+  getBackendProductById,
+  updateBackendProduct,
+} from "../../services/backendProductService";
+
+import { addAuditLog } from "../../services/auditLogService";
 
 const EditProduct = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+
   const [initialData, setInitialData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!id) return;
+      try {
+        if (!id) return;
 
-      const { data, error } = await getProductById(id);
+        const product = await getBackendProductById(id);
 
-      if (error) {
-        alert(error.message);
+        setInitialData(product);
+      } catch (error) {
+        console.error(error);
+        alert("Failed to load product.");
         navigate("/inventory");
-        return;
+      } finally {
+        setLoading(false);
       }
-
-      setInitialData(data);
-      setLoading(false);
     };
 
     fetchProduct();
@@ -38,17 +47,27 @@ const EditProduct = () => {
     price: number;
     low_stock_limit: number;
   }) => {
-    if (!id) return;
+    try {
+      if (!id) return;
 
-    const { error } = await updateProduct(id, product);
+      setSaving(true);
 
-    if (error) {
-      alert(error.message);
-      return;
+      await updateBackendProduct(id, product);
+
+      await addAuditLog({
+        action: "Product Updated",
+        module: "Inventory",
+        description: `${product.name} was updated.`,
+      });
+
+      alert("Product updated successfully!");
+      navigate("/inventory");
+    } catch (error) {
+      console.error(error);
+      alert("Failed to update product.");
+    } finally {
+      setSaving(false);
     }
-
-    alert("Product updated successfully!");
-    navigate("/inventory");
   };
 
   if (loading) {
@@ -71,14 +90,25 @@ const EditProduct = () => {
       <div className="add-product-card">
         <div className="form-info">
           <span className="form-badge">Update Item</span>
+
           <h3>Edit Product Details</h3>
+
           <p>
             Review the existing details and update the product information as
             needed.
           </p>
+
+          {saving && (
+            <p className="saving-text">
+              Updating product...
+            </p>
+          )}
         </div>
 
-        <ProductForm onSubmit={handleUpdate} initialData={initialData} />
+        <ProductForm
+          onSubmit={handleUpdate}
+          initialData={initialData}
+        />
       </div>
     </section>
   );

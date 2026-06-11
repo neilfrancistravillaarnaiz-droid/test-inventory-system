@@ -1,33 +1,31 @@
 import { useEffect, useState } from "react";
 import type { Product } from "../types/Product";
-import { getProducts } from "../services/inventoryService";
+import { getBackendProducts } from "../services/backendProductService";
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchProducts = async () => {
-    setLoading(true);
-
-    const { data, error } = await getProducts();
-
-    if (error) {
-      alert(error.message);
+    try {
+      setLoading(true);
+      const data = await getBackendProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error("Failed to load products:", error);
       setProducts([]);
-    } else {
-      setProducts(data || []);
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   useEffect(() => {
-    const loadProducts = async () => {
-      await fetchProducts();
-    };
-
-    loadProducts();
+    fetchProducts();
   }, []);
 
-  return { products, loading, fetchProducts };
+  return {
+    products,
+    loading,
+    refresh: fetchProducts,
+  };
 };

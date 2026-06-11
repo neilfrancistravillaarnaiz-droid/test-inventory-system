@@ -1,7 +1,7 @@
 import RestockPredictor from "../pages/restock/RestockPredictor";
 import QRSearch from "../pages/qr/QRSearch";
 import ProductDetails from "../pages/products/ProductDetails";
-import ProductQR from "../pages/qr/ProductQR";
+import ProductBarcode from "../pages/qr/ProductQR";
 import AuditLogs from "../pages/audit/AuditLogs";
 import Notifications from "../pages/notifications/Notifications";
 import Settings from "../pages/settings/Settings";
@@ -54,7 +54,7 @@ const AppRoutes = () => {
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
 
-          <Route path="/qr-codes" element={<ProductQR />} />
+          <Route path="/qr-codes" element={<ProductBarcode />} />
           <Route path="/products/:id" element={<ProductDetails />} />
           <Route path="/qr-search" element={<QRSearch />} />
           <Route path="/restock-predictor" element={<RestockPredictor />} />

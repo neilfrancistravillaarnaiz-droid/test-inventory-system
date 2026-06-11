@@ -17,16 +17,19 @@ const AuditLogs = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchLogs = async () => {
-    const { data, error } = await getAuditLogs();
+    try {
+      setLoading(true);
 
-    if (error) {
-      alert(error.message);
+      const data = await getAuditLogs();
+
+      setLogs(data || []);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to load audit logs.");
+      setLogs([]);
+    } finally {
       setLoading(false);
-      return;
     }
-
-    setLogs(data || []);
-    setLoading(false);
   };
 
   useEffect(() => {

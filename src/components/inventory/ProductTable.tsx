@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Product } from "../../types/Product";
-import { deleteProduct } from "../../services/inventoryService";
+import { deleteBackendProduct } from "../../services/backendProductService";
 import SuccessModal from "../common/SuccessModal";
 
 type Props = {
@@ -13,8 +13,10 @@ const ProductTable = ({ products, refresh }: Props) => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null
   );
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showDeletedModal, setShowDeletedModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const openDeleteModal = (id: string) => {
     setSelectedProductId(id);
@@ -22,19 +24,24 @@ const ProductTable = ({ products, refresh }: Props) => {
   };
 
   const confirmDelete = async () => {
-    if (!selectedProductId) return;
+    try {
+      if (!selectedProductId) return;
 
-    const { error } = await deleteProduct(selectedProductId);
+      setDeleting(true);
 
-    if (error) {
-      alert(error.message);
-      return;
+      await deleteBackendProduct(selectedProductId);
+
+      setShowDeleteConfirm(false);
+      setSelectedProductId(null);
+      setShowDeletedModal(true);
+
+      refresh?.();
+    } catch (error) {
+      console.error(error);
+      alert("Failed to delete product. Please check your backend connection.");
+    } finally {
+      setDeleting(false);
     }
-
-    setShowDeleteConfirm(false);
-    setSelectedProductId(null);
-    setShowDeletedModal(true);
-    refresh?.();
   };
 
   return (
@@ -100,8 +107,7 @@ const ProductTable = ({ products, refresh }: Props) => {
                       <span className="location-pill">
                         {product.warehouse || "N/A"} /{" "}
                         {product.shelf || "N/A"} /{" "}
-                        {product.rack || "N/A"} /{" "}
-                        {product.bin || "N/A"}
+                        {product.rack || "N/A"} / {product.bin || "N/A"}
                       </span>
                     ) : (
                       "Not assigned"
@@ -140,8 +146,11 @@ const ProductTable = ({ products, refresh }: Props) => {
                       <button
                         className="danger-btn"
                         onClick={() => openDeleteModal(product.id)}
+                        disabled={deleting}
                       >
-                        Delete Product
+                        {deleting && selectedProductId === product.id
+                          ? "Deleting..."
+                          : "Delete Product"}
                       </button>
                     </div>
                   </td>
@@ -156,10 +165,15 @@ const ProductTable = ({ products, refresh }: Props) => {
         show={showDeleteConfirm}
         type="warning"
         title="Delete Product?"
-        message="Are you sure you want to delete this product? This action cannot be undone."
-        confirmText="Yes, Delete"
+        message={
+          deleting
+            ? "Deleting product, please wait..."
+            : "Are you sure you want to delete this product? This action cannot be undone."
+        }
+        confirmText={deleting ? "Deleting..." : "Yes, Delete"}
         cancelText="Cancel"
         onClose={() => {
+          if (deleting) return;
           setShowDeleteConfirm(false);
           setSelectedProductId(null);
         }}
@@ -169,7 +183,7 @@ const ProductTable = ({ products, refresh }: Props) => {
       <SuccessModal
         show={showDeletedModal}
         title="Product Deleted"
-        message="The selected product was successfully removed from your inventory."
+        message="The selected product was successfully removed through your backend API."
         confirmText="Okay"
         onClose={() => setShowDeletedModal(false)}
       />

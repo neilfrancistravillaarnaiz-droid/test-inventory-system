@@ -3,29 +3,34 @@ import { Link, useNavigate } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader";
 import ProductForm from "../../components/inventory/ProductForm";
 import SuccessModal from "../../components/common/SuccessModal";
-import { addProduct } from "../../services/inventoryService";
+import { addBackendProduct } from "../../services/backendProductService";
 import { addAuditLog } from "../../services/auditLogService";
 import type { ProductInput } from "../../types/Product";
 
 const AddProduct = () => {
   const navigate = useNavigate();
   const [showSuccess, setShowSuccess] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const handleAddProduct = async (product: ProductInput) => {
-    const { error } = await addProduct(product);
+    try {
+      setSaving(true);
 
-    if (error) {
-      alert(error.message);
-      return;
+      await addBackendProduct(product);
+
+      await addAuditLog({
+        action: "Product Added",
+        module: "Inventory",
+        description: `${product.name} was added to the inventory.`,
+      });
+
+      setShowSuccess(true);
+    } catch (error) {
+      console.error(error);
+      alert("Failed to add product. Please check your backend connection.");
+    } finally {
+      setSaving(false);
     }
-
-    await addAuditLog({
-      action: "Product Added",
-      module: "Inventory",
-      description: `${product.name} was added to the inventory.`,
-    });
-
-    setShowSuccess(true);
   };
 
   return (
@@ -49,6 +54,8 @@ const AddProduct = () => {
             Fill in the details below. Make sure the quantity, price, image, and
             stock limit are correct before saving.
           </p>
+
+          {saving && <p className="saving-text">Saving product...</p>}
         </div>
 
         <ProductForm onSubmit={handleAddProduct} />
@@ -57,7 +64,7 @@ const AddProduct = () => {
       <SuccessModal
         show={showSuccess}
         title="Product Added"
-        message="The product, including its image if selected, was successfully added to your inventory."
+        message="The product was successfully added through your backend API."
         onClose={() => navigate("/inventory")}
       />
     </section>

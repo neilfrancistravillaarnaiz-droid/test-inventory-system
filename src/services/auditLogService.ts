@@ -1,16 +1,33 @@
-import { supabase } from "../lib/supabaseClient";
+const API_URL = "http://localhost:8000";
 
-export const getAuditLogs = async () => {
-  return await supabase
-    .from("audit_logs")
-    .select("*")
-    .order("created_at", { ascending: false });
-};
-
-export const addAuditLog = async (log: {
+export type AuditLogInput = {
   action: string;
   module: string;
   description: string;
-}) => {
-  return await supabase.from("audit_logs").insert([log]);
+};
+
+export const getAuditLogs = async () => {
+  const response = await fetch(`${API_URL}/audit-logs`);
+
+  if (!response.ok) {
+    throw new Error("Failed to load audit logs.");
+  }
+
+  return response.json();
+};
+
+export const addAuditLog = async (log: AuditLogInput) => {
+  const response = await fetch(`${API_URL}/audit-logs`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(log),
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to add audit log.");
+  }
+
+  return response.json();
 };
