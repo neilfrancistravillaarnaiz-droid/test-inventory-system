@@ -64,7 +64,7 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
   };
 
   return (
-    <main className="stock-auth-page">
+    <main className="stock-auth-page auth-final-page">
 
       {/* ══════════════════════════════════
           LEFT PANEL
