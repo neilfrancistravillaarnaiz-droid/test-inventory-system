@@ -498,13 +498,13 @@
 
 /* Small alignment tweak: lift only the left-panel content. */
 .auth-final-page .stock-auth-left > .auth-hero-brand {
-  margin-top: clamp(-46px, -4vh, -28px) !important;
+  margin-top: clamp(-92px, -8vh, -58px) !important;
 }
 
 .auth-final-page .stock-auth-left > .auth-feature-list {
-  margin-top: clamp(-8px, -1vh, -4px) !important;
+  margin-top: clamp(-14px, -1.5vh, -8px) !important;
 }
 
 .auth-final-page .auth-hero-icon {
-  transform: translateY(clamp(-22px, -2.2vh, -12px)) !important;
+  transform: none !important;
 }
