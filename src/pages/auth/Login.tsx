@@ -81,7 +81,9 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
 
         {/* Brand */}
         <div className="auth-hero-brand">
-          <div className="auth-hero-icon">□</div>
+          <div className="auth-hero-icon">
+            <video src="/logo.mp4" autoPlay loop muted playsInline aria-label="CCD StockFlow logo" />
+          </div>
           <h1 className="auth-hero-title">
             <span>CCD StockFlow</span>
             <span>Inventory System</span>

@@ -92,6 +92,15 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.34) !important;
   backdrop-filter: blur(18px) saturate(140%) !important;
   -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+  overflow: hidden !important;
+}
+
+.auth-final-page .auth-hero-icon video {
+  width: 74% !important;
+  height: 74% !important;
+  display: block !important;
+  object-fit: contain !important;
+  border-radius: 14px !important;
 }
 
 .auth-final-page .auth-hero-title {
