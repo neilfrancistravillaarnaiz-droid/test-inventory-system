@@ -58,10 +58,12 @@
   z-index: 2 !important;
   pointer-events: none !important;
   background:
-    linear-gradient(90deg, rgba(17, 70, 31, 0.34), rgba(78, 140, 101, 0.18)),
-    rgba(255, 255, 255, 0.08) !important;
-  backdrop-filter: blur(2px) saturate(110%) !important;
-  -webkit-backdrop-filter: blur(2px) saturate(110%) !important;
+    radial-gradient(circle at 18% 20%, rgba(65, 150, 79, 0.34), transparent 38%),
+    radial-gradient(circle at 78% 82%, rgba(25, 122, 62, 0.34), transparent 42%),
+    linear-gradient(90deg, rgba(12, 76, 32, 0.58), rgba(43, 135, 74, 0.34)),
+    rgba(10, 54, 22, 0.22) !important;
+  backdrop-filter: blur(3px) saturate(140%) !important;
+  -webkit-backdrop-filter: blur(3px) saturate(140%) !important;
 }
 
 .auth-final-page .stock-auth-left > *:not(.auth-bg-video) {
@@ -144,11 +146,16 @@
   padding: 16px 20px !important;
   border-radius: 18px !important;
   color: #ffffff !important;
-  background: rgba(255, 255, 255, 0.22) !important;
-  border: 1px solid rgba(255, 255, 255, 0.34) !important;
-  box-shadow: 0 16px 40px rgba(20, 82, 38, 0.18) !important;
-  backdrop-filter: blur(18px) saturate(135%) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(135%) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.08)),
+    rgba(35, 132, 68, 0.16) !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  box-shadow:
+    0 18px 44px rgba(12, 72, 32, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.30),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.10) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
 }
 
 .auth-final-page .feature-icon {
@@ -191,9 +198,11 @@
   inset: 0 !important;
   z-index: 1 !important;
   pointer-events: none !important;
-  background: rgba(226, 242, 232, 0.24) !important;
-  backdrop-filter: blur(2px) saturate(108%) !important;
-  -webkit-backdrop-filter: blur(2px) saturate(108%) !important;
+  background:
+    radial-gradient(circle at 72% 14%, rgba(67, 144, 79, 0.12), transparent 34%),
+    rgba(226, 242, 232, 0.18) !important;
+  backdrop-filter: blur(2px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(2px) saturate(120%) !important;
 }
 
 .auth-final-page .stock-auth-right .auth-bg-video {
@@ -238,13 +247,17 @@
   height: 100% !important;
   display: block !important;
   border-radius: 34px !important;
-  background: rgba(238, 250, 244, 0.72) !important;
-  border: 1px solid rgba(255, 255, 255, 0.88) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(232, 250, 241, 0.42)),
+    rgba(235, 250, 242, 0.48) !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
   box-shadow:
-    0 28px 74px rgba(15, 42, 24, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
-  backdrop-filter: blur(24px) saturate(165%) !important;
-  -webkit-backdrop-filter: blur(24px) saturate(165%) !important;
+    0 30px 80px rgba(15, 42, 24, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.18) !important;
+  backdrop-filter: blur(30px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
   overflow-y: auto !important;
   backface-visibility: hidden !important;
   -webkit-backface-visibility: hidden !important;
@@ -311,6 +324,11 @@
   min-height: 68px !important;
   border-radius: 18px !important;
   font-size: 17px !important;
+  background: rgba(255, 255, 255, 0.66) !important;
+  border-color: rgba(255, 255, 255, 0.74) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.70),
+    0 8px 24px rgba(17, 55, 30, 0.07) !important;
 }
 
 .auth-final-page .auth-submit-btn {
