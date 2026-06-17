@@ -85,7 +85,7 @@
   border-radius: 24px !important;
   color: #ffffff !important;
   font-size: clamp(32px, 3vw, 46px) !important;
-  background: rgba(67, 144, 79, 0.64) !important;
+  background: rgba(72, 146, 82, 0.72) !important;
   border: 1px solid rgba(255, 255, 255, 0.34) !important;
   box-shadow:
     0 14px 46px rgba(20, 78, 34, 0.32),
@@ -96,11 +96,20 @@
 }
 
 .auth-final-page .auth-hero-icon video {
-  width: 74% !important;
-  height: 74% !important;
+  width: 82% !important;
+  height: 82% !important;
   display: block !important;
   object-fit: contain !important;
-  border-radius: 14px !important;
+  border-radius: 999px !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  filter: saturate(1.08) contrast(1.04) brightness(1.02) !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.auth-final-page .auth-hero-icon::after {
+  content: none !important;
 }
 
 .auth-final-page .auth-hero-title {
