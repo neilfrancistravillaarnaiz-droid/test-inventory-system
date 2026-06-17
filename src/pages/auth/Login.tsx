@@ -44,6 +44,17 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
     { icon: ShieldCheck, title: "Audit Trail Monitoring",   desc: "Monitor actions with audit logs."     },
   ];
 
+  const renderTitleLine = (text: string) =>
+    text.split("").map((char, index) => (
+      <span
+        className={char === " " ? "auth-title-space" : "auth-title-letter"}
+        key={`${text}-${index}`}
+        aria-hidden="true"
+      >
+        {char === " " ? "\u00A0" : char}
+      </span>
+    ));
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -84,9 +95,9 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
           <div className="auth-hero-icon">
             <video src="/logo.mp4" autoPlay loop muted playsInline aria-label="CCD StockFlow logo" />
           </div>
-          <h1 className="auth-hero-title">
-            <span>CCD StockFlow</span>
-            <span>Inventory System</span>
+          <h1 className="auth-hero-title" aria-label="CCD Inventory System">
+            <span className="auth-title-line">{renderTitleLine("CCD Inventory")}</span>
+            <span className="auth-title-line">{renderTitleLine("System")}</span>
           </h1>
           <p className="auth-hero-copy">
             The intelligent inventory platform that helps you track, analyze,

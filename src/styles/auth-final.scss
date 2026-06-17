@@ -74,8 +74,10 @@
 .auth-final-page .auth-hero-brand {
   width: min(930px, 100%) !important;
   margin: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
+  display: grid !important;
+  grid-template-columns: clamp(72px, 5vw, 88px) minmax(0, 1fr) !important;
+  column-gap: clamp(18px, 2vw, 28px) !important;
+  row-gap: clamp(16px, 2vh, 24px) !important;
   align-items: flex-start !important;
   padding-left: 0 !important;
 }
@@ -83,7 +85,7 @@
 .auth-final-page .auth-hero-icon {
   width: clamp(72px, 5vw, 88px) !important;
   height: clamp(72px, 5vw, 88px) !important;
-  margin: 0 0 clamp(22px, 3vh, 34px) !important;
+  margin: 0 !important;
   display: grid !important;
   place-items: center !important;
   border-radius: 24px !important;
@@ -126,10 +128,11 @@
   display: flex !important;
   flex-direction: column !important;
   align-items: flex-start !important;
-  gap: 4px !important;
-  margin: 0 0 clamp(16px, 2.2vh, 26px) !important;
+  align-self: center !important;
+  gap: 2px !important;
+  margin: 0 !important;
   color: #ffffff !important;
-  font-size: clamp(50px, 4.45vw, 76px) !important;
+  font-size: clamp(42px, 3.75vw, 66px) !important;
   line-height: 1.02 !important;
   letter-spacing: -0.055em !important;
   font-weight: 900 !important;
@@ -172,6 +175,7 @@
 }
 
 .auth-final-page .auth-hero-copy {
+  grid-column: 1 / -1 !important;
   width: min(840px, 100%) !important;
   margin: 0 !important;
   color: rgba(255, 255, 255, 0.95) !important;
@@ -456,6 +460,18 @@
   .auth-final-page .auth-hero-title span {
     width: auto !important;
     white-space: normal !important;
+  }
+
+  .auth-final-page .auth-hero-brand {
+    grid-template-columns: 1fr !important;
+  }
+
+  .auth-final-page .auth-hero-title {
+    font-size: clamp(38px, 11vw, 58px) !important;
+  }
+
+  .auth-final-page .auth-hero-copy {
+    grid-column: auto !important;
   }
 
   .auth-final-page .auth-feature-list {
