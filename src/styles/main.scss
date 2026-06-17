@@ -4474,3 +4474,185 @@ body.light-mode .product-location-card p { color: #2d7a3a; }
     transform: none !important;
   }
 }
+
+/* =====================================================
+   AUTH TARGET LOOK - match deployed page to local reference
+===================================================== */
+.stock-auth-page {
+  grid-template-columns: minmax(0, 58%) minmax(520px, 42%) !important;
+  width: 100vw !important;
+  height: 100svh !important;
+  min-height: 100svh !important;
+  overflow: hidden !important;
+}
+
+.stock-auth-page .auth-bg-video {
+  opacity: 0.88 !important;
+  filter: saturate(105%) contrast(0.96) brightness(0.92) !important;
+}
+
+.stock-auth-left {
+  padding: clamp(34px, 5vw, 92px) clamp(42px, 5vw, 96px) !important;
+  background: rgba(28, 91, 45, 0.30) !important;
+}
+
+.stock-auth-left::after {
+  background:
+    linear-gradient(90deg, rgba(22, 74, 38, 0.42), rgba(64, 132, 92, 0.20)),
+    rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(2px) saturate(112%) !important;
+  -webkit-backdrop-filter: blur(2px) saturate(112%) !important;
+}
+
+.auth-hero-icon {
+  width: clamp(70px, 5vw, 86px) !important;
+  height: clamp(70px, 5vw, 86px) !important;
+  margin-bottom: clamp(22px, 3vh, 36px) !important;
+}
+
+.auth-hero-title {
+  font-size: clamp(56px, 4.8vw, 88px) !important;
+  line-height: 1.05 !important;
+  margin-bottom: clamp(20px, 2.7vh, 34px) !important;
+}
+
+.auth-hero-copy {
+  width: min(840px, 100%) !important;
+  font-size: clamp(16px, 1.2vw, 22px) !important;
+  line-height: 1.42 !important;
+}
+
+.auth-feature-list {
+  width: min(925px, 100%) !important;
+  gap: clamp(14px, 2vh, 22px) !important;
+}
+
+.auth-feature {
+  min-height: 92px !important;
+  padding: 16px 20px !important;
+  background: rgba(255, 255, 255, 0.20) !important;
+  border-color: rgba(255, 255, 255, 0.30) !important;
+}
+
+.stock-auth-right {
+  background: rgba(218, 238, 224, 0.20) !important;
+}
+
+.stock-auth-right::after {
+  background: rgba(220, 240, 228, 0.20) !important;
+  backdrop-filter: blur(2px) saturate(108%) !important;
+  -webkit-backdrop-filter: blur(2px) saturate(108%) !important;
+}
+
+.stock-auth-right .auth-bg-video {
+  opacity: 0.74 !important;
+  filter: saturate(104%) contrast(0.96) brightness(1.02) !important;
+}
+
+.stock-auth-right > .auth-flip-wrapper {
+  width: min(720px, calc(100% - 80px)) !important;
+  height: min(835px, calc(100svh - 108px)) !important;
+  max-height: calc(100svh - 108px) !important;
+  min-height: 620px !important;
+  top: 50% !important;
+}
+
+.stock-auth-right > .auth-flip-wrapper .auth-modern-card {
+  border-radius: 34px !important;
+  background: rgba(238, 250, 244, 0.68) !important;
+  border-color: rgba(255, 255, 255, 0.86) !important;
+  box-shadow:
+    0 28px 74px rgba(15, 42, 24, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+  backdrop-filter: blur(24px) saturate(165%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(165%) !important;
+}
+
+.auth-tabs {
+  height: 82px !important;
+  border-radius: 34px 34px 0 0 !important;
+}
+
+.auth-form-body {
+  padding: clamp(36px, 5vh, 54px) clamp(44px, 4vw, 52px) !important;
+}
+
+.auth-card-heading {
+  margin-bottom: clamp(24px, 3vh, 34px) !important;
+  padding-bottom: clamp(18px, 2.4vh, 26px) !important;
+}
+
+.auth-card-heading h2 {
+  font-size: clamp(34px, 2.6vw, 46px) !important;
+}
+
+.auth-card-heading p {
+  font-size: clamp(18px, 1.35vw, 23px) !important;
+}
+
+.auth-input-wrap {
+  margin-bottom: 20px !important;
+}
+
+.auth-input-wrap input {
+  height: 68px !important;
+  min-height: 68px !important;
+  border-radius: 18px !important;
+  font-size: 17px !important;
+}
+
+.auth-options {
+  margin: 6px 0 26px !important;
+}
+
+.auth-submit-btn {
+  height: 72px !important;
+  min-height: 72px !important;
+  font-size: 19px !important;
+}
+
+.stock-auth-right > .auth-footer {
+  bottom: 24px !important;
+}
+
+@media (max-height: 850px) and (min-width: 981px) {
+  .stock-auth-right > .auth-flip-wrapper {
+    height: min(700px, calc(100svh - 86px)) !important;
+    min-height: 0 !important;
+  }
+
+  .auth-tabs {
+    height: 64px !important;
+  }
+
+  .auth-form-body {
+    padding: 26px 40px 34px !important;
+  }
+
+  .auth-card-heading {
+    margin-bottom: 18px !important;
+    padding-bottom: 16px !important;
+  }
+
+  .auth-card-heading h2 {
+    font-size: 32px !important;
+  }
+
+  .auth-card-heading p {
+    font-size: 17px !important;
+  }
+
+  .auth-input-wrap input {
+    height: 54px !important;
+    min-height: 54px !important;
+  }
+
+  .auth-submit-btn {
+    height: 58px !important;
+    min-height: 58px !important;
+  }
+
+  .auth-feature {
+    min-height: 78px !important;
+  }
+}
