@@ -498,13 +498,20 @@
 
 /* Small alignment tweak: lift only the left-panel content. */
 .auth-final-page .stock-auth-left > .auth-hero-brand {
-  margin-top: clamp(-92px, -8vh, -58px) !important;
+  margin-top: 0 !important;
 }
 
 .auth-final-page .stock-auth-left > .auth-feature-list {
-  margin-top: clamp(-14px, -1.5vh, -8px) !important;
+  margin-top: 0 !important;
 }
 
 .auth-final-page .auth-hero-icon {
   transform: none !important;
+}
+
+/* Final alignment: place the left content higher instead of centering it. */
+.auth-final-page .stock-auth-left {
+  justify-content: flex-start !important;
+  padding-top: clamp(72px, 9vh, 104px) !important;
+  padding-bottom: clamp(24px, 4vh, 44px) !important;
 }
