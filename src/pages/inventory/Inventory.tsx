@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { useProducts } from "../../hooks/useProducts";
 import ProductTable from "../../components/inventory/ProductTable";
 import SearchBar from "../../components/inventory/SearchBar";
@@ -7,7 +7,22 @@ import InventoryStats from "../../components/inventory/InventoryStats";
 
 const Inventory = () => {
   const { products, loading, fetchProducts } = useProducts();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    setSearch(searchParams.get("search") || "");
+  }, [searchParams]);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+
+    if (value.trim()) {
+      setSearchParams({ search: value });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   const filteredProducts = products.filter((product) =>
     product.name.toLowerCase().includes(search.toLowerCase())
@@ -34,7 +49,7 @@ const Inventory = () => {
 
       <SearchBar
         value={search}
-        onChange={setSearch}
+        onChange={handleSearchChange}
       />
 
       <ProductTable products={filteredProducts} refresh={fetchProducts} />

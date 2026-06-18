@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import AIInventoryAssistant from "../components/ai/AIInventoryAssistant";
+import { useProducts } from "../hooks/useProducts";
 
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -41,10 +42,37 @@ const navItems = [
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
+  const { products } = useProducts();
 
   const [isLightMode, setIsLightMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+
+  const searchResults = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    if (!query) return [];
+
+    return products
+      .filter((product) =>
+        [
+          product.name,
+          product.sku,
+          product.category,
+          product.supplier,
+          product.warehouse,
+          product.shelf,
+          product.rack,
+          product.bin,
+        ]
+          .filter(Boolean)
+          .some((value) => String(value).toLowerCase().includes(query))
+      )
+      .slice(0, 5);
+  }, [products, searchTerm]);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -82,6 +110,21 @@ const DashboardLayout = () => {
     };
   }, [profileOpen]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
+
   const toggleTheme = () => {
     setIsLightMode((prev) => {
       const newMode = !prev;
@@ -103,6 +146,25 @@ const DashboardLayout = () => {
     navigate("/login");
   };
 
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const query = searchTerm.trim();
+
+    if (!query) {
+      navigate("/inventory");
+      return;
+    }
+
+    navigate(`/inventory?search=${encodeURIComponent(query)}`);
+    setSearchFocused(false);
+  };
+
+  const openProduct = (id: string) => {
+    navigate(`/products/${id}`);
+    setSearchFocused(false);
+  };
+
   return (
     <div className="dashboard-layout command-layout">
       <main className="dashboard-main command-main">
@@ -118,11 +180,45 @@ const DashboardLayout = () => {
           </div>
 
           <div className="command-top-actions">
-            <label className="command-search" aria-label="Search inventory">
+            <form className="command-search" onSubmit={handleSearchSubmit}>
               <Search size={16} />
-              <input type="search" placeholder="Search inventory..." />
+              <input
+                ref={searchInputRef}
+                type="search"
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => {
+                  window.setTimeout(() => setSearchFocused(false), 140);
+                }}
+                placeholder="Search inventory..."
+                aria-label="Search inventory"
+              />
               <span>Ctrl K</span>
-            </label>
+
+              {searchFocused && searchTerm.trim() ? (
+                <div className="command-search-results">
+                  {searchResults.length > 0 ? (
+                    searchResults.map((product) => (
+                      <button
+                        type="button"
+                        key={product.id}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => openProduct(product.id)}
+                      >
+                        <strong>{product.name}</strong>
+                        <small>
+                          {product.category}
+                          {product.sku ? ` | ${product.sku}` : ""}
+                        </small>
+                      </button>
+                    ))
+                  ) : (
+                    <p>No matching products</p>
+                  )}
+                </div>
+              ) : null}
+            </form>
 
             <div className="theme-toggle">
               <span aria-hidden="true">
