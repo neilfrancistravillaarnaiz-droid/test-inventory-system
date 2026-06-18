@@ -4043,3 +4043,44 @@ textarea,
     border-radius: 18px !important;
   }
 }
+
+/* Extra air for Stock In / Stock Out cards */
+.stock-page {
+  gap: clamp(26px, 2.4vw, 36px) !important;
+}
+
+.stock-page .stock-summary-grid {
+  gap: clamp(24px, 2.2vw, 32px) !important;
+  margin-top: 2px !important;
+  margin-bottom: 0 !important;
+}
+
+.stock-page .stock-dashboard {
+  gap: clamp(30px, 2.8vw, 42px) !important;
+  margin-top: 0 !important;
+}
+
+.stock-page .stock-mini-card,
+.stock-page .stock-form-card,
+.stock-page .stock-preview-card {
+  margin: 0 !important;
+}
+
+.stock-page .stock-form {
+  gap: 22px !important;
+}
+
+.stock-page .form-field {
+  gap: 12px !important;
+}
+
+@media (max-width: 980px) {
+  .stock-page {
+    gap: 24px !important;
+  }
+
+  .stock-page .stock-summary-grid,
+  .stock-page .stock-dashboard {
+    gap: 22px !important;
+  }
+}
