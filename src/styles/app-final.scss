@@ -4052,12 +4052,12 @@ textarea,
 .stock-page .stock-summary-grid {
   gap: clamp(24px, 2.2vw, 32px) !important;
   margin-top: 2px !important;
-  margin-bottom: 0 !important;
+  margin-bottom: clamp(30px, 3vw, 46px) !important;
 }
 
 .stock-page .stock-dashboard {
   gap: clamp(30px, 2.8vw, 42px) !important;
-  margin-top: 0 !important;
+  margin-top: clamp(6px, 1vw, 14px) !important;
 }
 
 .stock-page .stock-mini-card,
@@ -4082,5 +4082,13 @@ textarea,
   .stock-page .stock-summary-grid,
   .stock-page .stock-dashboard {
     gap: 22px !important;
+  }
+
+  .stock-page .stock-summary-grid {
+    margin-bottom: 24px !important;
+  }
+
+  .stock-page .stock-dashboard {
+    margin-top: 0 !important;
   }
 }
