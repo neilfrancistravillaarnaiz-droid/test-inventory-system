@@ -2987,3 +2987,217 @@ textarea,
     width: 100% !important;
   }
 }
+
+/* =====================================================
+   FINAL PAGE RHYTHM - consistent gaps between sections
+===================================================== */
+:root {
+  --page-gap-xs: 8px;
+  --page-gap-sm: 12px;
+  --page-gap-md: 16px;
+  --page-gap-lg: 20px;
+}
+
+.command-main > section,
+.reports-page,
+.notifications-page,
+.dashboard-command-page,
+.stock-page,
+.settings-page,
+.audit-page,
+.qr-page,
+.qr-search-page,
+.restock-page,
+.categories-page,
+.suppliers-page,
+.users-page {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: var(--page-gap-md) !important;
+}
+
+.command-main > section > *,
+.reports-page > *,
+.notifications-page > *,
+.dashboard-command-page > *,
+.stock-page > *,
+.settings-page > *,
+.audit-page > *,
+.qr-page > *,
+.qr-search-page > *,
+.restock-page > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.report-header-row,
+.notification-header-row,
+.dashboard-command-header,
+.add-product-header,
+.page-row,
+.page-header {
+  margin-bottom: 0 !important;
+}
+
+.report-summary-grid,
+.notification-stats-grid,
+.dashboard-stat-grid,
+.card-grid,
+.stock-summary-grid,
+.stats-grid {
+  margin-top: calc(var(--page-gap-sm) * -1) !important;
+  margin-bottom: 0 !important;
+  gap: var(--page-gap-sm) !important;
+}
+
+.report-section,
+.dashboard-command-grid,
+.notification-tools,
+.stock-dashboard,
+.settings-layout,
+.restock-grid,
+.qr-grid,
+.audit-tools,
+.history-tools,
+.category-list,
+.supplier-list,
+.users-panel,
+.content-card,
+.table-card {
+  margin-top: 0 !important;
+}
+
+.notification-tools + .notification-list,
+.history-tools + .history-grid,
+.audit-tools + .audit-timeline,
+.qr-search-panel + .qr-search-results {
+  margin-top: calc(var(--page-gap-xs) * -1) !important;
+}
+
+.report-card,
+.notification-stat-card,
+.dashboard-stat-card,
+.dashboard-card,
+.stock-mini-card,
+.user-stat-card {
+  min-height: 104px !important;
+  padding: 15px 18px !important;
+}
+
+.report-card span,
+.notification-stat-card span,
+.dashboard-stat-card p,
+.dashboard-card p,
+.stock-mini-card span {
+  margin: 0 !important;
+}
+
+.report-card strong,
+.notification-stat-card strong,
+.dashboard-stat-card strong,
+.dashboard-card h3,
+.stock-mini-card strong {
+  margin-top: 8px !important;
+}
+
+.report-section {
+  padding-top: 18px !important;
+}
+
+.report-section h3 {
+  margin: 0 0 var(--page-gap-sm) !important;
+}
+
+.table-card {
+  margin-top: 0 !important;
+}
+
+.notification-list,
+.history-grid,
+.audit-timeline,
+.insight-list,
+.activity-list,
+.quick-action-list,
+.qr-search-results {
+  display: grid !important;
+  gap: var(--page-gap-sm) !important;
+}
+
+.notification-item,
+.history-card,
+.audit-content,
+.insight-item,
+.qr-search-card,
+.activity-item,
+.quick-action-list a {
+  padding-block: 12px !important;
+}
+
+.notification-tools select,
+.history-tools input,
+.history-tools select,
+.audit-tools input,
+.audit-tools select,
+.search-input {
+  margin-bottom: 0 !important;
+}
+
+.report-actions,
+.notification-actions,
+.table-actions,
+.product-detail-actions {
+  gap: var(--page-gap-sm) !important;
+}
+
+.report-actions button,
+.generate-alert-btn {
+  min-height: 42px !important;
+  padding-inline: 18px !important;
+}
+
+.page-header h2,
+.page-header h1,
+.report-header-row h2,
+.notification-header-row h2,
+.dashboard-command-header h2 {
+  margin-bottom: 0 !important;
+}
+
+.page-header p,
+.report-header-row p,
+.notification-header-row p,
+.dashboard-command-header p {
+  margin-top: 5px !important;
+}
+
+@media (max-width: 760px) {
+  .command-main > section,
+  .reports-page,
+  .notifications-page,
+  .dashboard-command-page,
+  .stock-page,
+  .settings-page,
+  .audit-page,
+  .qr-page,
+  .qr-search-page,
+  .restock-page {
+    gap: var(--page-gap-sm) !important;
+  }
+
+  .report-summary-grid,
+  .notification-stats-grid,
+  .dashboard-stat-grid,
+  .card-grid,
+  .stock-summary-grid,
+  .stats-grid {
+    margin-top: 0 !important;
+  }
+
+  .report-card,
+  .notification-stat-card,
+  .dashboard-stat-card,
+  .dashboard-card,
+  .stock-mini-card {
+    min-height: 92px !important;
+  }
+}
