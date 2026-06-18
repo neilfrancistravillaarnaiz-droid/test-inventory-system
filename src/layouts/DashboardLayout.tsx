@@ -17,6 +17,8 @@ import {
   Settings,
   User,
   LogOut,
+  Moon,
+  Sun,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import AIInventoryAssistant from "../components/ai/AIInventoryAssistant";
@@ -77,16 +79,29 @@ const DashboardLayout = () => {
     <div className="dashboard-layout command-layout">
       <main className="dashboard-main command-main">
         <header className="topbar command-topbar">
-          <div>
-            <h1>StockFlow Command Center</h1>
-            <p>Control inventory, stocks, reports, QR tools, and alerts.</p>
+          <div className="command-brand">
+            <span className="command-brand-mark">
+              <Package size={21} />
+            </span>
+            <div>
+              <h1>StockFlow Command Center</h1>
+              <p>Control inventory, stocks, reports, QR tools, and alerts.</p>
+            </div>
           </div>
 
           <div className="command-top-actions">
-            <div className="theme-toggle">
-              <span>{isLightMode ? "☀️" : "🌙"}</span>
+            <label className="command-search" aria-label="Search inventory">
+              <Search size={16} />
+              <input type="search" placeholder="Search inventory..." />
+              <span>Ctrl K</span>
+            </label>
 
-              <label className="switch">
+            <div className="theme-toggle">
+              <span aria-hidden="true">
+                {isLightMode ? <Sun size={17} /> : <Moon size={17} />}
+              </span>
+
+              <label className="switch" aria-label="Toggle theme">
                 <input
                   type="checkbox"
                   checked={isLightMode}
@@ -97,6 +112,15 @@ const DashboardLayout = () => {
             </div>
 
             <div className="profile-menu">
+              <button
+                type="button"
+                className="command-icon-btn"
+                aria-label="Sign out"
+                onClick={handleLogout}
+              >
+                <LogOut size={18} />
+              </button>
+
               <button
                 type="button"
                 className="supabase-avatar-btn"
