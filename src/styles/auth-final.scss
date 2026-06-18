@@ -71,6 +71,17 @@
   z-index: 3 !important;
 }
 
+.auth-final-page .auth-left-content {
+  position: absolute !important;
+  top: clamp(34px, 5vh, 58px) !important;
+  left: clamp(42px, 5vw, 96px) !important;
+  right: clamp(42px, 5vw, 96px) !important;
+  z-index: 4 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: clamp(16px, 2vh, 24px) !important;
+}
+
 .auth-final-page .auth-hero-brand {
   width: min(930px, 100%) !important;
   margin: 0 !important;
@@ -514,4 +525,11 @@
   justify-content: flex-start !important;
   padding-top: clamp(14px, 2vh, 26px) !important;
   padding-bottom: clamp(24px, 4vh, 44px) !important;
+}
+
+@media (max-height: 820px) and (min-width: 981px) {
+  .auth-final-page .auth-left-content {
+    top: clamp(20px, 3vh, 34px) !important;
+    gap: 14px !important;
+  }
 }

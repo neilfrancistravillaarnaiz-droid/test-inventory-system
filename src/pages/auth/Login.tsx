@@ -90,46 +90,48 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
         <div className="auth-orb orb-two" />
         <div className="auth-orb orb-three" />
 
-        {/* Brand */}
-        <div className="auth-hero-brand">
-          <div className="auth-hero-icon">
-            <video src="/logo.mp4" autoPlay loop muted playsInline aria-label="CCD StockFlow logo" />
+        <div className="auth-left-content">
+          {/* Brand */}
+          <div className="auth-hero-brand">
+            <div className="auth-hero-icon">
+              <video src="/logo.mp4" autoPlay loop muted playsInline aria-label="CCD StockFlow logo" />
+            </div>
+            <h1 className="auth-hero-title" aria-label="CCD Inventory System">
+              <span className="auth-title-line">{renderTitleLine("CCD Inventory")}</span>
+              <span className="auth-title-line">{renderTitleLine("System")}</span>
+            </h1>
+            <p className="auth-hero-copy">
+              The intelligent inventory platform that helps you track, analyze,
+              and optimize your stock across every warehouse and storefront.
+            </p>
           </div>
-          <h1 className="auth-hero-title" aria-label="CCD Inventory System">
-            <span className="auth-title-line">{renderTitleLine("CCD Inventory")}</span>
-            <span className="auth-title-line">{renderTitleLine("System")}</span>
-          </h1>
-          <p className="auth-hero-copy">
-            The intelligent inventory platform that helps you track, analyze,
-            and optimize your stock across every warehouse and storefront.
-          </p>
-        </div>
 
-        {/* Features */}
-        <div className="auth-feature-list">
-          {features.map((f) => {
-            const Icon = f.icon;
-            return (
-              <div className="auth-feature" key={f.title}>
-                <div className="feature-icon">
-                  <Icon size={18} strokeWidth={2.2} />
+          {/* Features */}
+          <div className="auth-feature-list">
+            {features.map((f) => {
+              const Icon = f.icon;
+              return (
+                <div className="auth-feature" key={f.title}>
+                  <div className="feature-icon">
+                    <Icon size={18} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <h3>{f.title}</h3>
+                    <p>{f.desc}</p>
+                  </div>
                 </div>
-                <div>
-                  <h3>{f.title}</h3>
-                  <p>{f.desc}</p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Trust */}
-        <div className="auth-trust">
-          <div className="trust-avatars">
-            <span>A</span><span>B</span><span>C</span><span>D</span>
+              );
+            })}
           </div>
-          <strong>2,400+</strong>
-          <p>businesses trust StockFlow</p>
+
+          {/* Trust */}
+          <div className="auth-trust">
+            <div className="trust-avatars">
+              <span>A</span><span>B</span><span>C</span><span>D</span>
+            </div>
+            <strong>2,400+</strong>
+            <p>businesses trust StockFlow</p>
+          </div>
         </div>
       </section>
 
