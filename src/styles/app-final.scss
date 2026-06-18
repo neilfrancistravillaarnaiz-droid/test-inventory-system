@@ -1157,3 +1157,544 @@ body.light-mode .report-card span {
     justify-content: flex-start !important;
   }
 }
+
+/* =====================================================
+   APP POLISH OVERRIDES - visibility, spacing, dock motion
+===================================================== */
+.command-layout {
+  font-size: 15px !important;
+  line-height: 1.45 !important;
+  text-rendering: geometricPrecision !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+.command-main > section,
+.command-main > div:not(.supabase-profile-panel) {
+  width: 100% !important;
+}
+
+.page-header,
+.section-header,
+.report-header-row,
+.notification-header-row,
+.add-product-header,
+.dashboard-command-header {
+  margin-bottom: clamp(18px, 2vw, 24px) !important;
+}
+
+.page-header h1,
+.page-header h2,
+.section-header h2,
+.section-header h3,
+.report-header-row h2,
+.notification-header-row h2,
+.add-product-header h2 {
+  margin: 0 !important;
+  color: #17301a !important;
+  font-size: clamp(28px, 3.4vw, 44px) !important;
+  line-height: 1.02 !important;
+  letter-spacing: -0.04em !important;
+  text-shadow: none !important;
+}
+
+.page-header p,
+.section-header p,
+.report-header-row p,
+.notification-header-row p,
+.add-product-header p {
+  margin: 7px 0 0 !important;
+  max-width: 760px !important;
+  color: #5b805f !important;
+  font-size: clamp(14px, 1.15vw, 16px) !important;
+  line-height: 1.45 !important;
+  font-weight: 800 !important;
+}
+
+.content-card,
+.table-card,
+.dashboard-card,
+.product-form,
+.add-product-card,
+.category-form,
+.category-list,
+.supplier-form,
+.supplier-list,
+.stock-form-card,
+.stock-preview-card,
+.stock-mini-card,
+.history-card,
+.report-card,
+.report-section,
+.user-stat-card,
+.user-profile-card,
+.user-form,
+.users-panel,
+.settings-form,
+.settings-preview,
+.settings-preview-box,
+.notification-stat-card,
+.notification-item,
+.audit-content,
+.insight-panel,
+.qr-card,
+.qr-search-panel,
+.qr-search-card,
+.product-info-card,
+.product-image-card,
+.restock-card,
+.ai-assistant-card,
+.modal,
+.confirm-dialog,
+.success-modal {
+  color: #17301a !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(245, 251, 247, 0.68)),
+    rgba(235, 248, 239, 0.62) !important;
+  border: 1px solid rgba(45, 122, 58, 0.14) !important;
+  border-radius: 18px !important;
+  box-shadow:
+    0 18px 48px rgba(38, 91, 52, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(20px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(145%) !important;
+}
+
+.content-card:hover,
+.table-card:hover,
+.dashboard-card:hover,
+.category-item:hover,
+.supplier-item:hover,
+.stock-mini-card:hover,
+.stock-form-card:hover,
+.stock-preview-card:hover,
+.history-card:hover,
+.report-card:hover,
+.user-stat-card:hover,
+.user-profile-card:hover,
+.notification-stat-card:hover,
+.notification-item:hover,
+.audit-content:hover,
+.insight-item:hover,
+.qr-card:hover,
+.qr-search-card:hover,
+.product-info-card:hover,
+.product-image-card:hover,
+.restock-card:hover {
+  transform: translateY(-2px) !important;
+  box-shadow:
+    0 24px 56px rgba(38, 91, 52, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+}
+
+.content-card h1,
+.content-card h2,
+.content-card h3,
+.table-card h1,
+.table-card h2,
+.table-card h3,
+.product-form h3,
+.category-form h3,
+.category-list h3,
+.supplier-form h3,
+.supplier-list h3,
+.stock-form-card h3,
+.stock-preview-card h3,
+.report-section h3,
+.user-form h3,
+.users-panel h3,
+.settings-form h3,
+.settings-preview h3,
+.notification-content h3,
+.audit-content h3,
+.qr-card h3,
+.qr-search-panel h3,
+.qr-search-card h3,
+.product-info-card h3,
+.restock-card h3,
+.restock-card-header h3 {
+  color: #17301a !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.18 !important;
+  text-shadow: none !important;
+}
+
+.content-card p,
+.content-card small,
+.dashboard-card p,
+.table-card p,
+.product-form p,
+.category-form p,
+.category-list p,
+.supplier-form p,
+.supplier-list p,
+.stock-form-card p,
+.stock-preview-card p,
+.stock-mini-card span,
+.history-card p,
+.report-card span,
+.report-section p,
+.user-form p,
+.users-panel p,
+.settings-form p,
+.settings-preview p,
+.notification-content p,
+.notification-content small,
+.audit-content p,
+.audit-content small,
+.qr-card p,
+.qr-card small,
+.qr-code-text,
+.qr-search-panel p,
+.qr-search-card p,
+.qr-search-card span,
+.product-info-card p,
+.restock-card p,
+.restock-card-header p,
+.restock-metrics small,
+.restock-recommendation span,
+.empty-cell,
+.loader {
+  color: #5f7f64 !important;
+}
+
+.dashboard-card h3,
+.stock-mini-card strong,
+.report-card strong,
+.notification-stat-card strong,
+.restock-metrics strong,
+.restock-recommendation strong,
+.settings-preview-box strong {
+  color: #17301a !important;
+  text-shadow: none !important;
+}
+
+.report-card.warning strong,
+.notification-stat-card.warning strong {
+  color: #a5740d !important;
+}
+
+.notification-stat-card.danger strong,
+.danger-value {
+  color: #c53d35 !important;
+}
+
+.card-grid,
+.stats-grid,
+.report-summary-grid,
+.notification-stats-grid,
+.stock-summary-grid,
+.restock-grid,
+.qr-grid,
+.settings-grid {
+  gap: clamp(14px, 1.6vw, 20px) !important;
+}
+
+.table-card {
+  padding: clamp(16px, 1.8vw, 22px) !important;
+  overflow-x: auto !important;
+}
+
+table {
+  color: #17301a !important;
+  border-collapse: collapse !important;
+}
+
+thead th,
+th {
+  color: #5b805f !important;
+  background: rgba(47, 125, 59, 0.07) !important;
+  border-bottom: 1px solid rgba(45, 122, 58, 0.16) !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.02em !important;
+}
+
+td {
+  color: #244428 !important;
+  border-bottom: 1px solid rgba(45, 122, 58, 0.10) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+tbody tr:hover {
+  background: rgba(82, 168, 98, 0.10) !important;
+}
+
+.inventory-product {
+  color: #17301a !important;
+}
+
+.inventory-product-info span {
+  color: #17301a !important;
+  font-size: 15px !important;
+}
+
+.inventory-product-info small {
+  color: #6a886f !important;
+}
+
+.inventory-product img,
+.qr-search-card img,
+.product-image-card img {
+  border-color: rgba(45, 122, 58, 0.16) !important;
+  background: rgba(239, 247, 241, 0.9) !important;
+}
+
+input,
+select,
+textarea,
+.search-input {
+  min-height: 44px !important;
+  color: #17301a !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(45, 122, 58, 0.16) !important;
+  border-radius: 13px !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 10px 24px rgba(38, 91, 52, 0.08) !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.form-field label,
+.product-form label,
+.settings-form label,
+.stock-form label,
+.category-form label,
+.supplier-form label,
+.user-form label {
+  color: #244428 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+.product-form,
+.settings-form,
+.stock-form,
+.category-form,
+.supplier-form,
+.user-form {
+  gap: clamp(12px, 1.4vw, 16px) !important;
+}
+
+button,
+.primary-link,
+.add-btn,
+.edit-btn,
+.back-link,
+.report-actions button,
+.product-form button,
+.stock-form button,
+.category-form button,
+.supplier-form button,
+.user-form button,
+.settings-form button,
+.generate-alert-btn,
+.qr-card button.print-button,
+.product-detail-actions a {
+  min-height: 42px !important;
+  border-radius: 999px !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    filter 0.18s ease !important;
+}
+
+.primary-link,
+.add-btn,
+.back-link,
+.report-actions button,
+.product-form button,
+.stock-form button,
+.category-form button,
+.supplier-form button,
+.user-form button,
+.settings-form button,
+.generate-alert-btn,
+.qr-card button.print-button,
+.product-detail-actions a {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #3f8f4b, #2f7d3b) !important;
+  border: 1px solid rgba(255, 255, 255, 0.34) !important;
+  box-shadow: 0 14px 28px rgba(45, 122, 58, 0.24) !important;
+}
+
+.edit-btn {
+  color: #5f4200 !important;
+  background: #fff1bf !important;
+  border: 1px solid rgba(201, 162, 39, 0.28) !important;
+}
+
+.danger-btn,
+.modal-danger-btn,
+.notification-actions button:last-child {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #d65349, #c53d35) !important;
+}
+
+.badge {
+  padding: 5px 10px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0 !important;
+}
+
+.badge.success {
+  color: #2f7d3b !important;
+  background: #dff4e5 !important;
+  border-color: rgba(47, 125, 59, 0.20) !important;
+}
+
+.badge.danger {
+  color: #c53d35 !important;
+  background: #fde2df !important;
+  border-color: rgba(197, 61, 53, 0.20) !important;
+}
+
+.notification-item,
+.audit-item,
+.qr-search-card,
+.history-card,
+.user-profile-card,
+.insight-item {
+  align-items: center !important;
+}
+
+.settings-layout,
+.stock-dashboard {
+  gap: clamp(18px, 2vw, 24px) !important;
+}
+
+.settings-preview {
+  top: 18px !important;
+}
+
+.ai-floating-btn {
+  right: 24px !important;
+  bottom: 104px !important;
+}
+
+.command-dock {
+  overflow: visible !important;
+  gap: 7px !important;
+  transition:
+    opacity 0.24s ease,
+    transform 0.38s cubic-bezier(0.22, 0.8, 0.22, 1),
+    box-shadow 0.24s ease !important;
+}
+
+.command-dock-item {
+  position: relative !important;
+  flex: 0 0 44px !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  max-width: 44px !important;
+  transform: translateY(0) scale(1) !important;
+  transition:
+    flex-basis 0.34s cubic-bezier(0.22, 0.8, 0.22, 1),
+    max-width 0.34s cubic-bezier(0.22, 0.8, 0.22, 1),
+    transform 0.24s cubic-bezier(0.22, 0.8, 0.22, 1),
+    background 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease !important;
+  will-change: flex-basis, max-width, transform !important;
+}
+
+.command-dock-item span {
+  display: inline-block !important;
+  max-width: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  transform: translateX(-8px) !important;
+  transition:
+    max-width 0.34s cubic-bezier(0.22, 0.8, 0.22, 1),
+    opacity 0.18s ease,
+    transform 0.24s ease !important;
+}
+
+.command-dock-item:hover,
+.command-dock-item.active {
+  flex-basis: 132px !important;
+  width: 132px !important;
+  min-width: 132px !important;
+  max-width: 132px !important;
+  transform: translateY(-4px) scale(1.02) !important;
+}
+
+.command-dock-item:hover span,
+.command-dock-item.active span {
+  max-width: 86px !important;
+  opacity: 1 !important;
+  transform: translateX(0) !important;
+}
+
+.command-dock-item svg {
+  flex: 0 0 auto !important;
+  transition: transform 0.22s ease !important;
+}
+
+.command-dock-item:hover svg,
+.command-dock-item.active svg {
+  transform: scale(1.08) !important;
+}
+
+@media (max-width: 1100px) {
+  .settings-layout,
+  .stock-dashboard,
+  .qr-search-row,
+  .audit-tools {
+    grid-template-columns: 1fr !important;
+  }
+
+  .report-header-row,
+  .notification-header-row,
+  .add-product-header,
+  .page-row {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .command-main {
+    padding: 14px 12px 116px !important;
+  }
+
+  .command-topbar {
+    gap: 14px !important;
+    padding: 14px !important;
+  }
+
+  .command-search {
+    order: 3 !important;
+    flex: 1 0 100% !important;
+  }
+
+  .product-form,
+  .settings-grid,
+  .stock-summary-grid,
+  .report-summary-grid,
+  .notification-stats-grid,
+  .card-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .product-form button {
+    grid-column: auto !important;
+  }
+
+  .command-dock {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scroll-snap-type: x proximity !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .command-dock-item {
+    scroll-snap-align: center !important;
+  }
+}
