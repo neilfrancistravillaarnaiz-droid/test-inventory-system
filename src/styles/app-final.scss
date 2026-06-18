@@ -2211,3 +2211,372 @@ td {
     display: none !important;
   }
 }
+
+/* =====================================================
+   LIQUID GLASS VISIBILITY PASS - all app pages
+===================================================== */
+:root {
+  --liquid-text: #102f18;
+  --liquid-muted: #55765b;
+  --liquid-border: rgba(255, 255, 255, 0.72);
+  --liquid-tint: rgba(223, 244, 229, 0.56);
+  --liquid-highlight: rgba(255, 255, 255, 0.86);
+  --liquid-shadow: rgba(31, 91, 48, 0.14);
+}
+
+.command-layout {
+  color: var(--liquid-text) !important;
+}
+
+.command-topbar,
+.content-card,
+.table-card,
+.dashboard-card,
+.dashboard-stat-card,
+.dashboard-panel,
+.product-form,
+.add-product-card,
+.category-form,
+.category-list,
+.supplier-form,
+.supplier-list,
+.stock-form-card,
+.stock-preview-card,
+.stock-mini-card,
+.history-card,
+.report-card,
+.report-section,
+.user-stat-card,
+.user-profile-card,
+.user-form,
+.users-panel,
+.settings-form,
+.settings-preview,
+.notification-stat-card,
+.notification-item,
+.audit-content,
+.insight-panel,
+.qr-card,
+.qr-search-panel,
+.qr-search-card,
+.product-info-card,
+.product-image-card,
+.restock-card,
+.ai-assistant-card,
+.modal,
+.confirm-dialog,
+.success-modal {
+  color: var(--liquid-text) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.42) 48%, rgba(232, 248, 239, 0.48)),
+    radial-gradient(circle at 12% 8%, rgba(255, 255, 255, 0.86), transparent 32%),
+    radial-gradient(circle at 85% 92%, rgba(92, 163, 88, 0.16), transparent 38%),
+    rgba(238, 248, 241, 0.58) !important;
+  border: 1px solid var(--liquid-border) !important;
+  box-shadow:
+    0 20px 52px var(--liquid-shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 -1px 0 rgba(47, 125, 59, 0.08) !important;
+  backdrop-filter: blur(28px) saturate(180%) contrast(1.03) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) contrast(1.03) !important;
+}
+
+.command-topbar::before,
+.content-card::before,
+.table-card::before,
+.dashboard-card::before,
+.dashboard-stat-card::before,
+.dashboard-panel::before,
+.product-form::before,
+.add-product-card::before,
+.stock-form-card::before,
+.stock-preview-card::before,
+.report-card::before,
+.report-section::before,
+.settings-form::before,
+.settings-preview::before,
+.notification-item::before,
+.audit-content::before,
+.qr-card::before,
+.restock-card::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 1px !important;
+  z-index: 0 !important;
+  pointer-events: none !important;
+  border-radius: inherit !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.52), transparent 34%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.22), transparent 42%) !important;
+  opacity: 0.58 !important;
+}
+
+.command-topbar,
+.content-card,
+.table-card,
+.dashboard-card,
+.dashboard-stat-card,
+.dashboard-panel,
+.product-form,
+.add-product-card,
+.stock-form-card,
+.stock-preview-card,
+.report-card,
+.report-section,
+.settings-form,
+.settings-preview,
+.notification-item,
+.audit-content,
+.qr-card,
+.restock-card {
+  position: relative !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+}
+
+.command-topbar > *,
+.content-card > *,
+.table-card > *,
+.dashboard-card > *,
+.dashboard-stat-card > *,
+.dashboard-panel > *,
+.product-form > *,
+.add-product-card > *,
+.stock-form-card > *,
+.stock-preview-card > *,
+.report-card > *,
+.report-section > *,
+.settings-form > *,
+.settings-preview > *,
+.notification-item > *,
+.audit-content > *,
+.qr-card > *,
+.restock-card > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.restock-metrics div,
+.restock-recommendation,
+.settings-preview-box,
+.stock-preview-item,
+.history-card,
+.category-item,
+.supplier-item,
+.insight-item,
+.notification-icon,
+.activity-item,
+.quick-action-list a,
+.mini-status,
+.badge,
+.stat-icon,
+.form-badge,
+.product-location-card,
+.report-card span,
+.dashboard-date-pill,
+.panel-title-row span {
+  color: var(--liquid-text) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(229, 246, 235, 0.40)),
+    rgba(223, 244, 229, 0.46) !important;
+  border: 1px solid rgba(255, 255, 255, 0.62) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 10px 26px rgba(31, 91, 48, 0.09) !important;
+  backdrop-filter: blur(18px) saturate(170%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(170%) !important;
+}
+
+.restock-metrics div {
+  min-height: 118px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  padding: 18px !important;
+  border-radius: 18px !important;
+}
+
+.restock-metrics small,
+.restock-recommendation span,
+.stock-preview-item small,
+.settings-preview-box span,
+.product-location-card span,
+.product-location-card p {
+  color: var(--liquid-muted) !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  line-height: 1.35 !important;
+}
+
+.restock-metrics strong,
+.restock-recommendation strong,
+.settings-preview-box strong,
+.stock-preview-item strong,
+.history-card strong,
+.product-location-card strong {
+  color: var(--liquid-text) !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+.restock-metrics strong {
+  font-size: clamp(26px, 2.8vw, 34px) !important;
+  line-height: 1 !important;
+}
+
+.restock-recommendation {
+  min-height: 112px !important;
+  padding: 22px !important;
+  border-radius: 20px !important;
+}
+
+.restock-recommendation strong {
+  display: block !important;
+  margin-top: 8px !important;
+  font-size: clamp(26px, 2.6vw, 34px) !important;
+}
+
+.restock-card-header h3,
+.page-header h2,
+.page-header h1,
+.dashboard-command-header h2,
+.content-card h1,
+.content-card h2,
+.content-card h3,
+.table-card h3,
+.report-section h3,
+.settings-form h3,
+.settings-preview h3,
+.notification-content h3,
+.audit-content h3,
+.qr-card h3,
+.qr-search-card h3,
+.product-info-card h3,
+.restock-card h3 {
+  color: var(--liquid-text) !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.36) !important;
+}
+
+.restock-card-header p,
+.page-header p,
+.dashboard-command-header p,
+.content-card p,
+.table-card p,
+.report-section p,
+.settings-form p,
+.settings-preview p,
+.notification-content p,
+.notification-content small,
+.audit-content p,
+.audit-content small,
+.qr-card p,
+.qr-card small,
+.qr-search-card p,
+.qr-search-card span,
+.product-info-card p,
+.restock-card p {
+  color: var(--liquid-muted) !important;
+}
+
+.urgency-critical .restock-card-header span,
+.urgency-high .restock-card-header span {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #ef6b62, #d65349) !important;
+  border-color: rgba(255, 255, 255, 0.44) !important;
+}
+
+.urgency-medium .restock-card-header span {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #dcb833, #c9a227) !important;
+  border-color: rgba(255, 255, 255, 0.44) !important;
+}
+
+.urgency-low .restock-card-header span {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #66af68, #2f7d3b) !important;
+  border-color: rgba(255, 255, 255, 0.44) !important;
+}
+
+input,
+select,
+textarea,
+.search-input,
+.command-search {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(245, 251, 247, 0.64)),
+    rgba(255, 255, 255, 0.64) !important;
+  border: 1px solid rgba(255, 255, 255, 0.70) !important;
+  color: var(--liquid-text) !important;
+  backdrop-filter: blur(18px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(160%) !important;
+}
+
+input::placeholder,
+textarea::placeholder,
+.command-search input::placeholder {
+  color: #8ca1b4 !important;
+  opacity: 1 !important;
+}
+
+table,
+thead,
+tbody,
+tr,
+td,
+th {
+  background-color: transparent !important;
+}
+
+thead th,
+th {
+  color: #4d7054 !important;
+  background: rgba(255, 255, 255, 0.36) !important;
+}
+
+td {
+  color: var(--liquid-text) !important;
+}
+
+.command-dock {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(235, 248, 239, 0.46)),
+    rgba(255, 255, 255, 0.58) !important;
+  border: 1px solid rgba(255, 255, 255, 0.72) !important;
+  box-shadow:
+    0 24px 64px rgba(31, 91, 48, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+  backdrop-filter: blur(30px) saturate(190%) !important;
+  -webkit-backdrop-filter: blur(30px) saturate(190%) !important;
+}
+
+.command-dock-item {
+  color: #2f7d3b !important;
+  background: rgba(255, 255, 255, 0.26) !important;
+}
+
+.command-dock-item:hover,
+.command-dock-item.active {
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #58a05c, #2f7d3b) !important;
+}
+
+.ai-floating-btn {
+  background:
+    radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.86), transparent 30%),
+    rgba(255, 255, 255, 0.34) !important;
+  border: 1px solid rgba(255, 255, 255, 0.70) !important;
+  box-shadow: 0 22px 52px rgba(31, 91, 48, 0.22) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+}
+
+@media (max-width: 760px) {
+  .restock-metrics div {
+    min-height: 92px !important;
+  }
+
+  .restock-recommendation {
+    min-height: 92px !important;
+  }
+}
