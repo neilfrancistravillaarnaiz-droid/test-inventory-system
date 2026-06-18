@@ -4845,3 +4845,73 @@ body:not(.light-mode) .inventory-page .inventory-table td {
     gap: 18px !important;
   }
 }
+
+/* Hard stop for older tight/negative section spacing rules */
+.stock-page,
+.reports-page,
+.notifications-page,
+.audit-page,
+.qr-page,
+.qr-search-page,
+.restock-page {
+  row-gap: clamp(28px, 2.6vw, 42px) !important;
+}
+
+.stock-page .history-tools,
+.notifications-page .notification-tools,
+.audit-page .audit-tools,
+.qr-search-page .qr-search-panel {
+  margin-bottom: 0 !important;
+}
+
+.stock-page .history-tools + .history-grid,
+.notifications-page .notification-tools + .notification-list,
+.audit-page .audit-tools + .audit-timeline,
+.qr-search-page .qr-search-panel + .qr-search-results {
+  margin-top: clamp(28px, 2.6vw, 42px) !important;
+}
+
+.reports-page .report-summary-grid + .report-section,
+.reports-page .report-header-row + .report-summary-grid,
+.restock-page .page-header + .restock-grid,
+.qr-page .page-header + .qr-grid {
+  margin-top: clamp(26px, 2.4vw, 38px) !important;
+}
+
+.reports-page .report-summary-grid,
+.notifications-page .notification-stats-grid,
+.restock-page .restock-grid,
+.qr-page .qr-grid {
+  row-gap: clamp(26px, 2.4vw, 38px) !important;
+  column-gap: clamp(26px, 2.4vw, 38px) !important;
+}
+
+.stock-page .history-card + .history-card,
+.notifications-page .notification-item + .notification-item,
+.audit-page .audit-item + .audit-item,
+.qr-search-page .qr-search-card + .qr-search-card {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .stock-page,
+  .reports-page,
+  .notifications-page,
+  .audit-page,
+  .qr-page,
+  .qr-search-page,
+  .restock-page {
+    row-gap: 22px !important;
+  }
+
+  .stock-page .history-tools + .history-grid,
+  .notifications-page .notification-tools + .notification-list,
+  .audit-page .audit-tools + .audit-timeline,
+  .qr-search-page .qr-search-panel + .qr-search-results,
+  .reports-page .report-summary-grid + .report-section,
+  .reports-page .report-header-row + .report-summary-grid,
+  .restock-page .page-header + .restock-grid,
+  .qr-page .page-header + .qr-grid {
+    margin-top: 22px !important;
+  }
+}
