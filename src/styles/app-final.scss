@@ -4284,3 +4284,232 @@ textarea,
     width: min(320px, calc(100vw - 24px)) !important;
   }
 }
+
+/* =====================================================
+   FINAL THEME VISIBILITY PASS - dark + light modes
+===================================================== */
+body:not(.light-mode) .command-layout {
+  color: #eef8f0 !important;
+  background:
+    radial-gradient(circle at 14% 10%, rgba(83, 171, 93, 0.18), transparent 30%),
+    radial-gradient(circle at 84% 18%, rgba(240, 217, 138, 0.08), transparent 26%),
+    linear-gradient(135deg, #07180c 0%, #0e2f17 48%, #143f20 100%) !important;
+}
+
+body:not(.light-mode) .command-layout::before {
+  background-image:
+    linear-gradient(rgba(177, 225, 187, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(177, 225, 187, 0.055) 1px, transparent 1px) !important;
+}
+
+body:not(.light-mode) .command-topbar,
+body:not(.light-mode) .content-card,
+body:not(.light-mode) .table-card,
+body:not(.light-mode) .dashboard-card,
+body:not(.light-mode) .report-card,
+body:not(.light-mode) .notification-stat-card,
+body:not(.light-mode) .notification-item,
+body:not(.light-mode) .category-form,
+body:not(.light-mode) .category-list,
+body:not(.light-mode) .supplier-form,
+body:not(.light-mode) .supplier-list,
+body:not(.light-mode) .stock-mini-card,
+body:not(.light-mode) .stock-form-card,
+body:not(.light-mode) .stock-preview-card,
+body:not(.light-mode) .restock-card,
+body:not(.light-mode) .settings-form,
+body:not(.light-mode) .settings-preview,
+body:not(.light-mode) .users-panel,
+body:not(.light-mode) .user-profile-card,
+body:not(.light-mode) .qr-card,
+body:not(.light-mode) .qr-search-panel,
+body:not(.light-mode) .audit-content,
+body:not(.light-mode) .history-card {
+  color: #eef8f0 !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(188, 227, 196, 0.06)),
+    rgba(12, 38, 18, 0.64) !important;
+  border-color: rgba(215, 246, 221, 0.18) !important;
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+}
+
+body:not(.light-mode) h1,
+body:not(.light-mode) h2,
+body:not(.light-mode) h3,
+body:not(.light-mode) h4,
+body:not(.light-mode) .command-topbar h1,
+body:not(.light-mode) .page-header h1,
+body:not(.light-mode) .page-header h2,
+body:not(.light-mode) .section-header h3,
+body:not(.light-mode) .dashboard-card h3,
+body:not(.light-mode) .stock-mini-card strong,
+body:not(.light-mode) .report-card strong {
+  color: #f7fff8 !important;
+  text-shadow: 0 12px 34px rgba(0, 0, 0, 0.35) !important;
+}
+
+body:not(.light-mode) p,
+body:not(.light-mode) small,
+body:not(.light-mode) label,
+body:not(.light-mode) td,
+body:not(.light-mode) .command-topbar p,
+body:not(.light-mode) .page-header p,
+body:not(.light-mode) .section-header p,
+body:not(.light-mode) .dashboard-card p,
+body:not(.light-mode) .stock-mini-card span,
+body:not(.light-mode) .report-card span {
+  color: rgba(229, 246, 233, 0.78) !important;
+}
+
+body:not(.light-mode) .command-search {
+  color: rgba(232, 245, 235, 0.78) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(172, 222, 183, 0.06)),
+    rgba(7, 24, 12, 0.5) !important;
+  border-color: rgba(215, 246, 221, 0.22) !important;
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+}
+
+body:not(.light-mode) .command-search input {
+  color: #f7fff8 !important;
+  caret-color: #f0d98a !important;
+  background: transparent !important;
+}
+
+body:not(.light-mode) .command-search input::placeholder {
+  color: rgba(220, 238, 224, 0.62) !important;
+}
+
+body:not(.light-mode) .command-search span {
+  color: #dfeee3 !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+body:not(.light-mode) input,
+body:not(.light-mode) select,
+body:not(.light-mode) textarea,
+body:not(.light-mode) .search-input {
+  color: #f7fff8 !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(172, 222, 183, 0.07)),
+    rgba(9, 28, 14, 0.58) !important;
+  border-color: rgba(215, 246, 221, 0.2) !important;
+}
+
+body:not(.light-mode) input::placeholder,
+body:not(.light-mode) textarea::placeholder,
+body:not(.light-mode) .search-input::placeholder {
+  color: rgba(220, 238, 224, 0.58) !important;
+}
+
+body.light-mode .command-layout {
+  color: #132f1a !important;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(82, 168, 98, 0.16), transparent 28%),
+    radial-gradient(circle at 86% 14%, rgba(240, 217, 138, 0.12), transparent 24%),
+    linear-gradient(135deg, #f4faf5 0%, #dfeee3 52%, #c9e4d3 100%) !important;
+}
+
+body.light-mode .command-topbar,
+body.light-mode .content-card,
+body.light-mode .table-card,
+body.light-mode .dashboard-card,
+body.light-mode .report-card,
+body.light-mode .notification-stat-card,
+body.light-mode .notification-item,
+body.light-mode .category-form,
+body.light-mode .category-list,
+body.light-mode .supplier-form,
+body.light-mode .supplier-list,
+body.light-mode .stock-mini-card,
+body.light-mode .stock-form-card,
+body.light-mode .stock-preview-card,
+body.light-mode .restock-card,
+body.light-mode .settings-form,
+body.light-mode .settings-preview,
+body.light-mode .users-panel,
+body.light-mode .user-profile-card,
+body.light-mode .qr-card,
+body.light-mode .qr-search-panel,
+body.light-mode .audit-content,
+body.light-mode .history-card {
+  color: #132f1a !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(226, 247, 232, 0.48)),
+    rgba(255, 255, 255, 0.48) !important;
+  border-color: rgba(255, 255, 255, 0.82) !important;
+  box-shadow:
+    0 20px 52px rgba(44, 96, 54, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+}
+
+body.light-mode h1,
+body.light-mode h2,
+body.light-mode h3,
+body.light-mode h4,
+body.light-mode .command-topbar h1,
+body.light-mode .page-header h1,
+body.light-mode .page-header h2,
+body.light-mode .section-header h3,
+body.light-mode .dashboard-card h3,
+body.light-mode .stock-mini-card strong,
+body.light-mode .report-card strong {
+  color: #132f1a !important;
+  text-shadow: none !important;
+}
+
+body.light-mode p,
+body.light-mode small,
+body.light-mode label,
+body.light-mode td,
+body.light-mode .command-topbar p,
+body.light-mode .page-header p,
+body.light-mode .section-header p,
+body.light-mode .dashboard-card p,
+body.light-mode .stock-mini-card span,
+body.light-mode .report-card span {
+  color: rgba(43, 77, 50, 0.76) !important;
+}
+
+body.light-mode .command-search {
+  color: #315f3b !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(235, 249, 239, 0.64)),
+    rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(45, 122, 58, 0.16) !important;
+}
+
+body.light-mode .command-search input {
+  color: #132f1a !important;
+  caret-color: #2f7d3b !important;
+}
+
+body.light-mode .command-search input::placeholder {
+  color: rgba(61, 88, 67, 0.58) !important;
+}
+
+body.light-mode .command-search span {
+  color: #4e7556 !important;
+  background: rgba(82, 168, 98, 0.14) !important;
+}
+
+body.light-mode input,
+body.light-mode select,
+body.light-mode textarea,
+body.light-mode .search-input {
+  color: #132f1a !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(235, 249, 239, 0.58)),
+    rgba(255, 255, 255, 0.68) !important;
+  border-color: rgba(45, 122, 58, 0.14) !important;
+}
+
+body.light-mode input::placeholder,
+body.light-mode textarea::placeholder,
+body.light-mode .search-input::placeholder {
+  color: rgba(61, 88, 67, 0.58) !important;
+}
