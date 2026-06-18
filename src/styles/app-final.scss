@@ -4123,3 +4123,18 @@ textarea,
 .ai-floating-btn:hover .ai-avatar-video {
   filter: saturate(1.08) contrast(1.04) !important;
 }
+
+.ai-floating-btn .ai-core,
+.ai-floating-btn .ai-ring,
+.ai-floating-btn .ai-sphere {
+  animation: none !important;
+  transform: none !important;
+}
+
+.ai-floating-btn .ai-ring {
+  display: none !important;
+}
+
+.ai-floating-btn:hover .ai-sphere {
+  transform: none !important;
+}
