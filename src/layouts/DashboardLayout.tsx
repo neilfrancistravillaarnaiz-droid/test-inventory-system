@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -44,6 +44,7 @@ const DashboardLayout = () => {
 
   const [isLightMode, setIsLightMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
@@ -53,6 +54,33 @@ const DashboardLayout = () => {
       setIsLightMode(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (!profileOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (
+        profileMenuRef.current &&
+        !profileMenuRef.current.contains(event.target as Node)
+      ) {
+        setProfileOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setProfileOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [profileOpen]);
 
   const toggleTheme = () => {
     setIsLightMode((prev) => {
@@ -111,7 +139,7 @@ const DashboardLayout = () => {
               </label>
             </div>
 
-            <div className="profile-menu">
+            <div className="profile-menu" ref={profileMenuRef}>
               <button
                 type="button"
                 className="command-icon-btn"
@@ -125,6 +153,8 @@ const DashboardLayout = () => {
                 type="button"
                 className="supabase-avatar-btn"
                 onClick={() => setProfileOpen((prev) => !prev)}
+                aria-expanded={profileOpen}
+                aria-haspopup="menu"
               >
                 <img
                   src="https://i.pravatar.cc/120?img=12"
@@ -133,7 +163,7 @@ const DashboardLayout = () => {
               </button>
 
               {profileOpen && (
-                <div className="supabase-profile-panel">
+                <div className="supabase-profile-panel" role="menu">
                   <div className="profile-panel-header">
                     <img
                       src="https://i.pravatar.cc/120?img=12"
