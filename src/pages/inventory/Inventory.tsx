@@ -18,8 +18,8 @@ const Inventory = () => {
   }
 
   return (
-    <>
-      <div className="page-row">
+    <section className="inventory-page">
+      <div className="page-row inventory-header-row">
         <div className="page-header">
           <h2>Inventory</h2>
           <p>Manage all products.</p>
@@ -32,15 +32,13 @@ const Inventory = () => {
 
       <InventoryStats products={products} />
 
-      <br />
-
       <SearchBar
         value={search}
         onChange={setSearch}
       />
 
-     <ProductTable products={filteredProducts} refresh={fetchProducts} />
-    </>
+      <ProductTable products={filteredProducts} refresh={fetchProducts} />
+    </section>
   );
 };
 
