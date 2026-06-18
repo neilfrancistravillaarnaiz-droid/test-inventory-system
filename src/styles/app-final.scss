@@ -2580,3 +2580,410 @@ td {
     min-height: 92px !important;
   }
 }
+
+/* =====================================================
+   FINAL SPACING + STRONGER LIQUID GLASS
+===================================================== */
+:root {
+  --space-1: 6px;
+  --space-2: 10px;
+  --space-3: 14px;
+  --space-4: 18px;
+  --space-5: 22px;
+  --glass-bg: rgba(244, 252, 247, 0.48);
+  --glass-bg-strong: rgba(255, 255, 255, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.78);
+  --glass-inner: rgba(255, 255, 255, 0.92);
+  --glass-green-line: rgba(47, 125, 59, 0.14);
+}
+
+.command-main {
+  max-width: 1280px !important;
+  padding-top: clamp(16px, 1.7vw, 24px) !important;
+  padding-inline: clamp(16px, 2.6vw, 34px) !important;
+  padding-bottom: 108px !important;
+}
+
+.command-main > section {
+  display: grid !important;
+  gap: var(--space-4) !important;
+}
+
+.command-main > section > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.command-topbar {
+  margin-bottom: clamp(16px, 1.8vw, 22px) !important;
+  padding: 12px 16px !important;
+  border-radius: 24px !important;
+}
+
+.page-header,
+.notification-header-row,
+.report-header-row,
+.add-product-header,
+.dashboard-command-header {
+  margin-bottom: 0 !important;
+}
+
+.notification-header-row,
+.report-header-row,
+.add-product-header,
+.page-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: var(--space-4) !important;
+}
+
+.page-header h1,
+.page-header h2,
+.dashboard-command-header h2,
+.notification-header-row h2,
+.report-header-row h2,
+.add-product-header h2 {
+  font-size: clamp(30px, 3.4vw, 48px) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.045em !important;
+}
+
+.page-header p,
+.dashboard-command-header p,
+.notification-header-row p,
+.report-header-row p,
+.add-product-header p {
+  margin-top: 6px !important;
+  font-size: clamp(14px, 1.12vw, 17px) !important;
+  line-height: 1.3 !important;
+}
+
+.content-card,
+.table-card,
+.dashboard-card,
+.dashboard-stat-card,
+.dashboard-panel,
+.product-form,
+.add-product-card,
+.category-form,
+.category-list,
+.supplier-form,
+.supplier-list,
+.stock-form-card,
+.stock-preview-card,
+.stock-mini-card,
+.history-card,
+.report-card,
+.report-section,
+.user-stat-card,
+.user-profile-card,
+.user-form,
+.users-panel,
+.settings-form,
+.settings-preview,
+.settings-preview-box,
+.notification-stat-card,
+.notification-item,
+.audit-content,
+.insight-panel,
+.qr-card,
+.qr-search-panel,
+.qr-search-card,
+.product-info-card,
+.product-image-card,
+.restock-card,
+.ai-assistant-card,
+.modal,
+.confirm-dialog,
+.success-modal {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.24) 42%, rgba(215, 243, 226, 0.30)),
+    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.92), transparent 34%),
+    radial-gradient(circle at 88% 100%, rgba(47, 125, 59, 0.18), transparent 40%),
+    var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  box-shadow:
+    0 18px 48px rgba(31, 91, 48, 0.13),
+    0 1px 0 rgba(255, 255, 255, 0.82),
+    inset 0 1px 0 var(--glass-inner),
+    inset 0 -1px 0 rgba(47, 125, 59, 0.10) !important;
+  backdrop-filter: blur(34px) saturate(205%) contrast(1.04) !important;
+  -webkit-backdrop-filter: blur(34px) saturate(205%) contrast(1.04) !important;
+}
+
+.content-card::before,
+.table-card::before,
+.dashboard-card::before,
+.dashboard-stat-card::before,
+.dashboard-panel::before,
+.product-form::before,
+.add-product-card::before,
+.stock-form-card::before,
+.stock-preview-card::before,
+.report-card::before,
+.report-section::before,
+.settings-form::before,
+.settings-preview::before,
+.notification-stat-card::before,
+.notification-item::before,
+.audit-content::before,
+.qr-card::before,
+.restock-card::before {
+  opacity: 0.72 !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.66), transparent 32%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.28), transparent 48%) !important;
+}
+
+.content-card,
+.table-card,
+.dashboard-panel,
+.product-form,
+.add-product-card,
+.category-form,
+.category-list,
+.supplier-form,
+.supplier-list,
+.stock-form-card,
+.stock-preview-card,
+.report-section,
+.user-form,
+.users-panel,
+.settings-form,
+.settings-preview,
+.qr-search-panel,
+.product-info-card,
+.product-image-card,
+.restock-card {
+  padding: clamp(16px, 1.45vw, 22px) !important;
+}
+
+.dashboard-stat-card,
+.dashboard-card,
+.report-card,
+.notification-stat-card,
+.stock-mini-card,
+.user-stat-card {
+  min-height: 118px !important;
+  padding: 18px 20px !important;
+}
+
+.notification-stats-grid,
+.dashboard-stat-grid,
+.card-grid,
+.report-summary-grid,
+.stock-summary-grid,
+.stats-grid {
+  gap: var(--space-4) !important;
+  margin-bottom: 0 !important;
+}
+
+.notification-stats-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.notification-stat-card {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  gap: 12px !important;
+}
+
+.notification-stat-card span {
+  color: rgba(85, 118, 91, 0.72) !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+}
+
+.notification-stat-card strong {
+  margin: 0 !important;
+  font-size: clamp(32px, 3.2vw, 44px) !important;
+  line-height: 0.9 !important;
+}
+
+.notification-tools {
+  margin: 0 !important;
+}
+
+.notification-tools select {
+  height: 50px !important;
+  min-height: 50px !important;
+  padding-inline: 18px !important;
+  border-radius: 16px !important;
+  font-size: 14px !important;
+}
+
+.notification-list {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.notification-item {
+  grid-template-columns: 58px minmax(0, 1fr) auto !important;
+  min-height: 104px !important;
+  padding: 14px 16px !important;
+  gap: 16px !important;
+  border-radius: 20px !important;
+}
+
+.notification-icon {
+  width: 48px !important;
+  height: 48px !important;
+  min-width: 48px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 16px !important;
+  font-size: 26px !important;
+  font-weight: 950 !important;
+  color: #102f18 !important;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.92), transparent 34%),
+    rgba(224, 246, 232, 0.56) !important;
+}
+
+.notification-content {
+  min-width: 0 !important;
+}
+
+.notification-content h3 {
+  margin: 0 0 6px !important;
+  font-size: clamp(18px, 1.45vw, 22px) !important;
+  line-height: 1.1 !important;
+}
+
+.notification-content p {
+  margin: 0 0 6px !important;
+  font-size: clamp(14px, 1.15vw, 18px) !important;
+  line-height: 1.35 !important;
+}
+
+.notification-content small {
+  display: block !important;
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+}
+
+.notification-actions {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+}
+
+.notification-actions button,
+.generate-alert-btn {
+  min-height: 46px !important;
+  padding: 0 20px !important;
+  border-radius: 999px !important;
+  font-size: 14px !important;
+}
+
+.generate-alert-btn {
+  min-width: max-content !important;
+  align-self: center !important;
+}
+
+.dashboard-command-grid,
+.stock-dashboard,
+.settings-layout,
+.restock-grid,
+.qr-grid,
+.report-summary-grid {
+  gap: var(--space-4) !important;
+}
+
+.restock-metrics {
+  gap: 12px !important;
+}
+
+.restock-metrics div {
+  min-height: 100px !important;
+  padding: 14px 16px !important;
+}
+
+.restock-recommendation {
+  min-height: 96px !important;
+  padding: 18px !important;
+}
+
+.table-card {
+  padding: 12px 16px !important;
+}
+
+th,
+td {
+  padding: 10px 12px !important;
+}
+
+input,
+select,
+textarea,
+.search-input {
+  min-height: 44px !important;
+  border-radius: 14px !important;
+}
+
+.command-dock {
+  height: 62px !important;
+  min-height: 62px !important;
+  bottom: 14px !important;
+}
+
+.ai-floating-btn {
+  right: clamp(16px, 2vw, 24px) !important;
+  bottom: 92px !important;
+}
+
+@media (max-width: 1180px) {
+  .notification-header-row,
+  .report-header-row,
+  .add-product-header,
+  .page-row {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .notification-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .command-main {
+    padding-inline: 12px !important;
+    padding-bottom: 104px !important;
+  }
+
+  .notification-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .notification-item {
+    grid-template-columns: 44px minmax(0, 1fr) !important;
+    min-height: 0 !important;
+  }
+
+  .notification-icon {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    border-radius: 14px !important;
+    font-size: 22px !important;
+  }
+
+  .notification-actions {
+    grid-column: 1 / -1 !important;
+    justify-content: stretch !important;
+  }
+
+  .notification-actions button {
+    flex: 1 1 0 !important;
+    padding-inline: 12px !important;
+  }
+
+  .generate-alert-btn {
+    width: 100% !important;
+  }
+}
