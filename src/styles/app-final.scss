@@ -1698,3 +1698,516 @@ button,
     scroll-snap-align: center !important;
   }
 }
+
+/* =====================================================
+   GLOBAL LAYOUT SIZING PASS - all app pages
+===================================================== */
+:root {
+  --app-page-max: 1240px;
+  --app-page-pad-x: clamp(14px, 2vw, 28px);
+  --app-page-pad-top: clamp(14px, 1.6vw, 22px);
+  --app-card-pad: clamp(16px, 1.7vw, 22px);
+  --app-section-gap: clamp(14px, 1.6vw, 20px);
+  --app-radius: 18px;
+}
+
+html,
+body,
+#root {
+  min-width: 320px !important;
+  min-height: 100% !important;
+  overflow-x: hidden !important;
+}
+
+.command-layout {
+  min-height: 100svh !important;
+  background-attachment: fixed !important;
+  background-size: cover !important;
+}
+
+.command-layout::before,
+.command-layout::after {
+  width: 100vw !important;
+  min-height: 100svh !important;
+}
+
+.command-main {
+  width: min(var(--app-page-max), 100%) !important;
+  max-width: var(--app-page-max) !important;
+  min-height: 100svh !important;
+  margin-inline: auto !important;
+  padding:
+    var(--app-page-pad-top)
+    var(--app-page-pad-x)
+    clamp(104px, 12vh, 132px) !important;
+}
+
+.command-main > section,
+.command-main > .reports-page,
+.command-main > .settings-page,
+.command-main > .stock-page,
+.command-main > .notifications-page,
+.command-main > .audit-page,
+.command-main > .qr-page,
+.command-main > .qr-search-page,
+.command-main > .restock-page {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+}
+
+.command-topbar {
+  width: 100% !important;
+  min-height: 64px !important;
+  margin-bottom: clamp(18px, 2.4vw, 26px) !important;
+  padding: clamp(12px, 1.3vw, 16px) clamp(14px, 1.7vw, 20px) !important;
+}
+
+.command-brand-mark {
+  width: clamp(38px, 3.4vw, 44px) !important;
+  height: clamp(38px, 3.4vw, 44px) !important;
+  border-radius: 13px !important;
+}
+
+.command-topbar h1 {
+  font-size: clamp(18px, 1.8vw, 22px) !important;
+}
+
+.command-topbar p {
+  font-size: clamp(11px, 1vw, 13px) !important;
+}
+
+.command-search {
+  width: clamp(220px, 24vw, 320px) !important;
+  height: 38px !important;
+}
+
+.command-icon-btn,
+.supabase-avatar-btn {
+  width: 36px !important;
+  min-width: 36px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+}
+
+.dashboard-command-header,
+.page-header,
+.section-header,
+.report-header-row,
+.notification-header-row,
+.add-product-header {
+  min-height: auto !important;
+  margin-bottom: var(--app-section-gap) !important;
+}
+
+.dashboard-command-header h2,
+.page-header h1,
+.page-header h2,
+.section-header h2,
+.section-header h3,
+.report-header-row h2,
+.notification-header-row h2,
+.add-product-header h2 {
+  font-size: clamp(26px, 3vw, 40px) !important;
+  max-width: 980px !important;
+}
+
+.dashboard-command-header p,
+.page-header p,
+.section-header p,
+.report-header-row p,
+.notification-header-row p,
+.add-product-header p {
+  font-size: clamp(13px, 1.05vw, 15px) !important;
+}
+
+.dashboard-stat-grid,
+.card-grid,
+.stats-grid,
+.report-summary-grid,
+.notification-stats-grid,
+.stock-summary-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: var(--app-section-gap) !important;
+}
+
+.dashboard-command-grid,
+.stock-dashboard,
+.settings-layout {
+  display: grid !important;
+  gap: var(--app-section-gap) !important;
+  align-items: start !important;
+}
+
+.dashboard-command-grid {
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.85fr) !important;
+}
+
+.stock-dashboard {
+  grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.4fr) !important;
+}
+
+.settings-layout {
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.72fr) !important;
+}
+
+.content-card,
+.table-card,
+.dashboard-card,
+.dashboard-stat-card,
+.dashboard-panel,
+.product-form,
+.add-product-card,
+.category-form,
+.category-list,
+.supplier-form,
+.supplier-list,
+.stock-form-card,
+.stock-preview-card,
+.stock-mini-card,
+.history-card,
+.report-card,
+.report-section,
+.user-stat-card,
+.user-profile-card,
+.user-form,
+.users-panel,
+.settings-form,
+.settings-preview,
+.settings-preview-box,
+.notification-stat-card,
+.notification-item,
+.audit-content,
+.insight-panel,
+.qr-card,
+.qr-search-panel,
+.qr-search-card,
+.product-info-card,
+.product-image-card,
+.restock-card {
+  border-radius: var(--app-radius) !important;
+  padding: var(--app-card-pad) !important;
+}
+
+.dashboard-stat-card,
+.dashboard-card,
+.report-card,
+.notification-stat-card,
+.stock-mini-card,
+.user-stat-card {
+  min-height: clamp(112px, 11vw, 136px) !important;
+}
+
+.dashboard-stat-card strong,
+.dashboard-card h3,
+.report-card strong,
+.notification-stat-card strong,
+.stock-mini-card strong {
+  font-size: clamp(24px, 2.4vw, 34px) !important;
+  overflow-wrap: anywhere !important;
+}
+
+.dashboard-stat-card p,
+.dashboard-card p,
+.report-card span,
+.notification-stat-card span,
+.stock-mini-card span {
+  font-size: clamp(12px, 1vw, 13px) !important;
+}
+
+.stock-chart {
+  height: clamp(124px, 14vw, 150px) !important;
+}
+
+.activity-item,
+.quick-action-list a,
+.notification-item,
+.qr-search-card,
+.user-profile-card,
+.history-card,
+.insight-item {
+  min-height: 58px !important;
+  padding: 12px !important;
+  gap: 12px !important;
+}
+
+.table-card table,
+table {
+  width: 100% !important;
+  min-width: min(880px, 100%) !important;
+}
+
+th,
+td {
+  padding: 12px 14px !important;
+}
+
+.inventory-table th,
+.inventory-table td {
+  padding: 12px 14px !important;
+}
+
+.inventory-product img {
+  width: clamp(48px, 5vw, 62px) !important;
+  height: clamp(48px, 5vw, 62px) !important;
+  border-radius: 14px !important;
+}
+
+.product-form,
+.settings-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.product-form input,
+.product-form select,
+.product-form textarea,
+.settings-form input,
+.settings-form select,
+.settings-form textarea,
+.stock-form input,
+.stock-form select,
+.stock-form textarea,
+.category-form input,
+.supplier-form input,
+.user-form input,
+.search-input,
+.command-search input {
+  max-width: 100% !important;
+}
+
+.form-field,
+.product-form label,
+.settings-form label,
+.stock-form label {
+  min-width: 0 !important;
+}
+
+.product-form button {
+  grid-column: 1 / -1 !important;
+}
+
+.report-actions,
+.notification-actions,
+.table-actions,
+.product-detail-actions,
+.modal-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.report-actions button,
+.notification-actions button,
+.table-actions button,
+.table-actions a,
+.product-detail-actions a {
+  white-space: nowrap !important;
+}
+
+.qr-grid,
+.restock-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)) !important;
+}
+
+.qr-card {
+  min-height: 260px !important;
+  align-content: start !important;
+}
+
+.qr-card canvas,
+.qr-card svg {
+  max-width: min(180px, 100%) !important;
+  height: auto !important;
+}
+
+.restock-card-header,
+.report-header-row,
+.notification-header-row,
+.add-product-header,
+.page-row {
+  align-items: center !important;
+}
+
+.ai-floating-btn {
+  width: clamp(58px, 5.4vw, 72px) !important;
+  height: clamp(58px, 5.4vw, 72px) !important;
+}
+
+.command-dock {
+  width: min(980px, calc(100vw - 40px)) !important;
+  height: 64px !important;
+  min-height: 64px !important;
+  padding: 8px !important;
+  gap: 6px !important;
+  bottom: 18px !important;
+}
+
+.command-dock-item {
+  flex-basis: 40px !important;
+  width: 40px !important;
+  min-width: 40px !important;
+  max-width: 40px !important;
+  height: 40px !important;
+  min-height: 40px !important;
+}
+
+.command-dock-item svg {
+  width: 18px !important;
+  height: 18px !important;
+}
+
+.command-dock-item:hover,
+.command-dock-item.active {
+  flex-basis: 122px !important;
+  width: 122px !important;
+  min-width: 122px !important;
+  max-width: 122px !important;
+}
+
+.command-dock-item:hover span,
+.command-dock-item.active span {
+  max-width: 76px !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-stat-grid,
+  .card-grid,
+  .stats-grid,
+  .report-summary-grid,
+  .notification-stats-grid,
+  .stock-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-command-grid,
+  .stock-dashboard,
+  .settings-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .settings-preview {
+    position: relative !important;
+    top: auto !important;
+  }
+}
+
+@media (max-width: 820px) {
+  .command-main {
+    padding:
+      12px
+      clamp(10px, 3vw, 18px)
+      112px !important;
+  }
+
+  .command-topbar {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .command-brand {
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .command-top-actions {
+    width: 100% !important;
+    justify-content: space-between !important;
+    flex-wrap: wrap !important;
+  }
+
+  .command-search {
+    width: 100% !important;
+    flex-basis: 100% !important;
+    order: 4 !important;
+  }
+
+  .dashboard-command-header,
+  .report-header-row,
+  .notification-header-row,
+  .add-product-header,
+  .page-row,
+  .restock-card-header {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .product-form,
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .mini-table-head,
+  .mini-table-row {
+    grid-template-columns: minmax(92px, 1fr) 44px 64px 70px !important;
+    gap: 8px !important;
+  }
+
+  .command-dock {
+    width: calc(100vw - 18px) !important;
+    height: 60px !important;
+    min-height: 60px !important;
+    bottom: 10px !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+    scrollbar-width: none !important;
+  }
+
+  .command-dock::-webkit-scrollbar {
+    display: none !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-stat-grid,
+  .card-grid,
+  .stats-grid,
+  .report-summary-grid,
+  .notification-stats-grid,
+  .stock-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-command-header h2,
+  .page-header h1,
+  .page-header h2,
+  .section-header h2,
+  .section-header h3 {
+    font-size: clamp(24px, 10vw, 34px) !important;
+  }
+
+  .content-card,
+  .table-card,
+  .dashboard-card,
+  .dashboard-stat-card,
+  .dashboard-panel,
+  .product-form,
+  .add-product-card,
+  .stock-form-card,
+  .stock-preview-card,
+  .report-card,
+  .report-section,
+  .settings-form,
+  .settings-preview,
+  .notification-item,
+  .audit-content,
+  .qr-card,
+  .qr-search-panel,
+  .restock-card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .activity-item,
+  .quick-action-list a,
+  .notification-item,
+  .qr-search-card {
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+  }
+
+  .activity-item time,
+  .quick-action-list a > svg:last-child {
+    display: none !important;
+  }
+}
