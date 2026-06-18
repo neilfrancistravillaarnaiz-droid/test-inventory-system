@@ -1,4 +1,10 @@
-import { type FormEvent, useState } from "react";
+import {
+  type FormEvent,
+  type PointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useProducts } from "../../hooks/useProducts";
 import { getAIInventoryResponse } from "../../services/aiService";
 
@@ -6,6 +12,14 @@ type Message = {
   sender: "user" | "ai";
   text: string;
 };
+
+type AvatarPosition = {
+  x: number;
+  y: number;
+};
+
+const AVATAR_SIZE = 76;
+const AVATAR_MARGIN = 16;
 
 const AIInventoryAssistant = () => {
   const { products } = useProducts();
@@ -19,6 +33,114 @@ const AIInventoryAssistant = () => {
   ]);
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [avatarPosition, setAvatarPosition] = useState<AvatarPosition | null>(
+    null
+  );
+  const dragRef = useRef({
+    dragging: false,
+    moved: false,
+    startX: 0,
+    startY: 0,
+    offsetX: 0,
+    offsetY: 0,
+  });
+
+  const clampAvatarPosition = (position: AvatarPosition): AvatarPosition => {
+    if (typeof window === "undefined") return position;
+
+    return {
+      x: Math.min(
+        Math.max(position.x, AVATAR_MARGIN),
+        window.innerWidth - AVATAR_SIZE - AVATAR_MARGIN
+      ),
+      y: Math.min(
+        Math.max(position.y, AVATAR_MARGIN),
+        window.innerHeight - AVATAR_SIZE - AVATAR_MARGIN
+      ),
+    };
+  };
+
+  useEffect(() => {
+    const savedPosition = window.localStorage.getItem("aiAvatarPosition");
+
+    if (savedPosition) {
+      try {
+        setAvatarPosition(clampAvatarPosition(JSON.parse(savedPosition)));
+        return;
+      } catch {
+        window.localStorage.removeItem("aiAvatarPosition");
+      }
+    }
+
+    setAvatarPosition(
+      clampAvatarPosition({
+        x: window.innerWidth - AVATAR_SIZE - 24,
+        y: window.innerHeight - AVATAR_SIZE - 104,
+      })
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!avatarPosition) return;
+
+    window.localStorage.setItem(
+      "aiAvatarPosition",
+      JSON.stringify(avatarPosition)
+    );
+  }, [avatarPosition]);
+
+  const handleAvatarPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    dragRef.current = {
+      dragging: true,
+      moved: false,
+      startX: e.clientX,
+      startY: e.clientY,
+      offsetX: e.clientX - rect.left,
+      offsetY: e.clientY - rect.top,
+    };
+
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const handleAvatarPointerMove = (e: PointerEvent<HTMLButtonElement>) => {
+    if (!dragRef.current.dragging) return;
+
+    const distance = Math.hypot(
+      e.clientX - dragRef.current.startX,
+      e.clientY - dragRef.current.startY
+    );
+
+    if (distance > 4) {
+      dragRef.current.moved = true;
+    }
+
+    setAvatarPosition(
+      clampAvatarPosition({
+        x: e.clientX - dragRef.current.offsetX,
+        y: e.clientY - dragRef.current.offsetY,
+      })
+    );
+  };
+
+  const handleAvatarPointerUp = (e: PointerEvent<HTMLButtonElement>) => {
+    dragRef.current.dragging = false;
+
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    if (dragRef.current.moved) {
+      dragRef.current.moved = false;
+      return;
+    }
+
+    setOpen(!open);
+  };
 
   const answerQuestion = (input: string) => {
     const q = input.toLowerCase();
@@ -138,7 +260,21 @@ const AIInventoryAssistant = () => {
       <button
         className="ai-floating-btn"
         type="button"
-        onClick={() => setOpen(!open)}
+        onClick={handleAvatarClick}
+        onPointerDown={handleAvatarPointerDown}
+        onPointerMove={handleAvatarPointerMove}
+        onPointerUp={handleAvatarPointerUp}
+        onPointerCancel={handleAvatarPointerUp}
+        style={
+          avatarPosition
+            ? {
+                left: avatarPosition.x,
+                top: avatarPosition.y,
+                right: "auto",
+                bottom: "auto",
+              }
+            : undefined
+        }
         aria-label={open ? "Close AI assistant" : "Open AI assistant"}
       >
         <div className="ai-core">

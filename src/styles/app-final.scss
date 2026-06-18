@@ -4138,3 +4138,59 @@ textarea,
 .ai-floating-btn:hover .ai-sphere {
   transform: none !important;
 }
+
+/* Draggable AI assistant, kept clear of the chat panel */
+.ai-floating-btn {
+  cursor: grab !important;
+  touch-action: none !important;
+  user-select: none !important;
+}
+
+.ai-floating-btn:active {
+  cursor: grabbing !important;
+}
+
+.ai-panel {
+  right: 24px !important;
+  bottom: 196px !important;
+  width: min(460px, calc(100vw - 32px)) !important;
+  max-height: min(620px, calc(100vh - 226px)) !important;
+  overflow: hidden !important;
+  z-index: 100000 !important;
+}
+
+.ai-messages {
+  min-height: 0 !important;
+}
+
+.ai-input-row {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 82px !important;
+  gap: 10px !important;
+  padding: 16px 18px 18px !important;
+}
+
+.ai-input-row input {
+  min-width: 0 !important;
+  width: 100% !important;
+  text-overflow: ellipsis !important;
+}
+
+.ai-input-row button {
+  min-width: 0 !important;
+  width: 100% !important;
+}
+
+@media (max-width: 640px) {
+  .ai-panel {
+    right: 12px !important;
+    bottom: 122px !important;
+    width: calc(100vw - 24px) !important;
+    max-height: calc(100vh - 154px) !important;
+  }
+
+  .ai-input-row {
+    grid-template-columns: minmax(0, 1fr) 68px !important;
+    padding: 12px !important;
+  }
+}
