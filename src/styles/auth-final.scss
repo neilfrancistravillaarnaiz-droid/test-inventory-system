@@ -512,6 +512,6 @@
 /* Final alignment: place the left content higher instead of centering it. */
 .auth-final-page .stock-auth-left {
   justify-content: flex-start !important;
-  padding-top: clamp(72px, 9vh, 104px) !important;
+  padding-top: clamp(32px, 4vh, 52px) !important;
   padding-bottom: clamp(24px, 4vh, 44px) !important;
 }
