@@ -298,7 +298,11 @@ const AIInventoryAssistant = () => {
     setLoadingResponse(true);
 
     try {
-      const aiResponse = await getAIInventoryResponse(question, products);
+      const aiResponse = await getAIInventoryResponse(
+        question,
+        products,
+        messages
+      );
       const aiMessage: Message = {
         sender: "ai",
         text: aiResponse,

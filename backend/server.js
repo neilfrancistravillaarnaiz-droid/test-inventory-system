@@ -8,7 +8,7 @@ dotenv.config();
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "1mb" }));
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -48,6 +48,200 @@ app.get("/test-db", async (req, res) => {
     message: "Supabase Connected Successfully",
     sample: data,
   });
+});
+
+const formatCurrency = (value) =>
+  `PHP ${Number(value || 0).toLocaleString("en-PH", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+const compactRows = (rows, mapper, limit = 40) =>
+  (rows || []).slice(0, limit).map(mapper).join("\n") || "None.";
+
+const buildInventoryContext = async () => {
+  const [{ data: products, error: productsError }, { data: stockMovements }] =
+    await Promise.all([
+      supabase
+        .from("products")
+        .select(
+          "id,name,sku,category,supplier,quantity,price,low_stock_limit,warehouse,shelf,rack,bin,created_at"
+        )
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("stock_movements")
+        .select("product_name,type,quantity,note,created_at")
+        .order("created_at", { ascending: false })
+        .limit(25),
+    ]);
+
+  if (productsError) {
+    throw productsError;
+  }
+
+  const productRows = products || [];
+  const totalProducts = productRows.length;
+  const totalStock = productRows.reduce(
+    (sum, product) => sum + Number(product.quantity || 0),
+    0
+  );
+  const inventoryValue = productRows.reduce(
+    (sum, product) =>
+      sum + Number(product.quantity || 0) * Number(product.price || 0),
+    0
+  );
+  const lowStock = productRows.filter(
+    (product) =>
+      Number(product.quantity || 0) <= Number(product.low_stock_limit || 0)
+  );
+  const suppliers = Array.from(
+    new Set(productRows.map((product) => product.supplier).filter(Boolean))
+  );
+
+  return [
+    "LIVE INVENTORY SNAPSHOT",
+    `Total products: ${totalProducts}`,
+    `Total stock quantity: ${totalStock}`,
+    `Estimated inventory value: ${formatCurrency(inventoryValue)}`,
+    `Low stock count: ${lowStock.length}`,
+    `Suppliers: ${suppliers.length ? suppliers.join(", ") : "None"}`,
+    "",
+    "PRODUCTS",
+    compactRows(productRows, (product) => {
+      const location = [
+        product.warehouse,
+        product.shelf,
+        product.rack,
+        product.bin,
+      ]
+        .filter(Boolean)
+        .join(" / ");
+
+      return `- ${product.name} | SKU: ${product.sku || "N/A"} | Category: ${
+        product.category || "N/A"
+      } | Supplier: ${product.supplier || "N/A"} | Qty: ${
+        product.quantity
+      } | Low limit: ${product.low_stock_limit} | Price: ${formatCurrency(
+        product.price
+      )} | Location: ${location || "Not assigned"}`;
+    }),
+    "",
+    "LOW STOCK ITEMS",
+    compactRows(lowStock, (product) => {
+      const recommendedRestock = Math.max(
+        Number(product.low_stock_limit || 0) * 2 - Number(product.quantity || 0),
+        Number(product.low_stock_limit || 0)
+      );
+
+      return `- ${product.name}: ${product.quantity} left, low limit ${
+        product.low_stock_limit
+      }, suggested restock ${recommendedRestock} units`;
+    }),
+    "",
+    "RECENT STOCK MOVEMENTS",
+    compactRows(stockMovements, (movement) => {
+      return `- ${movement.product_name}: ${movement.type} ${
+        movement.quantity
+      } units on ${movement.created_at}. Note: ${movement.note || "None"}`;
+    }),
+  ].join("\n");
+};
+
+/* AI INVENTORY ASSISTANT */
+
+app.post("/ai/inventory-chat", async (req, res) => {
+  try {
+    const question = String(req.body?.question || "").trim();
+    const history = Array.isArray(req.body?.history) ? req.body.history : [];
+
+    if (!question) {
+      return res.status(400).json({
+        success: false,
+        message: "Question is required.",
+      });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        success: false,
+        message:
+          "OPENAI_API_KEY is not configured on the backend environment.",
+      });
+    }
+
+    const inventoryContext = await buildInventoryContext();
+    const trimmedHistory = history
+      .slice(-8)
+      .map((message) => ({
+        role: message.sender === "user" ? "user" : "assistant",
+        content: String(message.text || "").slice(0, 1000),
+      }))
+      .filter((message) => message.content);
+
+    const response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+        temperature: 0.25,
+        max_output_tokens: 500,
+        input: [
+          {
+            role: "system",
+            content:
+              "You are StockFlow's AI Inventory Assistant. Answer clearly and practically using the live inventory context. If the user asks about inventory, stock, suppliers, low stock, locations, reports, QR/barcode workflows, audit logs, or restocking, help them. If the data is missing, say what is missing instead of inventing numbers. Keep answers concise and actionable.",
+          },
+          {
+            role: "user",
+            content: `Inventory context:\n${inventoryContext}`,
+          },
+          ...trimmedHistory,
+          {
+            role: "user",
+            content: question,
+          },
+        ],
+      }),
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      return res.status(response.status).json({
+        success: false,
+        message:
+          data?.error?.message ||
+          `OpenAI request failed with status ${response.status}.`,
+      });
+    }
+
+    const answer =
+      data?.output_text ||
+      data?.output
+        ?.flatMap((item) => item.content || [])
+        ?.map((content) => content.text)
+        ?.filter(Boolean)
+        ?.join("\n")
+        ?.trim();
+
+    res.json({
+      success: true,
+      answer: answer || "I couldn't generate an answer right now.",
+    });
+  } catch (error) {
+    console.error("AI assistant error:", error);
+
+    res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unable to generate an AI response.",
+    });
+  }
 });
 
 /* PRODUCTS */

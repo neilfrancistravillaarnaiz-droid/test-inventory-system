@@ -1,12 +1,14 @@
 import type { Product } from "../types/Product";
 
-const OPENAI_API_KEY = import.meta.env.VITE_OPENAI_API_KEY?.trim();
-const HUGGINGFACE_API_KEY = import.meta.env.VITE_HUGGINGFACE_API_KEY?.trim();
-const HUGGINGFACE_MODEL = import.meta.env.VITE_HUGGINGFACE_MODEL || "gpt2";
-const HUGGINGFACE_API_BASE_URL =
-  import.meta.env.VITE_HUGGINGFACE_API_BASE_URL ||
-  (import.meta.env.DEV ? "/huggingface" : "https://api-inference.huggingface.co");
-const HUGGINGFACE_API_FALLBACK_BASE_URL = "https://api-inference.huggingface.com";
+type ChatMessage = {
+  sender: "user" | "ai";
+  text: string;
+};
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL?.trim() ||
+  import.meta.env.VITE_BACKEND_URL?.trim() ||
+  (import.meta.env.DEV ? "http://localhost:8000" : "");
 
 const buildProductSummary = (products: Product[]) => {
   if (!products.length) {
@@ -19,216 +21,104 @@ const buildProductSummary = (products: Product[]) => {
     (sum, item) => sum + item.quantity * item.price,
     0
   );
-  const lowStock = products.filter((item) => item.quantity <= item.low_stock_limit);
-  const suppliers = Array.from(
-    new Set(products.map((item) => item.supplier).filter(Boolean))
+  const lowStock = products.filter(
+    (item) => item.quantity <= item.low_stock_limit
   );
 
-  const summary = [
+  return [
     `Total products: ${totalProducts}.`,
     `Total stock quantity: ${totalStock} units.`,
-    `Estimated inventory value: ₱${inventoryValue.toFixed(2)}.`,
-    `Suppliers: ${suppliers.length ? suppliers.join(", ") : "None"}.`,
-  ];
-
-  if (lowStock.length > 0) {
-    summary.push(
-      `Low stock items: ${lowStock
-        .map((item) => `${item.name} (${item.quantity} left)`)
-        .join("; ")}.`
-    );
-  } else {
-    summary.push("No products are currently low on stock.");
-  }
-
-  return summary.join(" ");
+    `Estimated inventory value: PHP ${inventoryValue.toFixed(2)}.`,
+    lowStock.length
+      ? `Low stock items: ${lowStock
+          .map((item) => `${item.name} (${item.quantity} left)`)
+          .join(", ")}.`
+      : "No products are currently low on stock.",
+  ].join(" ");
 };
 
-const isOpenAIKey = (key?: string) => Boolean(key && key.startsWith("sk-"));
-const isHuggingFaceKey = (key?: string) => Boolean(key && key.startsWith("hf_"));
+const getLocalInventoryResponse = (question: string, products: Product[]) => {
+  const q = question.toLowerCase();
+  const lowStock = products.filter(
+    (item) => item.quantity <= item.low_stock_limit
+  );
+  const totalStocks = products.reduce((sum, item) => sum + item.quantity, 0);
+  const inventoryValue = products.reduce(
+    (sum, item) => sum + item.quantity * item.price,
+    0
+  );
 
-const getOpenAIInventoryResponse = async (
-  question: string,
-  inventorySummary: string
-): Promise<string> => {
-  if (!OPENAI_API_KEY || !isOpenAIKey(OPENAI_API_KEY)) {
-    throw new Error(
-      "Invalid OpenAI API key. Set VITE_OPENAI_API_KEY to a valid OpenAI key from https://platform.openai.com/account/api-keys."
-    );
+  if (q.includes("low stock")) {
+    return lowStock.length
+      ? `These products are low stock: ${lowStock
+          .map((item) => `${item.name} (${item.quantity} left)`)
+          .join(", ")}.`
+      : "Great news! No products are currently low on stock.";
   }
 
-  const systemPrompt =
-    "You are a helpful inventory assistant. Answer the user's question with information derived from the supplied inventory summary only. If the question cannot be answered from the inventory data, say that you don't have enough information.";
-  const userPrompt =
-    `Inventory summary:\n${inventorySummary}\n\nQuestion: ${question}`;
-
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: "gpt-3.5-turbo",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.3,
-      max_tokens: 400,
-      n: 1,
-    }),
-  });
-
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    const errorMessage =
-      errorData?.error?.message || `OpenAI request failed with status ${response.status}`;
-    throw new Error(errorMessage);
+  if (q.includes("total product")) {
+    return `You currently have ${products.length} products in your inventory.`;
   }
 
-  const data = await response.json();
-  const text = data?.choices?.[0]?.message?.content;
-
-  return text?.trim() || "I couldn't generate a response right now.";
-};
-
-const getHuggingFaceInventoryResponse = async (
-  question: string,
-  inventorySummary: string
-): Promise<string> => {
-  const hfKey = isHuggingFaceKey(HUGGINGFACE_API_KEY)
-    ? HUGGINGFACE_API_KEY
-    : isHuggingFaceKey(OPENAI_API_KEY)
-    ? OPENAI_API_KEY
-    : undefined;
-
-  if (!hfKey) {
-    throw new Error(
-      "Hugging Face API key is not configured. Set VITE_HUGGINGFACE_API_KEY in your .env file or use a Hugging Face key in VITE_OPENAI_API_KEY."
-    );
+  if (q.includes("total stock")) {
+    return `Your total stock quantity is ${totalStocks} units.`;
   }
 
-  const systemPrompt =
-    "You are a helpful inventory assistant. Answer the user's question with information derived from the supplied inventory summary only. If the question cannot be answered from the inventory data, say that you don't have enough information.";
-  const userPrompt =
-    `Inventory summary:\n${inventorySummary}\n\nQuestion: ${question}`;
-  const prompt = `${systemPrompt}\n\n${userPrompt}`;
+  if (q.includes("value") || q.includes("worth")) {
+    return `Your estimated inventory value is PHP ${inventoryValue.toFixed(2)}.`;
+  }
 
-  const body = JSON.stringify({
-    inputs: prompt,
-    parameters: {
-      max_new_tokens: 400,
-      temperature: 0.3,
-      return_full_text: false,
-    },
-  });
+  const foundProduct = products.find((item) =>
+    q.includes(item.name.toLowerCase())
+  );
 
-  const requestUrl = `${HUGGINGFACE_API_BASE_URL}/models/${encodeURIComponent(
-    HUGGINGFACE_MODEL
+  if (foundProduct) {
+    return `${foundProduct.name}: ${foundProduct.quantity} units available, category: ${
+      foundProduct.category
+    }, supplier: ${foundProduct.supplier || "N/A"}, price: PHP ${Number(
+      foundProduct.price
+    ).toFixed(2)}.`;
+  }
+
+  return `I could not reach the AI backend, but here is the current inventory summary: ${buildProductSummary(
+    products
   )}`;
-
-  const parseHuggingFaceError = async (resp: Response) => {
-    const errorData = await resp.json().catch(() => null);
-    return (
-      errorData?.error || errorData?.error?.message || `Hugging Face request failed with status ${resp.status}`
-    );
-  };
-
-  let response;
-  try {
-    response = await fetch(requestUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${hfKey}`,
-      },
-      body,
-    });
-  } catch (error) {
-    if (HUGGINGFACE_API_BASE_URL.endsWith(".co")) {
-      try {
-        response = await fetch(
-          `${HUGGINGFACE_API_FALLBACK_BASE_URL}/models/${encodeURIComponent(
-            HUGGINGFACE_MODEL
-          )}`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${hfKey}`,
-            },
-            body,
-          }
-        );
-      } catch (fallbackError) {
-        throw new Error(
-          "Unable to reach Hugging Face. Verify that api-inference.huggingface.co is reachable from your network, or set VITE_HUGGINGFACE_API_BASE_URL to a working endpoint."
-        );
-      }
-    } else {
-      throw new Error(
-        "Unable to reach Hugging Face. Verify your network connectivity or set VITE_HUGGINGFACE_API_BASE_URL to a working endpoint."
-      );
-    }
-  }
-
-  if (!response.ok && HUGGINGFACE_API_BASE_URL.endsWith(".co")) {
-    const fallbackResponse = await fetch(
-      `${HUGGINGFACE_API_FALLBACK_BASE_URL}/models/${encodeURIComponent(
-        HUGGINGFACE_MODEL
-      )}`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${hfKey}`,
-        },
-        body,
-      }
-    );
-
-    if (fallbackResponse.ok) {
-      response = fallbackResponse;
-    } else {
-      const fallbackErrorMessage = await parseHuggingFaceError(fallbackResponse);
-      throw new Error(
-        `Unable to reach Hugging Face: ${fallbackErrorMessage}`
-      );
-    }
-  }
-
-  if (!response.ok) {
-    const errorMessage = await parseHuggingFaceError(response);
-    throw new Error(errorMessage);
-  }
-
-  const data = await response.json();
-  const text =
-    typeof data === "string"
-      ? data
-      : Array.isArray(data)
-      ? data[0]?.generated_text
-      : data?.generated_text || data?.generated_text;
-
-  return text?.trim() || "I couldn't generate a response right now.";
 };
 
 export const getAIInventoryResponse = async (
   question: string,
-  products: Product[]
+  products: Product[],
+  history: ChatMessage[] = []
 ): Promise<string> => {
-  const inventorySummary = buildProductSummary(products);
-
-  if (isOpenAIKey(OPENAI_API_KEY)) {
-    return getOpenAIInventoryResponse(question, inventorySummary);
+  if (!API_BASE_URL) {
+    throw new Error(
+      "Backend API URL is not configured. Set VITE_API_BASE_URL to your Render backend URL."
+    );
   }
 
-  if (isHuggingFaceKey(OPENAI_API_KEY) || isHuggingFaceKey(HUGGINGFACE_API_KEY)) {
-    return getHuggingFaceInventoryResponse(question, inventorySummary);
-  }
+  try {
+    const response = await fetch(`${API_BASE_URL}/ai/inventory-chat`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        question,
+        history,
+      }),
+    });
 
-  throw new Error(
-    "Invalid API key. Set VITE_OPENAI_API_KEY to a valid OpenAI key or VITE_HUGGINGFACE_API_KEY to a valid Hugging Face key in your .env file."
-  );
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message || `AI backend failed with status ${response.status}.`
+      );
+    }
+
+    return data?.answer?.trim() || "I couldn't generate a response right now.";
+  } catch (error) {
+    console.warn("AI backend unavailable, using local fallback.", error);
+    return getLocalInventoryResponse(question, products);
+  }
 };
