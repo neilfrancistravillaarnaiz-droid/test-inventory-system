@@ -4150,6 +4150,24 @@ textarea,
   cursor: grabbing !important;
 }
 
+.ai-floating-btn.is-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translateY(18px) scale(0.82) !important;
+}
+
+.ai-floating-btn:not(.is-hidden) {
+  opacity: 1 !important;
+  transform: translateY(0) scale(1) !important;
+}
+
+.ai-floating-btn {
+  transition:
+    opacity 0.24s ease,
+    transform 0.28s cubic-bezier(0.22, 0.8, 0.22, 1),
+    filter 0.24s ease !important;
+}
+
 .ai-panel {
   right: 24px !important;
   bottom: 196px !important;

@@ -20,10 +20,12 @@ type AvatarPosition = {
 
 const AVATAR_SIZE = 76;
 const AVATAR_MARGIN = 16;
+const AVATAR_IDLE_DELAY = 4500;
 
 const AIInventoryAssistant = () => {
   const { products } = useProducts();
   const [open, setOpen] = useState(false);
+  const [avatarVisible, setAvatarVisible] = useState(true);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -44,6 +46,7 @@ const AIInventoryAssistant = () => {
     offsetX: 0,
     offsetY: 0,
   });
+  const idleTimerRef = useRef<number | null>(null);
 
   const clampAvatarPosition = (position: AvatarPosition): AvatarPosition => {
     if (typeof window === "undefined") return position;
@@ -89,8 +92,69 @@ const AIInventoryAssistant = () => {
     );
   }, [avatarPosition]);
 
+  useEffect(() => {
+    const clearIdleTimer = () => {
+      if (idleTimerRef.current) {
+        window.clearTimeout(idleTimerRef.current);
+        idleTimerRef.current = null;
+      }
+    };
+
+    const scheduleHide = () => {
+      clearIdleTimer();
+
+      if (open || loadingResponse || dragRef.current.dragging) return;
+
+      idleTimerRef.current = window.setTimeout(() => {
+        setAvatarVisible(false);
+      }, AVATAR_IDLE_DELAY);
+    };
+
+    const revealAvatar = () => {
+      setAvatarVisible(true);
+      scheduleHide();
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        revealAvatar();
+        return;
+      }
+
+      if (event.ctrlKey && event.shiftKey && event.key.toLowerCase() === "a") {
+        event.preventDefault();
+        setAvatarVisible(true);
+        setOpen(true);
+        clearIdleTimer();
+        return;
+      }
+
+      revealAvatar();
+    };
+
+    const activityEvents = ["pointermove", "touchstart", "scroll", "focusin"];
+
+    activityEvents.forEach((eventName) => {
+      window.addEventListener(eventName, revealAvatar, { passive: true });
+    });
+    window.addEventListener("keydown", handleKeyDown);
+
+    scheduleHide();
+
+    return () => {
+      clearIdleTimer();
+      activityEvents.forEach((eventName) => {
+        window.removeEventListener(eventName, revealAvatar);
+      });
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [open, loadingResponse]);
+
   const handleAvatarPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
     if (e.button !== 0) return;
+
+    setAvatarVisible(true);
 
     const rect = e.currentTarget.getBoundingClientRect();
     dragRef.current = {
@@ -127,6 +191,7 @@ const AIInventoryAssistant = () => {
 
   const handleAvatarPointerUp = (e: PointerEvent<HTMLButtonElement>) => {
     dragRef.current.dragging = false;
+    setAvatarVisible(true);
 
     if (e.currentTarget.hasPointerCapture(e.pointerId)) {
       e.currentTarget.releasePointerCapture(e.pointerId);
@@ -139,6 +204,7 @@ const AIInventoryAssistant = () => {
       return;
     }
 
+    setAvatarVisible(true);
     setOpen(!open);
   };
 
@@ -258,7 +324,9 @@ const AIInventoryAssistant = () => {
   return (
     <>
       <button
-        className="ai-floating-btn"
+        className={`ai-floating-btn${
+          avatarVisible || open ? "" : " is-hidden"
+        }`}
         type="button"
         onClick={handleAvatarClick}
         onPointerDown={handleAvatarPointerDown}
