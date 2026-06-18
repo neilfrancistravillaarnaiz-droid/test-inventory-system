@@ -37,6 +37,23 @@ const buildProductSummary = (products: Product[]) => {
   ].join(" ");
 };
 
+const isGreeting = (question: string) =>
+  /^(hi|hello|hey|good morning|good afternoon|good evening|kumusta|kamusta|yo)\b/i.test(
+    question.trim()
+  );
+
+const isCapabilityQuestion = (question: string) => {
+  const q = question.toLowerCase();
+
+  return (
+    q.includes("what can you do") ||
+    q.includes("help") ||
+    q.includes("how do i use") ||
+    q.includes("what are you") ||
+    q.includes("who are you")
+  );
+};
+
 const getLocalInventoryResponse = (question: string, products: Product[]) => {
   const q = question.toLowerCase();
   const lowStock = products.filter(
@@ -47,6 +64,14 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
     (sum, item) => sum + item.quantity * item.price,
     0
   );
+
+  if (isGreeting(question)) {
+    return "Hi! I am your AI Inventory Assistant. You can ask me about low stock, product counts, suppliers, inventory value, restocking, barcode/QR workflows, or a specific product.";
+  }
+
+  if (isCapabilityQuestion(question)) {
+    return "I can help with inventory questions like which products are low stock, how many items you have, supplier details, restock suggestions, product locations, and quick summaries of your stock data.";
+  }
 
   if (q.includes("low stock")) {
     return lowStock.length
@@ -80,7 +105,7 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
     ).toFixed(2)}.`;
   }
 
-  return `I could not reach the AI backend, but here is the current inventory summary: ${buildProductSummary(
+  return `I can still help with your inventory summary while the AI backend is unavailable: ${buildProductSummary(
     products
   )}`;
 };
@@ -91,9 +116,7 @@ export const getAIInventoryResponse = async (
   history: ChatMessage[] = []
 ): Promise<string> => {
   if (!API_BASE_URL) {
-    throw new Error(
-      "Backend API URL is not configured. Set VITE_API_BASE_URL to your Render backend URL."
-    );
+    return getLocalInventoryResponse(question, products);
   }
 
   try {
