@@ -4624,3 +4624,224 @@ body:not(.light-mode) .table-card td,
 body:not(.light-mode) .inventory-page .inventory-table td {
   color: rgba(246, 255, 248, 0.9) !important;
 }
+
+/* =====================================================
+   FINAL INVENTORY-MATCHED PAGE SPACING PASS
+   stock history, restock, reports, audit, alerts, barcode, qr search
+===================================================== */
+.stock-page,
+.stock-history-page,
+.reports-page,
+.notifications-page,
+.audit-page,
+.qr-page,
+.qr-search-page,
+.restock-page {
+  width: 100% !important;
+  padding-top: clamp(12px, 1.4vw, 22px) !important;
+  gap: clamp(22px, 2.2vw, 34px) !important;
+}
+
+.stock-page > *,
+.stock-history-page > *,
+.reports-page > *,
+.notifications-page > *,
+.audit-page > *,
+.qr-page > *,
+.qr-search-page > *,
+.restock-page > * {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+.stock-page .page-header,
+.stock-history-page .page-header,
+.reports-page .report-header-row,
+.notifications-page .notification-header-row,
+.audit-page .page-header,
+.qr-page .page-header,
+.qr-search-page .page-header,
+.restock-page .page-header {
+  margin-bottom: 0 !important;
+  padding-top: 4px !important;
+}
+
+.stock-page .page-header h1,
+.stock-page .page-header h2,
+.stock-history-page .page-header h1,
+.stock-history-page .page-header h2,
+.reports-page .report-header-row h2,
+.notifications-page .notification-header-row h2,
+.audit-page .page-header h1,
+.audit-page .page-header h2,
+.qr-page .page-header h1,
+.qr-page .page-header h2,
+.qr-search-page .page-header h1,
+.qr-search-page .page-header h2,
+.restock-page .page-header h1,
+.restock-page .page-header h2 {
+  line-height: 1.08 !important;
+  padding-top: 4px !important;
+  overflow: visible !important;
+}
+
+.history-tools,
+.audit-tools,
+.notification-tools,
+.qr-search-row {
+  display: grid !important;
+  gap: clamp(20px, 1.8vw, 28px) !important;
+  margin: 0 0 clamp(26px, 2.6vw, 40px) !important;
+}
+
+.history-tools {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px) !important;
+}
+
+.audit-tools {
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 300px) !important;
+}
+
+.qr-search-row {
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px) !important;
+}
+
+.history-grid,
+.audit-timeline,
+.notification-list,
+.qr-search-results {
+  display: grid !important;
+  gap: clamp(22px, 2vw, 32px) !important;
+}
+
+.report-summary-grid,
+.notification-stats-grid,
+.restock-grid,
+.qr-grid {
+  gap: clamp(24px, 2.2vw, 34px) !important;
+  margin-top: 0 !important;
+  margin-bottom: clamp(26px, 2.4vw, 38px) !important;
+}
+
+.report-section {
+  margin-top: clamp(4px, 0.8vw, 12px) !important;
+  padding: clamp(22px, 2vw, 30px) !important;
+}
+
+.report-section + .report-section {
+  margin-top: clamp(24px, 2.4vw, 36px) !important;
+}
+
+.history-card,
+.audit-content,
+.notification-item,
+.qr-search-card {
+  margin: 0 !important;
+  padding: clamp(22px, 2vw, 30px) !important;
+  border-radius: 22px !important;
+}
+
+.report-card,
+.notification-stat-card,
+.restock-card,
+.qr-card {
+  margin: 0 !important;
+  padding: clamp(22px, 2vw, 30px) !important;
+  border-radius: 22px !important;
+}
+
+.history-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(20px, 2vw, 30px) !important;
+}
+
+.history-meta {
+  min-width: 150px !important;
+}
+
+.notification-item {
+  grid-template-columns: 58px minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: clamp(18px, 1.8vw, 26px) !important;
+}
+
+.audit-item {
+  gap: clamp(18px, 1.6vw, 24px) !important;
+}
+
+.restock-card {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: clamp(18px, 1.7vw, 26px) !important;
+}
+
+.restock-card-header {
+  margin-bottom: 0 !important;
+  gap: clamp(16px, 1.5vw, 24px) !important;
+}
+
+.restock-metrics {
+  gap: clamp(16px, 1.5vw, 24px) !important;
+}
+
+.restock-recommendation {
+  margin-top: 0 !important;
+}
+
+.qr-card {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: clamp(16px, 1.5vw, 24px) !important;
+}
+
+.qr-search-panel {
+  margin-bottom: clamp(24px, 2.4vw, 36px) !important;
+  padding: clamp(22px, 2vw, 30px) !important;
+  border-radius: 22px !important;
+}
+
+@media (max-width: 900px) {
+  .history-tools,
+  .audit-tools,
+  .qr-search-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .history-card,
+  .notification-item {
+    grid-template-columns: 1fr !important;
+    align-items: stretch !important;
+  }
+
+  .history-meta {
+    min-width: 0 !important;
+    text-align: left !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .stock-page,
+  .stock-history-page,
+  .reports-page,
+  .notifications-page,
+  .audit-page,
+  .qr-page,
+  .qr-search-page,
+  .restock-page {
+    gap: 18px !important;
+    padding-top: 8px !important;
+  }
+
+  .report-summary-grid,
+  .notification-stats-grid,
+  .restock-grid,
+  .qr-grid,
+  .history-grid,
+  .audit-timeline,
+  .notification-list,
+  .qr-search-results {
+    gap: 18px !important;
+  }
+}
