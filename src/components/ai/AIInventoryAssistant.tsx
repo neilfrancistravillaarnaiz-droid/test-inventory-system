@@ -136,20 +136,28 @@ const AIInventoryAssistant = () => {
   return (
     <>
       <button
-  className="ai-floating-btn"
-  type="button"
-  onClick={() => setOpen(!open)}
->
-  <div className="ai-core">
-    <div className="ai-ring ring-1"></div>
-    <div className="ai-ring ring-2"></div>
-    <div className="ai-ring ring-3"></div>
+        className="ai-floating-btn"
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-label={open ? "Close AI assistant" : "Open AI assistant"}
+      >
+        <div className="ai-core">
+          <div className="ai-ring ring-1"></div>
+          <div className="ai-ring ring-2"></div>
+          <div className="ai-ring ring-3"></div>
 
-    <div className="ai-sphere">
-      🤖
-    </div>
-  </div>
-</button>
+          <div className="ai-sphere">
+            <video
+              className="ai-avatar-video"
+              src="/avatar.mp4"
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          </div>
+        </div>
+      </button>
 
       {open && (
         <div className="ai-panel">
