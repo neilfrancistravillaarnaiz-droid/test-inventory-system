@@ -32,10 +32,10 @@
 .auth-final-page .stock-auth-left {
   display: flex !important;
   flex-direction: column !important;
-  justify-content: center !important;
+  justify-content: flex-start !important;
   align-items: flex-start !important;
-  gap: clamp(16px, 2vh, 24px) !important;
-  padding: clamp(40px, 5vw, 92px) clamp(42px, 5vw, 96px) !important;
+  gap: clamp(14px, 1.8vh, 22px) !important;
+  padding: clamp(42px, 6vh, 72px) clamp(42px, 5vw, 96px) clamp(30px, 4vh, 46px) !important;
   background: transparent !important;
 }
 
@@ -72,14 +72,7 @@
 }
 
 .auth-final-page .auth-left-content {
-  position: absolute !important;
-  top: clamp(34px, 5vh, 58px) !important;
-  left: clamp(42px, 5vw, 96px) !important;
-  right: clamp(42px, 5vw, 96px) !important;
-  z-index: 4 !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: clamp(16px, 2vh, 24px) !important;
+  display: contents !important;
 }
 
 .auth-final-page .auth-hero-brand {
@@ -520,16 +513,15 @@
   transform: none !important;
 }
 
-/* Final alignment: place the left content higher instead of centering it. */
+/* Final alignment: keep the previous flow, only slightly higher. */
 .auth-final-page .stock-auth-left {
   justify-content: flex-start !important;
-  padding-top: clamp(14px, 2vh, 26px) !important;
+  padding-top: clamp(42px, 6vh, 72px) !important;
   padding-bottom: clamp(24px, 4vh, 44px) !important;
 }
 
 @media (max-height: 820px) and (min-width: 981px) {
-  .auth-final-page .auth-left-content {
-    top: clamp(20px, 3vh, 34px) !important;
+  .auth-final-page .stock-auth-left {
     gap: 14px !important;
   }
 }
