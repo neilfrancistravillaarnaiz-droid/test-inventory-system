@@ -4513,3 +4513,114 @@ body.light-mode textarea::placeholder,
 body.light-mode .search-input::placeholder {
   color: rgba(61, 88, 67, 0.58) !important;
 }
+
+/* =====================================================
+   DARK MODE DEEP GLASS CARDS - all app pages
+===================================================== */
+body:not(.light-mode) .content-card,
+body:not(.light-mode) .table-card,
+body:not(.light-mode) .dashboard-card,
+body:not(.light-mode) .dashboard-stat-card,
+body:not(.light-mode) .report-card,
+body:not(.light-mode) .notification-stat-card,
+body:not(.light-mode) .notification-item,
+body:not(.light-mode) .category-form,
+body:not(.light-mode) .category-list,
+body:not(.light-mode) .category-item,
+body:not(.light-mode) .supplier-form,
+body:not(.light-mode) .supplier-list,
+body:not(.light-mode) .supplier-item,
+body:not(.light-mode) .stock-mini-card,
+body:not(.light-mode) .stock-form-card,
+body:not(.light-mode) .stock-preview-card,
+body:not(.light-mode) .restock-card,
+body:not(.light-mode) .settings-form,
+body:not(.light-mode) .settings-preview,
+body:not(.light-mode) .users-panel,
+body:not(.light-mode) .user-profile-card,
+body:not(.light-mode) .user-stat-card,
+body:not(.light-mode) .qr-card,
+body:not(.light-mode) .qr-search-panel,
+body:not(.light-mode) .qr-search-card,
+body:not(.light-mode) .audit-content,
+body:not(.light-mode) .history-card,
+body:not(.light-mode) .insight-panel,
+body:not(.light-mode) .insight-item,
+body:not(.light-mode) .activity-item,
+body:not(.light-mode) .quick-action-list a,
+body:not(.light-mode) .inventory-page .dashboard-card,
+body:not(.light-mode) .inventory-page .inventory-table-card {
+  color: #f5fff7 !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.035) 42%, rgba(153, 211, 164, 0.10)),
+    rgba(40, 69, 45, 0.72) !important;
+  border: 1px solid rgba(218, 247, 224, 0.22) !important;
+  box-shadow:
+    0 18px 44px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.20),
+    inset 0 -1px 0 rgba(6, 26, 10, 0.34) !important;
+  backdrop-filter: blur(22px) saturate(1.18) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(1.18) !important;
+}
+
+body:not(.light-mode) .dashboard-card,
+body:not(.light-mode) .dashboard-stat-card,
+body:not(.light-mode) .report-card,
+body:not(.light-mode) .notification-stat-card,
+body:not(.light-mode) .stock-mini-card,
+body:not(.light-mode) .user-stat-card,
+body:not(.light-mode) .inventory-page .dashboard-card {
+  min-height: 118px !important;
+  padding: clamp(18px, 1.8vw, 26px) !important;
+  border-radius: 22px !important;
+}
+
+body:not(.light-mode) .dashboard-card p,
+body:not(.light-mode) .dashboard-stat-card p,
+body:not(.light-mode) .dashboard-card span,
+body:not(.light-mode) .report-card span,
+body:not(.light-mode) .notification-stat-card span,
+body:not(.light-mode) .stock-mini-card span,
+body:not(.light-mode) .user-stat-card span,
+body:not(.light-mode) .inventory-page .dashboard-card p {
+  color: rgba(238, 248, 240, 0.76) !important;
+  font-weight: 900 !important;
+}
+
+body:not(.light-mode) .dashboard-card h3,
+body:not(.light-mode) .dashboard-stat-card strong,
+body:not(.light-mode) .report-card strong,
+body:not(.light-mode) .notification-stat-card strong,
+body:not(.light-mode) .stock-mini-card strong,
+body:not(.light-mode) .user-stat-card strong,
+body:not(.light-mode) .inventory-page .dashboard-card h3 {
+  color: #ffffff !important;
+  font-weight: 950 !important;
+  text-shadow: 0 10px 30px rgba(0, 0, 0, 0.34) !important;
+}
+
+body:not(.light-mode) .card-grid,
+body:not(.light-mode) .dashboard-stat-grid,
+body:not(.light-mode) .report-summary-grid,
+body:not(.light-mode) .notification-stats-grid,
+body:not(.light-mode) .stock-summary-grid,
+body:not(.light-mode) .stats-grid,
+body:not(.light-mode) .inventory-page .card-grid {
+  gap: clamp(22px, 2vw, 32px) !important;
+}
+
+body:not(.light-mode) .table-card tbody tr,
+body:not(.light-mode) .inventory-page .inventory-table tbody tr {
+  background: rgba(44, 76, 50, 0.54) !important;
+}
+
+body:not(.light-mode) .table-card th,
+body:not(.light-mode) .inventory-page .inventory-table thead th {
+  color: rgba(245, 255, 247, 0.78) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+body:not(.light-mode) .table-card td,
+body:not(.light-mode) .inventory-page .inventory-table td {
+  color: rgba(246, 255, 248, 0.9) !important;
+}
