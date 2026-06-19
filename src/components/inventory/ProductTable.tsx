@@ -7,9 +7,16 @@ import SuccessModal from "../common/SuccessModal";
 type Props = {
   products: Product[];
   refresh?: () => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 };
 
-const ProductTable = ({ products, refresh }: Props) => {
+const ProductTable = ({
+  products,
+  refresh,
+  canEdit = false,
+  canDelete = false,
+}: Props) => {
   const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null
   );
@@ -17,12 +24,14 @@ const ProductTable = ({ products, refresh }: Props) => {
   const [showDeletedModal, setShowDeletedModal] = useState(false);
 
   const openDeleteModal = (id: string) => {
+    if (!canDelete) return;
+
     setSelectedProductId(id);
     setShowDeleteConfirm(true);
   };
 
   const confirmDelete = async () => {
-    if (!selectedProductId) return;
+    if (!selectedProductId || !canDelete) return;
 
     const { error } = await deleteProduct(selectedProductId);
 
@@ -36,6 +45,9 @@ const ProductTable = ({ products, refresh }: Props) => {
     setShowDeletedModal(true);
     refresh?.();
   };
+
+  const showActions = canEdit || canDelete;
+  const columnCount = showActions ? 9 : 8;
 
   return (
     <>
@@ -51,14 +63,14 @@ const ProductTable = ({ products, refresh }: Props) => {
               <th>Quantity</th>
               <th>Unit Price</th>
               <th>Stock Status</th>
-              <th>Actions</th>
+              {showActions && <th>Actions</th>}
             </tr>
           </thead>
 
           <tbody>
             {products.length === 0 ? (
               <tr>
-                <td colSpan={9} className="empty-cell">
+                <td colSpan={columnCount} className="empty-cell">
                   No products found.
                 </td>
               </tr>
@@ -128,23 +140,29 @@ const ProductTable = ({ products, refresh }: Props) => {
                     </span>
                   </td>
 
-                  <td data-label="Actions">
-                    <div className="table-actions">
-                      <Link
-                        className="edit-btn"
-                        to={`/inventory/edit/${product.id}`}
-                      >
-                        Edit Product
-                      </Link>
+                  {showActions && (
+                    <td data-label="Actions">
+                      <div className="table-actions">
+                        {canEdit && (
+                          <Link
+                            className="edit-btn"
+                            to={`/inventory/edit/${product.id}`}
+                          >
+                            Edit Product
+                          </Link>
+                        )}
 
-                      <button
-                        className="danger-btn"
-                        onClick={() => openDeleteModal(product.id)}
-                      >
-                        Delete Product
-                      </button>
-                    </div>
-                  </td>
+                        {canDelete && (
+                          <button
+                            className="danger-btn"
+                            onClick={() => openDeleteModal(product.id)}
+                          >
+                            Delete Product
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))
             )}

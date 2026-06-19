@@ -5112,3 +5112,60 @@ body.light-mode .audit-page .audit-content > span {
     linear-gradient(135deg, rgba(45, 122, 58, 0.95), rgba(81, 156, 92, 0.86)) !important;
   color: #ffffff !important;
 }
+
+/* Role-based access guard */
+.access-denied-card {
+  width: min(680px, 100%) !important;
+  margin: clamp(28px, 5vw, 72px) auto !important;
+  padding: clamp(26px, 3vw, 42px) !important;
+  border-radius: 26px !important;
+  color: #f7fff8 !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), rgba(153, 211, 164, 0.10)),
+    rgba(21, 53, 29, 0.76) !important;
+  border: 1px solid rgba(220, 248, 225, 0.28) !important;
+  box-shadow:
+    0 24px 70px rgba(7, 28, 12, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+  backdrop-filter: blur(24px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.2) !important;
+}
+
+.access-denied-card span {
+  display: inline-flex !important;
+  width: fit-content !important;
+  margin-bottom: 14px !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  color: #f0d98a !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  font-weight: 950 !important;
+}
+
+.access-denied-card h2 {
+  margin: 0 0 10px !important;
+  color: #ffffff !important;
+  font-size: clamp(30px, 4vw, 48px) !important;
+}
+
+.access-denied-card p {
+  margin: 0 0 22px !important;
+  color: rgba(238, 248, 240, 0.8) !important;
+  font-weight: 750 !important;
+}
+
+body.light-mode .access-denied-card {
+  color: #132f1a !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.84), rgba(226, 247, 232, 0.56)),
+    rgba(255, 255, 255, 0.58) !important;
+  border-color: rgba(255, 255, 255, 0.82) !important;
+}
+
+body.light-mode .access-denied-card h2 {
+  color: #132f1a !important;
+}
+
+body.light-mode .access-denied-card p {
+  color: rgba(43, 77, 50, 0.76) !important;
+}

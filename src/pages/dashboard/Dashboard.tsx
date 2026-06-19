@@ -12,6 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useProducts } from "../../hooks/useProducts";
+import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 
 const currency = new Intl.NumberFormat("en-PH", {
   style: "currency",
@@ -21,6 +22,7 @@ const currency = new Intl.NumberFormat("en-PH", {
 
 const Dashboard = () => {
   const { products, loading } = useProducts();
+  const { can } = useCurrentProfile();
 
   const totalProducts = products.length;
   const totalQuantity = products.reduce(
@@ -266,16 +268,18 @@ const Dashboard = () => {
           </div>
 
           <div className="quick-action-list">
-            <Link to="/inventory/add">
-              <span className="stat-icon stat-icon-green">
-                <Plus size={17} />
-              </span>
-              <div>
-                <strong>Add product</strong>
-                <p>Create inventory item</p>
-              </div>
-              <ArrowRight size={16} />
-            </Link>
+            {can("inventory:create") && (
+              <Link to="/inventory/add">
+                <span className="stat-icon stat-icon-green">
+                  <Plus size={17} />
+                </span>
+                <div>
+                  <strong>Add product</strong>
+                  <p>Create inventory item</p>
+                </div>
+                <ArrowRight size={16} />
+              </Link>
+            )}
 
             <Link to="/qr-search">
               <span className="stat-icon stat-icon-blue">

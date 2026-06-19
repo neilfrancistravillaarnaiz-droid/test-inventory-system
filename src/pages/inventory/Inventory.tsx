@@ -4,9 +4,11 @@ import { useProducts } from "../../hooks/useProducts";
 import ProductTable from "../../components/inventory/ProductTable";
 import SearchBar from "../../components/inventory/SearchBar";
 import InventoryStats from "../../components/inventory/InventoryStats";
+import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 
 const Inventory = () => {
   const { products, loading, fetchProducts } = useProducts();
+  const { can } = useCurrentProfile();
   const [searchParams, setSearchParams] = useSearchParams();
   const [search, setSearch] = useState("");
 
@@ -40,9 +42,11 @@ const Inventory = () => {
           <p>Manage all products.</p>
         </div>
 
-        <Link className="primary-link add-btn" to="/inventory/add">
-          Add Product
-        </Link>
+        {can("inventory:create") && (
+          <Link className="primary-link add-btn" to="/inventory/add">
+            Add Product
+          </Link>
+        )}
       </div>
 
       <InventoryStats products={products} />
@@ -52,7 +56,12 @@ const Inventory = () => {
         onChange={handleSearchChange}
       />
 
-      <ProductTable products={filteredProducts} refresh={fetchProducts} />
+      <ProductTable
+        products={filteredProducts}
+        refresh={fetchProducts}
+        canEdit={can("inventory:update")}
+        canDelete={can("inventory:delete")}
+      />
     </section>
   );
 };

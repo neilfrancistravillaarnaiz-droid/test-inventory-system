@@ -19,30 +19,61 @@ import {
   LogOut,
   Moon,
   Sun,
+  type LucideIcon,
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import AIInventoryAssistant from "../components/ai/AIInventoryAssistant";
 import { useProducts } from "../hooks/useProducts";
+import { useCurrentProfile } from "../hooks/useCurrentProfile";
+import type { Permission } from "../constants/permissions";
 
-const navItems = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: LucideIcon;
+  permission?: Permission;
+};
+
+const navItems: NavItem[] = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/inventory", label: "Inventory", icon: Package },
-  { to: "/categories", label: "Categories", icon: Tags },
-  { to: "/suppliers", label: "Suppliers", icon: Truck },
-  { to: "/stock-in", label: "Stock In", icon: ArrowDownToLine },
-  { to: "/stock-out", label: "Stock Out", icon: ArrowUpFromLine },
+  {
+    to: "/categories",
+    label: "Categories",
+    icon: Tags,
+    permission: "categories:manage",
+  },
+  {
+    to: "/suppliers",
+    label: "Suppliers",
+    icon: Truck,
+    permission: "suppliers:manage",
+  },
+  {
+    to: "/stock-in",
+    label: "Stock In",
+    icon: ArrowDownToLine,
+    permission: "stock:move",
+  },
+  {
+    to: "/stock-out",
+    label: "Stock Out",
+    icon: ArrowUpFromLine,
+    permission: "stock:move",
+  },
   { to: "/stock-history", label: "History", icon: History },
   { to: "/restock-predictor", label: "Restock", icon: LineChart },
-  { to: "/reports", label: "Reports", icon: FileText },
-  { to: "/notifications", label: "Alerts", icon: Bell },
-  { to: "/audit-logs", label: "Audit", icon: ScrollText },
-  { to: "/qr-codes", label: "Barcode", icon: QrCode },
-  { to: "/qr-search", label: "QR Search", icon: Search },
+  { to: "/reports", label: "Reports", icon: FileText, permission: "reports:view" },
+  { to: "/notifications", label: "Alerts", icon: Bell, permission: "alerts:view" },
+  { to: "/audit-logs", label: "Audit", icon: ScrollText, permission: "audit:view" },
+  { to: "/qr-codes", label: "Barcode", icon: QrCode, permission: "qr:view" },
+  { to: "/qr-search", label: "QR Search", icon: Search, permission: "qr:view" },
 ];
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const { products } = useProducts();
+  const { profile, role, can } = useCurrentProfile();
 
   const [isLightMode, setIsLightMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -165,6 +196,13 @@ const DashboardLayout = () => {
     setSearchFocused(false);
   };
 
+  const visibleNavItems = navItems.filter(
+    (item) => !item.permission || can(item.permission)
+  );
+
+  const displayName =
+    profile?.full_name || profile?.email || "StockFlow User";
+
   return (
     <div className="dashboard-layout command-layout">
       <main className="dashboard-main command-main">
@@ -267,23 +305,27 @@ const DashboardLayout = () => {
                     />
 
                     <div>
-                      <h3>StockFlow User</h3>
-                      <p>Administrator</p>
+                      <h3>{displayName}</h3>
+                      <p>{role}</p>
                     </div>
                   </div>
 
-                  <NavLink to="/users" onClick={() => setProfileOpen(false)}>
-                    <User size={18} />
-                    Manage Profile
-                  </NavLink>
+                  {can("users:manage") && (
+                    <NavLink to="/users" onClick={() => setProfileOpen(false)}>
+                      <User size={18} />
+                      Manage Profile
+                    </NavLink>
+                  )}
 
-                  <NavLink
-                    to="/settings"
-                    onClick={() => setProfileOpen(false)}
-                  >
-                    <Settings size={18} />
-                    Account Settings
-                  </NavLink>
+                  {can("settings:manage") && (
+                    <NavLink
+                      to="/settings"
+                      onClick={() => setProfileOpen(false)}
+                    >
+                      <Settings size={18} />
+                      Account Settings
+                    </NavLink>
+                  )}
 
                   <button type="button" onClick={handleLogout}>
                     <LogOut size={18} />
@@ -301,7 +343,7 @@ const DashboardLayout = () => {
       <div className="dock-hover-zone" aria-hidden="true" />
 
       <nav className="command-dock">
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
 
           return (

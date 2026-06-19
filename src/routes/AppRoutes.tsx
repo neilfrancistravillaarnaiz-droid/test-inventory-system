@@ -21,6 +21,7 @@ import AddProduct from "../pages/inventory/AddProduct";
 import NotFound from "../pages/NotFound";
 import DashboardLayout from "../layouts/DashboardLayout";
 import ProtectedRoute from "./ProtectedRoute";
+import RequirePermission from "./RequirePermission";
 import EditProduct from "../pages/inventory/EditProduct";
 import Categories from "../pages/categories/Categories";
 
@@ -38,25 +39,116 @@ const AppRoutes = () => {
           <Route path="/dashboard" element={<Dashboard />} />
 
           <Route path="/inventory" element={<Inventory />} />
-          <Route path="/inventory/add" element={<AddProduct />} />
-          <Route path="/inventory/edit/:id" element={<EditProduct />} />
+          <Route
+            path="/inventory/add"
+            element={
+              <RequirePermission permission="inventory:create">
+                <AddProduct />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/inventory/edit/:id"
+            element={
+              <RequirePermission permission="inventory:update">
+                <EditProduct />
+              </RequirePermission>
+            }
+          />
 
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/suppliers" element={<Suppliers />} />
+          <Route
+            path="/categories"
+            element={
+              <RequirePermission permission="categories:manage">
+                <Categories />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/suppliers"
+            element={
+              <RequirePermission permission="suppliers:manage">
+                <Suppliers />
+              </RequirePermission>
+            }
+          />
 
-          <Route path="/stock-in" element={<StockIn />} />
-          <Route path="/stock-out" element={<StockOut />} />
+          <Route
+            path="/stock-in"
+            element={
+              <RequirePermission permission="stock:move">
+                <StockIn />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/stock-out"
+            element={
+              <RequirePermission permission="stock:move">
+                <StockOut />
+              </RequirePermission>
+            }
+          />
           <Route path="/stock-history" element={<StockHistory />} />
 
-          <Route path="/reports" element={<Reports />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/settings" element={<Settings />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/audit-logs" element={<AuditLogs />} />
+          <Route
+            path="/reports"
+            element={
+              <RequirePermission permission="reports:view">
+                <Reports />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <RequirePermission permission="users:manage">
+                <Users />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/settings"
+            element={
+              <RequirePermission permission="settings:manage">
+                <Settings />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <RequirePermission permission="alerts:view">
+                <Notifications />
+              </RequirePermission>
+            }
+          />
+          <Route
+            path="/audit-logs"
+            element={
+              <RequirePermission permission="audit:view">
+                <AuditLogs />
+              </RequirePermission>
+            }
+          />
 
-          <Route path="/qr-codes" element={<ProductQR />} />
+          <Route
+            path="/qr-codes"
+            element={
+              <RequirePermission permission="qr:view">
+                <ProductQR />
+              </RequirePermission>
+            }
+          />
           <Route path="/products/:id" element={<ProductDetails />} />
-          <Route path="/qr-search" element={<QRSearch />} />
+          <Route
+            path="/qr-search"
+            element={
+              <RequirePermission permission="qr:view">
+                <QRSearch />
+              </RequirePermission>
+            }
+          />
           <Route path="/restock-predictor" element={<RestockPredictor />} />
 
         </Route>

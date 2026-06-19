@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
 import type { Product } from "../../types/Product";
 import { getProductById } from "../../services/inventoryService";
+import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 
 const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { can } = useCurrentProfile();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
@@ -166,17 +168,23 @@ const ProductDetails = () => {
           </div>
 
           <div className="product-detail-actions">
-            <Link to={`/inventory/edit/${product.id}`}>
-              Edit Product
-            </Link>
+            {can("inventory:update") && (
+              <Link to={`/inventory/edit/${product.id}`}>
+                Edit Product
+              </Link>
+            )}
 
-            <Link to="/stock-in">
-              Stock In
-            </Link>
+            {can("stock:move") && (
+              <Link to="/stock-in">
+                Stock In
+              </Link>
+            )}
 
-            <Link to="/stock-out">
-              Stock Out
-            </Link>
+            {can("stock:move") && (
+              <Link to="/stock-out">
+                Stock Out
+              </Link>
+            )}
           </div>
         </div>
       </div>
