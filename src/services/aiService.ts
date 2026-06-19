@@ -54,6 +54,13 @@ const isCapabilityQuestion = (question: string) => {
   );
 };
 
+const normalizeQuestion = (question: string) =>
+  question
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const formatProductList = (products: Product[], limit = 8) => {
   if (!products.length) {
     return "No products are available in your inventory yet.";
@@ -72,6 +79,7 @@ const formatProductList = (products: Product[], limit = 8) => {
 
 const getLocalInventoryResponse = (question: string, products: Product[]) => {
   const q = question.toLowerCase();
+  const normalizedQuestion = normalizeQuestion(question);
   const lowStock = products.filter(
     (item) => item.quantity <= item.low_stock_limit
   );
@@ -81,6 +89,61 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
     (sum, item) => sum + item.quantity * item.price,
     0
   );
+
+  if (
+    ["wow", "nice", "great", "awesome", "cool", "amazing", "good"].includes(
+      normalizedQuestion
+    )
+  ) {
+    return "Glad you like it! You can ask me for product lists, low-stock alerts, restock suggestions, suppliers, or inventory value anytime.";
+  }
+
+  if (
+    [
+      "ok",
+      "okay",
+      "k",
+      "alright",
+      "sure",
+      "got it",
+      "noted",
+      "yes",
+      "yeah",
+      "yep",
+    ].includes(normalizedQuestion)
+  ) {
+    return "Okay, noted. I am here when you need help checking your inventory.";
+  }
+
+  if (
+    normalizedQuestion.includes("thank you") ||
+    normalizedQuestion.includes("thanks") ||
+    normalizedQuestion.includes("thank u") ||
+    normalizedQuestion.includes("ty")
+  ) {
+    return "You are welcome! Happy to help with your inventory anytime.";
+  }
+
+  if (
+    [
+      "bye",
+      "goodbye",
+      "see you",
+      "see ya",
+      "later",
+      "exit",
+      "close",
+    ].includes(normalizedQuestion)
+  ) {
+    return "Goodbye! I will be here when you need inventory help again.";
+  }
+
+  if (
+    normalizedQuestion.includes("sorry") ||
+    normalizedQuestion.includes("my bad")
+  ) {
+    return "No worries at all. Tell me what inventory question you want to check.";
+  }
 
   if (
     q.includes("how are you") ||
