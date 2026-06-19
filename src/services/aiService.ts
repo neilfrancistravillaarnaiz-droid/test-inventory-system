@@ -54,16 +54,41 @@ const isCapabilityQuestion = (question: string) => {
   );
 };
 
+const formatProductList = (products: Product[], limit = 8) => {
+  if (!products.length) {
+    return "No products are available in your inventory yet.";
+  }
+
+  const visibleProducts = products.slice(0, limit);
+  const remainingCount = products.length - visibleProducts.length;
+  const productList = visibleProducts
+    .map((item) => `${item.name} (${item.quantity} in stock)`)
+    .join(", ");
+
+  return remainingCount > 0
+    ? `${productList}, and ${remainingCount} more.`
+    : productList;
+};
+
 const getLocalInventoryResponse = (question: string, products: Product[]) => {
   const q = question.toLowerCase();
   const lowStock = products.filter(
     (item) => item.quantity <= item.low_stock_limit
   );
+  const availableProducts = products.filter((item) => item.quantity > 0);
   const totalStocks = products.reduce((sum, item) => sum + item.quantity, 0);
   const inventoryValue = products.reduce(
     (sum, item) => sum + item.quantity * item.price,
     0
   );
+
+  if (
+    q.includes("how are you") ||
+    q.includes("how r u") ||
+    q.includes("are you okay")
+  ) {
+    return "I am doing great and ready to help with your inventory. Ask me about products, low stocks, suppliers, restocking, or inventory value.";
+  }
 
   if (isGreeting(question)) {
     return "Hi! I am your AI Inventory Assistant. You can ask me about low stock, product counts, suppliers, inventory value, restocking, barcode/QR workflows, or a specific product.";
@@ -71,6 +96,37 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
 
   if (isCapabilityQuestion(question)) {
     return "I can help with inventory questions like which products are low stock, how many items you have, supplier details, restock suggestions, product locations, and quick summaries of your stock data.";
+  }
+
+  if (
+    q.includes("available product") ||
+    q.includes("available products") ||
+    q.includes("products available") ||
+    q.includes("what products") ||
+    q.includes("list products") ||
+    q.includes("show products")
+  ) {
+    return `Available products: ${formatProductList(availableProducts)}.`;
+  }
+
+  if (q.includes("category") || q.includes("categories")) {
+    const categories = Array.from(
+      new Set(products.map((item) => item.category).filter(Boolean))
+    );
+
+    return categories.length
+      ? `Your product categories are: ${categories.join(", ")}.`
+      : "No product categories are recorded yet.";
+  }
+
+  if (q.includes("supplier") || q.includes("suppliers")) {
+    const suppliers = Array.from(
+      new Set(products.map((item) => item.supplier).filter(Boolean))
+    );
+
+    return suppliers.length
+      ? `Your suppliers are: ${suppliers.join(", ")}.`
+      : "No suppliers are recorded yet.";
   }
 
   if (q.includes("low stock")) {
@@ -87,6 +143,10 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
 
   if (q.includes("total stock")) {
     return `Your total stock quantity is ${totalStocks} units.`;
+  }
+
+  if (q.includes("stock status") || q.includes("inventory status")) {
+    return `Inventory status: ${products.length} products, ${totalStocks} total units, ${lowStock.length} low-stock item(s), and ${availableProducts.length} product(s) currently available.`;
   }
 
   if (q.includes("value") || q.includes("worth")) {
