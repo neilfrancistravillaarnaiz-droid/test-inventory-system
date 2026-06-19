@@ -1,4 +1,4 @@
-import {
+﻿import {
   type FormEvent,
   type PointerEvent,
   useEffect,
@@ -37,18 +37,20 @@ const QUICK_PROMPTS = [
   "Restock suggestions",
 ];
 
+const INITIAL_MESSAGES: Message[] = [
+  {
+    sender: "ai",
+    text: "Hi! I am your AI Inventory Assistant. Ask me about low stocks, suppliers, products, or restocking.",
+  },
+];
+
 const AIInventoryAssistant = () => {
   const navigate = useNavigate();
   const { products } = useProducts();
   const [open, setOpen] = useState(false);
   const [avatarVisible, setAvatarVisible] = useState(true);
   const [question, setQuestion] = useState("");
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      sender: "ai",
-      text: "Hi! I am your AI Inventory Assistant. Ask me about low stocks, suppliers, products, or restocking.",
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
   const [avatarPosition, setAvatarPosition] = useState<AvatarPosition | null>(
@@ -257,7 +259,7 @@ const AIInventoryAssistant = () => {
     }
 
     if (q.includes("value") || q.includes("worth")) {
-      return `Your estimated inventory value is ₱${inventoryValue.toFixed(2)}.`;
+      return `Your estimated inventory value is â‚±${inventoryValue.toFixed(2)}.`;
     }
 
     if (q.includes("supplier")) {
@@ -292,7 +294,7 @@ const AIInventoryAssistant = () => {
     if (foundProduct) {
       return `${foundProduct.name}: ${foundProduct.quantity} units available, category: ${foundProduct.category}, supplier: ${
         foundProduct.supplier || "N/A"
-      }, price: ₱${Number(foundProduct.price).toFixed(2)}.`;
+      }, price: â‚±${Number(foundProduct.price).toFixed(2)}.`;
     }
 
     return "I can answer questions about low stock, total products, total stocks, inventory value, suppliers, restocking, or a specific product name.";
@@ -347,6 +349,35 @@ const AIInventoryAssistant = () => {
   const handleAsk = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await runPrompt(question);
+  };
+
+  const handleEditMessage = (index: number) => {
+    const message = messages[index];
+
+    if (!message || message.sender !== "user" || loadingResponse) return;
+
+    setQuestion(message.text);
+    setMessages((prev) => prev.slice(0, index));
+    setAiError(null);
+  };
+
+  const handleDeleteMessage = (index: number) => {
+    if (loadingResponse) return;
+
+    setMessages((prev) =>
+      prev.length <= 1
+        ? INITIAL_MESSAGES
+        : prev.filter((_, messageIndex) => messageIndex !== index)
+    );
+    setAiError(null);
+  };
+
+  const handleClearChat = () => {
+    if (loadingResponse) return;
+
+    setMessages(INITIAL_MESSAGES);
+    setQuestion("");
+    setAiError(null);
   };
 
   const handleAction = (action: AIAction) => {
@@ -411,9 +442,18 @@ const AIInventoryAssistant = () => {
               <p>Ask inventory questions instantly.</p>
             </div>
 
-            <button type="button" onClick={() => setOpen(false)}>
-              ×
-            </button>
+            <div className="ai-header-actions">
+              <button
+                type="button"
+                onClick={handleClearChat}
+                disabled={loadingResponse}
+              >
+                Clear
+              </button>
+              <button type="button" onClick={() => setOpen(false)}>
+                Close
+              </button>
+            </div>
           </div>
 
           <div className="ai-messages">
@@ -424,6 +464,25 @@ const AIInventoryAssistant = () => {
                   msg.sender === "ai" ? "ai-message ai" : "ai-message user"
                 }
               >
+                <div className="ai-message-toolbar">
+                  {msg.sender === "user" ? (
+                    <button
+                      type="button"
+                      onClick={() => handleEditMessage(index)}
+                      disabled={loadingResponse}
+                    >
+                      Edit
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteMessage(index)}
+                    disabled={loadingResponse}
+                  >
+                    Delete
+                  </button>
+                </div>
+
                 <span>{msg.text}</span>
 
                 {msg.imageUrl ? (
