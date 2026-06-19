@@ -198,6 +198,38 @@ const normalizeQuestion = (question: string) =>
 const includesAny = (text: string, keywords: string[]) =>
   keywords.some((keyword) => text.includes(keyword));
 
+const isWebSearchQuestion = (question: string) => {
+  const q = question.toLowerCase();
+
+  return includesAny(q, [
+    "search web",
+    "search the web",
+    "internet",
+    "online",
+    "latest",
+    "current",
+    "today",
+    "news",
+    "market price",
+    "supplier price",
+    "compare price",
+    "product info",
+    "trend",
+    "trends",
+    "who is",
+    "who are",
+    "who was",
+    "where is",
+    "when was",
+    "president",
+    "city college",
+    "city college of davao",
+    "supreme student government",
+    "ssg",
+    "osa",
+  ]);
+};
+
 const formatCurrency = (value: number) =>
   `PHP ${value.toLocaleString("en-PH", {
     minimumFractionDigits: 2,
@@ -1339,6 +1371,13 @@ export const getAIInventoryResponse = async (
   history: ChatMessage[] = []
 ): Promise<AIResponse> => {
   if (!API_BASE_URL) {
+    if (isWebSearchQuestion(question)) {
+      return reply(
+        "I need the backend web-search service to answer that, but the frontend does not have VITE_API_BASE_URL configured. Set it to your Render backend URL, then redeploy the frontend.",
+        [routeAction("Open Inventory", "/inventory")]
+      );
+    }
+
     return toAIResponse(await getLocalInventoryResponse(question, products));
   }
 
@@ -1371,6 +1410,14 @@ export const getAIInventoryResponse = async (
       : getUnknownQuestionResponse(products);
   } catch (error) {
     console.warn("AI backend unavailable, using local fallback.", error);
+
+    if (isWebSearchQuestion(question)) {
+      return reply(
+        "I tried to search the web, but I could not reach the AI backend. Please check that your backend is running, TAVILY_API_KEY is set in Render, and VITE_API_BASE_URL points to your Render backend URL.",
+        [routeAction("Open Dashboard", "/dashboard")]
+      );
+    }
+
     return toAIResponse(await getLocalInventoryResponse(question, products));
   }
 };
