@@ -6,6 +6,17 @@ type ChatMessage = {
   text: string;
 };
 
+export type AIAction = {
+  label: string;
+  path: string;
+  prompt?: string;
+};
+
+export type AIResponse = {
+  text: string;
+  actions?: AIAction[];
+};
+
 type UserProfile = {
   id?: string;
   full_name?: string | null;
@@ -14,10 +25,99 @@ type UserProfile = {
   status?: string | null;
 };
 
+type StockMovement = {
+  id?: string;
+  product_id?: string | null;
+  product_name?: string | null;
+  type?: string | null;
+  quantity?: number | null;
+  note?: string | null;
+  created_at?: string | null;
+};
+
+type AuditLog = {
+  id?: string;
+  action?: string | null;
+  module?: string | null;
+  description?: string | null;
+  created_at?: string | null;
+};
+
+type Supplier = {
+  id?: string;
+  name?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+};
+
+type AssistantData = {
+  products: Product[];
+  stockMovements: StockMovement[];
+  auditLogs: AuditLog[];
+  suppliers: Supplier[];
+};
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.trim() ||
   import.meta.env.VITE_BACKEND_URL?.trim() ||
   (import.meta.env.DEV ? "http://localhost:8000" : "");
+
+const reply = (text: string, actions: AIAction[] = []): AIResponse => ({
+  text,
+  actions,
+});
+
+const toAIResponse = (response: string | AIResponse): AIResponse =>
+  typeof response === "string" ? reply(response) : response;
+
+const routeAction = (label: string, path: string): AIAction => ({
+  label,
+  path,
+});
+
+const withDefaultActions = (text: string): AIResponse =>
+  reply(text, [
+    routeAction("Inventory", "/inventory"),
+    routeAction("Restock", "/restock-predictor"),
+    routeAction("Reports", "/reports"),
+  ]);
+
+const getAssistantData = async (products: Product[]): Promise<AssistantData> => {
+  const [stockMovementsResult, auditLogsResult, suppliersResult] =
+    await Promise.allSettled([
+      supabase
+        .from("stock_movements")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(60),
+      supabase
+        .from("audit_logs")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(50),
+      supabase
+        .from("suppliers")
+        .select("*")
+        .order("created_at", { ascending: false }),
+    ]);
+
+  return {
+    products,
+    stockMovements:
+      stockMovementsResult.status === "fulfilled"
+        ? (stockMovementsResult.value.data as StockMovement[]) || []
+        : [],
+    auditLogs:
+      auditLogsResult.status === "fulfilled"
+        ? (auditLogsResult.value.data as AuditLog[]) || []
+        : [],
+    suppliers:
+      suppliersResult.status === "fulfilled"
+        ? (suppliersResult.value.data as Supplier[]) || []
+        : [],
+  };
+};
 
 const buildProductSummary = (products: Product[]) => {
   if (!products.length) {
@@ -371,6 +471,8 @@ const getLocalInventoryResponse = async (
   const sortedByPrice = [...products].sort(
     (a, b) => Number(b.price) - Number(a.price)
   );
+  const assistantData = await getAssistantData(products);
+  const { stockMovements, auditLogs, suppliers } = assistantData;
   const emotionResponse = getEmotionResponse(question, normalizedQuestion);
 
   if (emotionResponse) {
@@ -453,7 +555,9 @@ const getLocalInventoryResponse = async (
   }
 
   if (isCapabilityQuestion(question)) {
-    return "I can help with StockFlow questions about available stocks, low-stock and out-of-stock products, total products, inventory value, suppliers, categories, product locations, SKU details, restock suggestions, stock in/out actions, reports, QR/barcode tools, audit logs, and notifications.";
+    return withDefaultActions(
+      "I can help with StockFlow questions about available stocks, low-stock and out-of-stock products, total products, inventory value, suppliers, categories, product locations, SKU details, restock suggestions, stock in/out actions, reports, QR/barcode tools, audit logs, and notifications."
+    );
   }
 
   if (
@@ -536,7 +640,18 @@ const getLocalInventoryResponse = async (
       "stale stock",
     ])
   ) {
-    const highestValueStock = [...products]
+    const movedProductNames = new Set(
+      stockMovements
+        .map((movement) => normalizeQuestion(movement.product_name || ""))
+        .filter(Boolean)
+    );
+    const nonMovingProducts = products.filter(
+      (product) => !movedProductNames.has(normalizeQuestion(product.name))
+    );
+    const reviewProducts = (nonMovingProducts.length
+      ? nonMovingProducts
+      : products
+    )
       .sort(
         (a, b) =>
           Number(b.quantity) * Number(b.price) -
@@ -544,11 +659,25 @@ const getLocalInventoryResponse = async (
       )
       .slice(0, 5);
 
-    return highestValueStock.length
-      ? `I need stock movement or sales history to confirm which products are truly not moving. From current inventory value alone, these products tie up the most stock value and may be worth reviewing: ${highestValueStock
-          .map((item) => `${item.name} (${item.quantity} units, ${formatCurrency(Number(item.quantity) * Number(item.price))})`)
-          .join(", ")}. Check Reports or Stock History for movement details.`
-      : "I need product and movement data to identify non-moving stock.";
+    if (!stockMovements.length) {
+      return reply(
+        reviewProducts.length
+          ? `I need stock movement history to confirm zero movement. From current inventory value alone, these products may be worth reviewing: ${reviewProducts
+              .map((item) => `${item.name} (${item.quantity} units, ${formatCurrency(Number(item.quantity) * Number(item.price))})`)
+              .join(", ")}.`
+          : "I need product and movement data to identify non-moving stock.",
+        [routeAction("Open Stock History", "/stock-history")]
+      );
+    }
+
+    return reply(
+      nonMovingProducts.length
+        ? `Based on the current stock movement records I can access, these products have no recent movement in the loaded history: ${reviewProducts
+            .map((item) => `${item.name} (${item.quantity} units, ${formatCurrency(Number(item.quantity) * Number(item.price))} tied up)`)
+            .join(", ")}.`
+        : "All products appear in the loaded stock movement history. For a stricter date range, review Stock History or Reports.",
+      [routeAction("Open Stock History", "/stock-history")]
+    );
   }
 
   if (
@@ -626,7 +755,16 @@ const getLocalInventoryResponse = async (
       "last night",
     ])
   ) {
-    return "That information belongs in the Audit Trail. Open the Audit page to review who changed inventory records and when. The fallback chatbot only has product totals, so it cannot verify usernames or exact timestamps without audit log data from the backend.";
+    const recentAuditLogs = auditLogs.slice(0, 5);
+
+    return reply(
+      recentAuditLogs.length
+        ? `I checked the loaded audit trail. Recent activity includes: ${recentAuditLogs
+            .map((log) => `${log.action || "Action"} in ${log.module || "system"}: ${log.description || "No description"}${log.created_at ? ` (${new Date(log.created_at).toLocaleString()})` : ""}`)
+            .join("; ")}.`
+        : "That information belongs in the Audit Trail. I could not load recent audit records in the fallback data, so open the Audit page to review who changed inventory records and when.",
+      [routeAction("Open Audit", "/audit-logs")]
+    );
   }
 
   if (
@@ -657,15 +795,21 @@ const getLocalInventoryResponse = async (
         "product list",
       ])
     ) {
-      return `You can view stocks on the Inventory page. Current available products: ${formatProductList(
-        availableProducts
-      )}.`;
+      return reply(
+        `You can view stocks on the Inventory page. Current available products: ${formatProductList(
+          availableProducts
+        )}.`,
+        [routeAction("Open Inventory", "/inventory")]
+      );
     }
 
     if (includesAny(q, ["report", "reports", "csv", "print"])) {
-      return `Open the Reports page to view, print, or export inventory reports. Quick report summary: ${products.length} products, ${totalStocks} total units, ${formatCurrency(
-        inventoryValue
-      )} estimated value, and ${lowStock.length} low-stock item(s).`;
+      return reply(
+        `Open the Reports page to view, print, or export inventory reports. Quick report summary: ${products.length} products, ${totalStocks} total units, ${formatCurrency(
+          inventoryValue
+        )} estimated value, and ${lowStock.length} low-stock item(s).`,
+        [routeAction("Open Reports", "/reports")]
+      );
     }
 
     if (
@@ -678,21 +822,30 @@ const getLocalInventoryResponse = async (
         "downloads",
       ])
     ) {
-      return "Inventory files and exports are handled from the Reports page. Use Export CSV to download inventory data, or Print Report to create a printable copy.";
+      return reply(
+        "Inventory files and exports are handled from the Reports page. Use Export CSV to download inventory data, or Print Report to create a printable copy.",
+        [routeAction("Open Reports", "/reports")]
+      );
     }
 
     if (
       includesAny(q, ["audit", "audits", "audit trail", "logs", "activity"])
     ) {
-      return "Open the Audit Trail page to view system activity logs, including product changes, stock actions, and inventory events.";
+      return reply(
+        "Open the Audit Trail page to view system activity logs, including product changes, stock actions, and inventory events.",
+        [routeAction("Open Audit", "/audit-logs")]
+      );
     }
 
     if (includesAny(q, ["alert", "alerts", "notification", "notifications"])) {
-      return lowStock.length
-        ? `Open the Notifications page to view alerts. Current low-stock alerts should include: ${lowStock
-            .map((item) => item.name)
-            .join(", ")}.`
-        : "Open the Notifications page to view alerts. There are no low-stock products based on the current inventory data.";
+      return reply(
+        lowStock.length
+          ? `Open the Notifications page to view alerts. Current low-stock alerts should include: ${lowStock
+              .map((item) => item.name)
+              .join(", ")}.`
+          : "Open the Notifications page to view alerts. There are no low-stock products based on the current inventory data.",
+        [routeAction("Open Alerts", "/notifications")]
+      );
     }
 
     if (includesAny(q, ["supplier", "suppliers"])) {
@@ -700,11 +853,14 @@ const getLocalInventoryResponse = async (
         new Set(products.map((item) => item.supplier).filter(Boolean))
       );
 
-      return suppliers.length
-        ? `Open the Suppliers page to manage supplier records. Current suppliers: ${suppliers.join(
-            ", "
-          )}.`
-        : "Open the Suppliers page to manage supplier records. No suppliers are recorded in the current inventory data.";
+      return reply(
+        suppliers.length
+          ? `Open the Suppliers page to manage supplier records. Current suppliers: ${suppliers.join(
+              ", "
+            )}.`
+          : "Open the Suppliers page to manage supplier records. No suppliers are recorded in the current inventory data.",
+        [routeAction("Open Suppliers", "/suppliers")]
+      );
     }
 
     if (includesAny(q, ["category", "categories"])) {
@@ -712,29 +868,44 @@ const getLocalInventoryResponse = async (
         new Set(products.map((item) => item.category).filter(Boolean))
       );
 
-      return categories.length
-        ? `Open the Categories page to manage product groups. Current categories: ${categories.join(
-            ", "
-          )}.`
-        : "Open the Categories page to manage product groups. No categories are recorded in the current inventory data.";
+      return reply(
+        categories.length
+          ? `Open the Categories page to manage product groups. Current categories: ${categories.join(
+              ", "
+            )}.`
+          : "Open the Categories page to manage product groups. No categories are recorded in the current inventory data.",
+        [routeAction("Open Categories", "/categories")]
+      );
     }
 
     if (includesAny(q, ["qr", "barcode", "scanner", "scan"])) {
-      return "Open the QR or Barcode tools to generate product QR codes, search by QR data, or scan products faster.";
+      return reply(
+        "Open the QR or Barcode tools to generate product QR codes, search by QR data, or scan products faster.",
+        [
+          routeAction("QR Codes", "/qr-codes"),
+          routeAction("QR Search", "/qr-search"),
+        ]
+      );
     }
 
     if (includesAny(q, ["restock", "predictor", "recommendation"])) {
-      return lowStock.length
-        ? `Open the Smart Restock Predictor to view restock recommendations. Current low-stock products: ${lowStock
-            .map((item) => item.name)
-            .join(", ")}.`
-        : "Open the Smart Restock Predictor to view recommendations. Right now, no urgent restock is needed based on current quantities.";
+      return reply(
+        lowStock.length
+          ? `Open the Smart Restock Predictor to view restock recommendations. Current low-stock products: ${lowStock
+              .map((item) => item.name)
+              .join(", ")}.`
+          : "Open the Smart Restock Predictor to view recommendations. Right now, no urgent restock is needed based on current quantities.",
+        [routeAction("Open Restock", "/restock-predictor")]
+      );
     }
 
     if (includesAny(q, ["dashboard", "home", "command center"])) {
-      return `Open the Dashboard for the main overview. Current snapshot: ${products.length} products, ${totalStocks} total units, ${formatCurrency(
-        inventoryValue
-      )} estimated value.`;
+      return reply(
+        `Open the Dashboard for the main overview. Current snapshot: ${products.length} products, ${totalStocks} total units, ${formatCurrency(
+          inventoryValue
+        )} estimated value.`,
+        [routeAction("Open Dashboard", "/dashboard")]
+      );
     }
   }
 
@@ -899,12 +1070,20 @@ const getLocalInventoryResponse = async (
 
   if (q.includes("restock") || q.includes("reorder")) {
     if (mentionedProduct) {
+      const supplierRecord = suppliers.find(
+        (supplier) =>
+          normalizeQuestion(supplier.name || "") ===
+          normalizeQuestion(mentionedProduct.supplier || "")
+      );
+
       return `For ${mentionedProduct.name}, StockFlow shows ${
         mentionedProduct.quantity
       } unit(s) on hand with a reorder point of ${
         mentionedProduct.low_stock_limit
       }. Preferred supplier from your product record: ${
         mentionedProduct.supplier || "not assigned"
+      }${
+        supplierRecord?.email ? ` (${supplierRecord.email})` : ""
       }. I recommend adding about ${getSuggestedRestock(
         mentionedProduct
       )} unit(s). You can record the incoming quantity on the Stock In page.`;
@@ -1019,36 +1198,109 @@ const getLocalInventoryResponse = async (
       : "No SKU codes are recorded yet.";
   }
 
+  if (
+    includesAny(q, [
+      "what was stocked in",
+      "stocked in today",
+      "recent stock in",
+      "incoming movements",
+      "recent incoming",
+    ])
+  ) {
+    const incoming = stockMovements
+      .filter((movement) => String(movement.type || "").toUpperCase() === "IN")
+      .slice(0, 6);
+
+    return reply(
+      incoming.length
+        ? `Recent Stock In records: ${incoming
+            .map((movement) => `${movement.product_name || "Product"} +${movement.quantity || 0} unit(s)${movement.created_at ? ` on ${new Date(movement.created_at).toLocaleString()}` : ""}`)
+            .join("; ")}.`
+        : "I could not find recent Stock In records in the loaded movement data.",
+      [routeAction("Open Stock History", "/stock-history")]
+    );
+  }
+
+  if (
+    includesAny(q, [
+      "what was stocked out",
+      "stocked out today",
+      "recent stock out",
+      "outgoing movements",
+      "recent outgoing",
+    ])
+  ) {
+    const outgoing = stockMovements
+      .filter((movement) => String(movement.type || "").toUpperCase() === "OUT")
+      .slice(0, 6);
+
+    return reply(
+      outgoing.length
+        ? `Recent Stock Out records: ${outgoing
+            .map((movement) => `${movement.product_name || "Product"} -${movement.quantity || 0} unit(s)${movement.created_at ? ` on ${new Date(movement.created_at).toLocaleString()}` : ""}`)
+            .join("; ")}.`
+        : "I could not find recent Stock Out records in the loaded movement data.",
+      [routeAction("Open Stock History", "/stock-history")]
+    );
+  }
+
   if (includesAny(q, ["stock in", "add stock", "incoming stock"])) {
-    return "Use the Stock In page to add incoming stock. Select a product, enter the quantity to add, add an optional note, then submit Add Stock.";
+    return reply(
+      "Use the Stock In page to add incoming stock. Select a product, enter the quantity to add, add an optional note, then submit Add Stock.",
+      [routeAction("Open Stock In", "/stock-in")]
+    );
   }
 
   if (includesAny(q, ["stock out", "remove stock", "outgoing stock"])) {
-    return "Use the Stock Out page to remove stock from inventory. Select a product, enter the quantity to remove, add a reason or note, then submit Remove Stock.";
+    return reply(
+      "Use the Stock Out page to remove stock from inventory. Select a product, enter the quantity to remove, add a reason or note, then submit Remove Stock.",
+      [routeAction("Open Stock Out", "/stock-out")]
+    );
   }
 
   if (includesAny(q, ["add product", "new product", "create product"])) {
-    return "To add a product, go to Inventory, click Add Product, then enter the product name, SKU, category, supplier, quantity, price, low stock limit, and location details.";
+    return reply(
+      "To add a product, go to Inventory, click Add Product, then enter the product name, SKU, category, supplier, quantity, price, low stock limit, and location details.",
+      [routeAction("Add Product", "/inventory/add")]
+    );
   }
 
   if (includesAny(q, ["edit product", "update product", "change product"])) {
-    return "To edit a product, open the Inventory page, choose the product, click Edit Product, update the fields, and save the changes.";
+    return reply(
+      "To edit a product, open the Inventory page, choose the product, click Edit Product, update the fields, and save the changes.",
+      [routeAction("Open Inventory", "/inventory")]
+    );
   }
 
   if (includesAny(q, ["delete product", "remove product"])) {
-    return "To delete a product, open the Inventory page, click Delete Product on the item, and confirm the deletion. Be careful because this removes the record.";
+    return reply(
+      "To delete a product, open the Inventory page, click Delete Product on the item, and confirm the deletion. Be careful because this removes the record.",
+      [routeAction("Open Inventory", "/inventory")]
+    );
   }
 
   if (includesAny(q, ["report", "reports", "export csv", "print"])) {
-    return "The Reports page shows inventory totals and product report data. You can export a CSV or print the report from there.";
+    return reply(
+      "The Reports page shows inventory totals and product report data. You can export a CSV or print the report from there.",
+      [routeAction("Open Reports", "/reports")]
+    );
   }
 
   if (includesAny(q, ["qr", "barcode", "scan", "scanner"])) {
-    return "The QR and barcode tools help you generate product QR codes, search products by QR data, and quickly identify inventory items.";
+    return reply(
+      "The QR and barcode tools help you generate product QR codes, search products by QR data, and quickly identify inventory items.",
+      [
+        routeAction("QR Codes", "/qr-codes"),
+        routeAction("QR Search", "/qr-search"),
+      ]
+    );
   }
 
   if (includesAny(q, ["audit", "logs", "audit trail", "activity"])) {
-    return "The Audit Trail records system activity like product changes, stock actions, and important inventory events for monitoring.";
+    return reply(
+      "The Audit Trail records system activity like product changes, stock actions, and important inventory events for monitoring.",
+      [routeAction("Open Audit", "/audit-logs")]
+    );
   }
 
   if (includesAny(q, ["notification", "notifications", "alert", "alerts"])) {
@@ -1090,13 +1342,13 @@ export const getAIInventoryResponse = async (
   question: string,
   products: Product[],
   history: ChatMessage[] = []
-): Promise<string> => {
+): Promise<AIResponse> => {
   if (!API_BASE_URL) {
-    return await getLocalInventoryResponse(question, products);
+    return toAIResponse(await getLocalInventoryResponse(question, products));
   }
 
   if (isUserIdentityQuestion(question)) {
-    return await getLocalInventoryResponse(question, products);
+    return toAIResponse(await getLocalInventoryResponse(question, products));
   }
 
   try {
@@ -1119,9 +1371,9 @@ export const getAIInventoryResponse = async (
       );
     }
 
-    return data?.answer?.trim() || "I couldn't generate a response right now.";
+    return reply(data?.answer?.trim() || "I couldn't generate a response right now.");
   } catch (error) {
     console.warn("AI backend unavailable, using local fallback.", error);
-    return await getLocalInventoryResponse(question, products);
+    return toAIResponse(await getLocalInventoryResponse(question, products));
   }
 };

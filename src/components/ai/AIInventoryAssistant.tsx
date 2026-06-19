@@ -5,12 +5,17 @@ import {
   useRef,
   useState,
 } from "react";
+import { useNavigate } from "react-router-dom";
 import { useProducts } from "../../hooks/useProducts";
-import { getAIInventoryResponse } from "../../services/aiService";
+import {
+  type AIAction,
+  getAIInventoryResponse,
+} from "../../services/aiService";
 
 type Message = {
   sender: "user" | "ai";
   text: string;
+  actions?: AIAction[];
 };
 
 type AvatarPosition = {
@@ -21,8 +26,17 @@ type AvatarPosition = {
 const AVATAR_SIZE = 76;
 const AVATAR_MARGIN = 16;
 const AVATAR_IDLE_DELAY = 4500;
+const QUICK_PROMPTS = [
+  "Low stocks",
+  "Inventory value",
+  "Who am I?",
+  "Recent stock out",
+  "Recent audit logs",
+  "Restock suggestions",
+];
 
 const AIInventoryAssistant = () => {
+  const navigate = useNavigate();
   const { products } = useProducts();
   const [open, setOpen] = useState(false);
   const [avatarVisible, setAvatarVisible] = useState(true);
@@ -282,14 +296,14 @@ const AIInventoryAssistant = () => {
     return "I can answer questions about low stock, total products, total stocks, inventory value, suppliers, restocking, or a specific product name.";
   };
 
-  const handleAsk = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const runPrompt = async (input: string) => {
+    const prompt = input.trim();
 
-    if (!question.trim()) return;
+    if (!prompt) return;
 
     const userMessage: Message = {
       sender: "user",
-      text: question,
+      text: prompt,
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -299,17 +313,18 @@ const AIInventoryAssistant = () => {
 
     try {
       const aiResponse = await getAIInventoryResponse(
-        question,
+        prompt,
         products,
         messages
       );
       const aiMessage: Message = {
         sender: "ai",
-        text: aiResponse,
+        text: aiResponse.text,
+        actions: aiResponse.actions,
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
-      const fallback = answerQuestion(question);
+      const fallback = answerQuestion(prompt);
       setAiError(
         error instanceof Error && error.message
           ? error.message
@@ -322,6 +337,23 @@ const AIInventoryAssistant = () => {
       setMessages((prev) => [...prev, aiMessage]);
     } finally {
       setLoadingResponse(false);
+    }
+  };
+
+  const handleAsk = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    await runPrompt(question);
+  };
+
+  const handleAction = (action: AIAction) => {
+    if (action.prompt) {
+      void runPrompt(action.prompt);
+      return;
+    }
+
+    if (action.path) {
+      navigate(action.path);
+      setOpen(false);
     }
   };
 
@@ -388,7 +420,21 @@ const AIInventoryAssistant = () => {
                   msg.sender === "ai" ? "ai-message ai" : "ai-message user"
                 }
               >
-                {msg.text}
+                <span>{msg.text}</span>
+
+                {msg.actions?.length ? (
+                  <div className="ai-message-actions">
+                    {msg.actions.map((action) => (
+                      <button
+                        type="button"
+                        key={`${action.label}-${action.path || action.prompt}`}
+                        onClick={() => handleAction(action)}
+                      >
+                        {action.label}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
@@ -396,6 +442,19 @@ const AIInventoryAssistant = () => {
           {aiError ? (
             <div className="ai-error-message">{aiError}</div>
           ) : null}
+
+          <div className="ai-quick-prompts" aria-label="Quick prompts">
+            {QUICK_PROMPTS.map((prompt) => (
+              <button
+                type="button"
+                key={prompt}
+                onClick={() => runPrompt(prompt)}
+                disabled={loadingResponse}
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
 
           <form className="ai-input-row" onSubmit={handleAsk}>
             <input

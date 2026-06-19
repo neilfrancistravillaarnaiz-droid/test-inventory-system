@@ -4199,6 +4199,61 @@ textarea,
   width: 100% !important;
 }
 
+.ai-message {
+  display: grid !important;
+  gap: 10px !important;
+}
+
+.ai-message-actions,
+.ai-quick-prompts {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+}
+
+.ai-message-actions button,
+.ai-quick-prompts button {
+  border: 1px solid rgba(255, 255, 255, 0.34) !important;
+  border-radius: 999px !important;
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #f8fff9 !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  padding: 9px 11px !important;
+  box-shadow: 0 12px 28px rgba(5, 18, 8, 0.16) !important;
+  backdrop-filter: blur(18px) saturate(1.25) !important;
+  transition: 0.18s ease !important;
+}
+
+.ai-message-actions button:hover,
+.ai-quick-prompts button:hover {
+  transform: translateY(-1px) !important;
+  background: rgba(73, 151, 84, 0.42) !important;
+}
+
+.ai-quick-prompts {
+  padding: 12px 18px 0 !important;
+  background: rgba(10, 26, 14, 0.95) !important;
+}
+
+.ai-quick-prompts button:disabled {
+  cursor: not-allowed !important;
+  opacity: 0.55 !important;
+  transform: none !important;
+}
+
+body.light-mode .ai-message-actions button,
+body.light-mode .ai-quick-prompts button {
+  border-color: rgba(45, 122, 58, 0.24) !important;
+  background: rgba(255, 255, 255, 0.74) !important;
+  color: #245c2e !important;
+}
+
+body.light-mode .ai-quick-prompts {
+  background: #f8fdf9 !important;
+}
+
 @media (max-width: 640px) {
   .ai-panel {
     right: 12px !important;
