@@ -5080,3 +5080,35 @@ body:not(.light-mode) .command-search-results p {
     margin-top: 22px !important;
   }
 }
+/* Audit module badge visibility */
+.audit-content > span,
+.audit-page .audit-content > span {
+  display: inline-flex !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 14px !important;
+  padding: 8px 16px !important;
+  border-radius: 999px !important;
+  border: 1px solid rgba(78, 181, 93, 0.36) !important;
+  background:
+    linear-gradient(135deg, rgba(47, 137, 61, 0.88), rgba(139, 195, 150, 0.72)) !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  text-shadow: 0 1px 8px rgba(5, 18, 8, 0.42) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.38),
+    0 12px 24px rgba(31, 98, 45, 0.16) !important;
+  opacity: 1 !important;
+}
+
+body.light-mode .audit-content > span,
+body.light-mode .audit-page .audit-content > span {
+  border-color: rgba(45, 122, 58, 0.28) !important;
+  background:
+    linear-gradient(135deg, rgba(45, 122, 58, 0.95), rgba(81, 156, 92, 0.86)) !important;
+  color: #ffffff !important;
+}
