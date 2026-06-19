@@ -4210,26 +4210,24 @@ textarea,
   gap: 8px !important;
 }
 
-.ai-header-actions button {
+.ai-header-actions .ai-close-btn {
   min-width: 0 !important;
   height: 38px !important;
+  width: 38px !important;
   border: 1px solid rgba(255, 255, 255, 0.28) !important;
-  border-radius: 999px !important;
+  border-radius: 50% !important;
   background: rgba(255, 255, 255, 0.14) !important;
   color: #f8fff9 !important;
-  font-size: 12px !important;
+  font-size: 20px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
-  padding: 0 13px !important;
+  padding: 0 !important;
   box-shadow: 0 10px 24px rgba(5, 18, 8, 0.18) !important;
   backdrop-filter: blur(18px) saturate(1.25) !important;
 }
 
-.ai-header-actions button:last-child {
-  width: auto !important;
-}
-
 .ai-message-toolbar {
+  position: relative !important;
   display: flex !important;
   justify-content: flex-end !important;
   gap: 6px !important;
@@ -4243,24 +4241,70 @@ textarea,
   opacity: 1 !important;
 }
 
-.ai-message-toolbar button {
+.ai-options-menu {
+  position: relative !important;
+}
+
+.ai-options-menu summary {
+  display: grid !important;
+  width: 32px !important;
+  height: 32px !important;
+  place-items: center !important;
   border: 1px solid rgba(255, 255, 255, 0.26) !important;
-  border-radius: 999px !important;
+  border-radius: 50% !important;
   background: rgba(255, 255, 255, 0.12) !important;
   color: currentColor !important;
-  font-size: 10px !important;
+  cursor: pointer !important;
+  font-size: 18px !important;
   font-weight: 900 !important;
   line-height: 1 !important;
-  padding: 6px 8px !important;
+  list-style: none !important;
+  box-shadow: 0 10px 24px rgba(5, 18, 8, 0.14) !important;
+}
+
+.ai-options-menu summary::-webkit-details-marker {
+  display: none !important;
+}
+
+.ai-options-popover {
+  position: absolute !important;
+  right: 0 !important;
+  top: calc(100% + 8px) !important;
+  z-index: 4 !important;
+  display: grid !important;
+  min-width: 142px !important;
+  gap: 6px !important;
+  padding: 8px !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 16px !important;
+  background: rgba(10, 26, 14, 0.92) !important;
+  box-shadow: 0 18px 38px rgba(5, 18, 8, 0.28) !important;
+  backdrop-filter: blur(20px) saturate(1.25) !important;
+}
+
+.ai-options-popover button {
+  width: 100% !important;
+  height: auto !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #f8fff9 !important;
+  cursor: pointer !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+  padding: 10px 11px !important;
+  text-align: left !important;
   box-shadow: none !important;
 }
 
-.ai-message-toolbar button:hover {
-  background: rgba(255, 255, 255, 0.24) !important;
+.ai-options-menu summary:hover,
+.ai-options-popover button:hover {
+  background: rgba(255, 255, 255, 0.22) !important;
 }
 
-.ai-message-toolbar button:disabled,
-.ai-header-actions button:disabled {
+.ai-options-popover button:disabled,
+.ai-header-actions .ai-close-btn:disabled {
   cursor: not-allowed !important;
   opacity: 0.48 !important;
 }
@@ -4341,10 +4385,20 @@ body.light-mode .ai-quick-prompts button {
   color: #245c2e !important;
 }
 
-body.light-mode .ai-header-actions button,
-body.light-mode .ai-message-toolbar button {
+body.light-mode .ai-header-actions .ai-close-btn,
+body.light-mode .ai-options-menu summary {
   border-color: rgba(45, 122, 58, 0.22) !important;
   background: rgba(255, 255, 255, 0.62) !important;
+  color: #245c2e !important;
+}
+
+body.light-mode .ai-options-popover {
+  border-color: rgba(45, 122, 58, 0.2) !important;
+  background: rgba(248, 253, 249, 0.94) !important;
+}
+
+body.light-mode .ai-options-popover button {
+  background: rgba(45, 122, 58, 0.08) !important;
   color: #245c2e !important;
 }
 

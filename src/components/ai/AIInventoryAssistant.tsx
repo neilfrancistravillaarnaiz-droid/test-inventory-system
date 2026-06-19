@@ -443,15 +443,25 @@ const AIInventoryAssistant = () => {
             </div>
 
             <div className="ai-header-actions">
+              <details className="ai-options-menu">
+                <summary aria-label="Chat options">⋮</summary>
+                <div className="ai-options-popover">
+                  <button
+                    type="button"
+                    onClick={handleClearChat}
+                    disabled={loadingResponse}
+                  >
+                    Clear chat
+                  </button>
+                </div>
+              </details>
               <button
                 type="button"
-                onClick={handleClearChat}
-                disabled={loadingResponse}
+                className="ai-close-btn"
+                onClick={() => setOpen(false)}
+                aria-label="Close AI assistant"
               >
-                Clear
-              </button>
-              <button type="button" onClick={() => setOpen(false)}>
-                Close
+                ×
               </button>
             </div>
           </div>
@@ -465,22 +475,27 @@ const AIInventoryAssistant = () => {
                 }
               >
                 <div className="ai-message-toolbar">
-                  {msg.sender === "user" ? (
-                    <button
-                      type="button"
-                      onClick={() => handleEditMessage(index)}
-                      disabled={loadingResponse}
-                    >
-                      Edit
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteMessage(index)}
-                    disabled={loadingResponse}
-                  >
-                    Delete
-                  </button>
+                  <details className="ai-options-menu">
+                    <summary aria-label="Message options">⋮</summary>
+                    <div className="ai-options-popover">
+                      {msg.sender === "user" ? (
+                        <button
+                          type="button"
+                          onClick={() => handleEditMessage(index)}
+                          disabled={loadingResponse}
+                        >
+                          Edit message
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteMessage(index)}
+                        disabled={loadingResponse}
+                      >
+                        Delete message
+                      </button>
+                    </div>
+                  </details>
                 </div>
 
                 <span>{msg.text}</span>
