@@ -59,6 +59,110 @@ const formatCurrency = (value) =>
 const compactRows = (rows, mapper, limit = 40) =>
   (rows || []).slice(0, limit).map(mapper).join("\n") || "None.";
 
+const shouldUseWebSearch = (question) => {
+  const q = String(question || "").toLowerCase();
+
+  return [
+    "search web",
+    "search the web",
+    "internet",
+    "online",
+    "latest",
+    "current",
+    "today",
+    "news",
+    "market price",
+    "supplier price",
+    "compare price",
+    "product info",
+    "product details online",
+    "trend",
+    "trends",
+  ].some((keyword) => q.includes(keyword));
+};
+
+const searchTavily = async (query) => {
+  if (!process.env.TAVILY_API_KEY) {
+    return null;
+  }
+
+  const response = await fetch("https://api.tavily.com/search", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      api_key: process.env.TAVILY_API_KEY,
+      query,
+      search_depth: "basic",
+      max_results: 5,
+      include_answer: true,
+    }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.detail ||
+        data?.message ||
+        `Tavily request failed with status ${response.status}.`
+    );
+  }
+
+  const results = Array.isArray(data?.results) ? data.results : [];
+
+  return {
+    answer: data?.answer || "",
+    sources: results
+      .map((result) => ({
+        title: result.title || "Untitled source",
+        url: result.url || "",
+        content: result.content || "",
+      }))
+      .filter((source) => source.url || source.content),
+  };
+};
+
+const buildWebContext = (webSearch) => {
+  if (!webSearch) return "";
+
+  const sourceRows = webSearch.sources
+    .slice(0, 5)
+    .map(
+      (source, index) =>
+        `${index + 1}. ${source.title}\nURL: ${source.url || "N/A"}\nSummary: ${
+          source.content || "No summary available."
+        }`
+    )
+    .join("\n\n");
+
+  return [
+    "WEB SEARCH CONTEXT",
+    webSearch.answer ? `Tavily answer: ${webSearch.answer}` : "",
+    sourceRows ? `Sources:\n${sourceRows}` : "Sources: None.",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+};
+
+const buildWebOnlyAnswer = (webSearch) => {
+  if (!webSearch) {
+    return "I cannot search the internet yet because TAVILY_API_KEY is not configured on the backend.";
+  }
+
+  const sources = webSearch.sources
+    .slice(0, 3)
+    .map((source) => `- ${source.title}: ${source.url}`)
+    .join("\n");
+
+  return [
+    webSearch.answer ||
+      "I found web results, but Tavily did not return a direct answer.",
+    sources ? `\nSources:\n${sources}` : "",
+  ].join("\n");
+};
+
 const buildInventoryContext = async () => {
   const [{ data: products, error: productsError }, { data: stockMovements }] =
     await Promise.all([
@@ -161,7 +265,17 @@ app.post("/ai/inventory-chat", async (req, res) => {
       });
     }
 
+    const needsWebSearch = shouldUseWebSearch(question);
+    const webSearch = needsWebSearch ? await searchTavily(question) : null;
+
     if (!process.env.OPENAI_API_KEY) {
+      if (needsWebSearch && process.env.TAVILY_API_KEY) {
+        return res.json({
+          success: true,
+          answer: buildWebOnlyAnswer(webSearch),
+        });
+      }
+
       return res.status(500).json({
         success: false,
         message:
@@ -170,6 +284,7 @@ app.post("/ai/inventory-chat", async (req, res) => {
     }
 
     const inventoryContext = await buildInventoryContext();
+    const webContext = buildWebContext(webSearch);
     const trimmedHistory = history
       .slice(-8)
       .map((message) => ({
@@ -192,12 +307,20 @@ app.post("/ai/inventory-chat", async (req, res) => {
           {
             role: "system",
             content:
-              "You are StockFlow's AI Inventory Assistant. Be warm, conversational, and helpful. For stock inquiries, low-stock alerts, restocking, reports, analytics, QR/barcode workflows, audit logs, suppliers, categories, and locations, answer using the live inventory context. Match a helpful operations-assistant style: summarize the status, name the affected products, include quantities/SKU/supplier/location when available, and suggest the next StockFlow action. Do not invent order numbers, purchase orders, sales totals, sales velocity, turnover rates, transfer orders, audit usernames, emails, lead times, or warehouse splits if they are not in the context. Do not claim you changed settings or completed an action unless the API actually provides that capability. If data is missing, say exactly what is missing and offer the closest action inside StockFlow. Keep answers concise and actionable.",
+              "You are StockFlow's AI Inventory Assistant. Be warm, conversational, and helpful. For stock inquiries, low-stock alerts, restocking, reports, analytics, QR/barcode workflows, audit logs, suppliers, categories, and locations, answer using the live inventory context. For outside/current/product-market questions, use the provided web search context and cite source URLs briefly. Match a helpful operations-assistant style: summarize the status, name the affected products, include quantities/SKU/supplier/location when available, and suggest the next StockFlow action. Do not invent order numbers, purchase orders, sales totals, sales velocity, turnover rates, transfer orders, audit usernames, emails, lead times, or warehouse splits if they are not in the context. Do not claim you changed settings or completed an action unless the API actually provides that capability. If data is missing, say exactly what is missing and offer the closest action inside StockFlow. Keep answers concise and actionable.",
           },
           {
             role: "user",
             content: `Inventory context:\n${inventoryContext}`,
           },
+          ...(webContext
+            ? [
+                {
+                  role: "user",
+                  content: webContext,
+                },
+              ]
+            : []),
           ...trimmedHistory,
           {
             role: "user",
