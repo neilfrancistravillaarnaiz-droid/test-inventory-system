@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0",
+    "@tavily/core": "^0.7.6",
+    "dotenv": "^17.4.2",
+    "groq-sdk": "^1.2.1",
     "jsbarcode": "^3.12.3",
     "lucide-react": "^1.17.0",
     "qrcode.react": "^4.2.0",
