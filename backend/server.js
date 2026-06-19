@@ -531,7 +531,8 @@ app.get("/stock-history", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 8000;
+const HOST = "0.0.0.0";
 
-app.listen(PORT, () => {
-  console.log(`Backend running at http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`Backend running at http://${HOST}:${PORT}`);
 });
