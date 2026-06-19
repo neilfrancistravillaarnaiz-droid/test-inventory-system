@@ -99,6 +99,96 @@ const formatProductList = (products: Product[], limit = 8) => {
     : productList;
 };
 
+const getEmotionResponse = (question: string, normalizedQuestion: string) => {
+  if (
+    /\b(ha|haha|hahaha|hehe|lol|lmao|rofl|funny)\b/i.test(question) ||
+    /[\u{1F600}-\u{1F606}\u{1F923}]/u.test(question)
+  ) {
+    return "Haha, glad we are having a good moment. I am still ready if you want to check stocks, products, suppliers, or restocking.";
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "sad",
+      "cry",
+      "crying",
+      "tears",
+      "upset",
+      "huhu",
+      "hu hu",
+    ]) ||
+    /[\u{1F622}\u{1F62D}]/u.test(question)
+  ) {
+    return "I am sorry you feel that way. I am here with you, and I can help make the inventory side easier one step at a time.";
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "angry",
+      "mad",
+      "annoyed",
+      "frustrated",
+      "irritated",
+      "stress",
+      "stressed",
+    ]) ||
+    /[\u{1F620}\u{1F621}]/u.test(question)
+  ) {
+    return "I get it, that sounds frustrating. Tell me what part is causing trouble and I will help you fix it calmly.";
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "happy",
+      "excited",
+      "yay",
+      "yey",
+      "love it",
+      "perfect",
+    ])
+  ) {
+    return "Love that energy. You can ask me to check available stocks, low-stock items, reports, suppliers, or restock suggestions next.";
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "confused",
+      "lost",
+      "idk",
+      "i dont know",
+      "i do not know",
+      "help me",
+    ])
+  ) {
+    return "No worries. Tell me what page or inventory task you are on, and I will guide you through it.";
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "scared",
+      "worried",
+      "nervous",
+      "anxious",
+      "afraid",
+    ])
+  ) {
+    return "It is okay to slow down. I can help you check the data first before you make any inventory changes.";
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "tired",
+      "sleepy",
+      "exhausted",
+      "drained",
+    ])
+  ) {
+    return "You have been working hard. I can help summarize the inventory quickly so you do not have to inspect everything manually.";
+  }
+
+  return null;
+};
+
 const getLocalInventoryResponse = (question: string, products: Product[]) => {
   const q = question.toLowerCase();
   const normalizedQuestion = normalizeQuestion(question);
@@ -118,6 +208,11 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
   const sortedByPrice = [...products].sort(
     (a, b) => Number(b.price) - Number(a.price)
   );
+  const emotionResponse = getEmotionResponse(question, normalizedQuestion);
+
+  if (emotionResponse) {
+    return emotionResponse;
+  }
 
   if (
     ["wow", "nice", "great", "awesome", "cool", "amazing", "good"].includes(
