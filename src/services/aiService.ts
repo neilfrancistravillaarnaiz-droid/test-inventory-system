@@ -99,6 +99,17 @@ const formatProductList = (products: Product[], limit = 8) => {
     : productList;
 };
 
+const isShowRequest = (text: string) =>
+  includesAny(text, [
+    "show me",
+    "show the",
+    "open",
+    "view",
+    "display",
+    "take me to",
+    "where can i see",
+  ]);
+
 const getEmotionResponse = (question: string, normalizedQuestion: string) => {
   if (
     /\b(ha|haha|hahaha|hehe|lol|lmao|rofl|funny)\b/i.test(question) ||
@@ -283,6 +294,98 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
 
   if (isCapabilityQuestion(question)) {
     return "I can help with StockFlow questions about available stocks, low-stock and out-of-stock products, total products, inventory value, suppliers, categories, product locations, SKU details, restock suggestions, stock in/out actions, reports, QR/barcode tools, audit logs, and notifications.";
+  }
+
+  if (isShowRequest(q)) {
+    if (
+      includesAny(q, [
+        "stock",
+        "stocks",
+        "inventory",
+        "products",
+        "items",
+        "product list",
+      ])
+    ) {
+      return `You can view stocks on the Inventory page. Current available products: ${formatProductList(
+        availableProducts
+      )}.`;
+    }
+
+    if (includesAny(q, ["report", "reports", "csv", "print"])) {
+      return `Open the Reports page to view, print, or export inventory reports. Quick report summary: ${products.length} products, ${totalStocks} total units, ${formatCurrency(
+        inventoryValue
+      )} estimated value, and ${lowStock.length} low-stock item(s).`;
+    }
+
+    if (
+      includesAny(q, [
+        "file",
+        "files",
+        "export",
+        "exports",
+        "download",
+        "downloads",
+      ])
+    ) {
+      return "Inventory files and exports are handled from the Reports page. Use Export CSV to download inventory data, or Print Report to create a printable copy.";
+    }
+
+    if (
+      includesAny(q, ["audit", "audits", "audit trail", "logs", "activity"])
+    ) {
+      return "Open the Audit Trail page to view system activity logs, including product changes, stock actions, and inventory events.";
+    }
+
+    if (includesAny(q, ["alert", "alerts", "notification", "notifications"])) {
+      return lowStock.length
+        ? `Open the Notifications page to view alerts. Current low-stock alerts should include: ${lowStock
+            .map((item) => item.name)
+            .join(", ")}.`
+        : "Open the Notifications page to view alerts. There are no low-stock products based on the current inventory data.";
+    }
+
+    if (includesAny(q, ["supplier", "suppliers"])) {
+      const suppliers = Array.from(
+        new Set(products.map((item) => item.supplier).filter(Boolean))
+      );
+
+      return suppliers.length
+        ? `Open the Suppliers page to manage supplier records. Current suppliers: ${suppliers.join(
+            ", "
+          )}.`
+        : "Open the Suppliers page to manage supplier records. No suppliers are recorded in the current inventory data.";
+    }
+
+    if (includesAny(q, ["category", "categories"])) {
+      const categories = Array.from(
+        new Set(products.map((item) => item.category).filter(Boolean))
+      );
+
+      return categories.length
+        ? `Open the Categories page to manage product groups. Current categories: ${categories.join(
+            ", "
+          )}.`
+        : "Open the Categories page to manage product groups. No categories are recorded in the current inventory data.";
+    }
+
+    if (includesAny(q, ["qr", "barcode", "scanner", "scan"])) {
+      return "Open the QR or Barcode tools to generate product QR codes, search by QR data, or scan products faster.";
+    }
+
+    if (includesAny(q, ["restock", "predictor", "recommendation"])) {
+      return lowStock.length
+        ? `Open the Smart Restock Predictor to view restock recommendations. Current low-stock products: ${lowStock
+            .map((item) => item.name)
+            .join(", ")}.`
+        : "Open the Smart Restock Predictor to view recommendations. Right now, no urgent restock is needed based on current quantities.";
+    }
+
+    if (includesAny(q, ["dashboard", "home", "command center"])) {
+      return `Open the Dashboard for the main overview. Current snapshot: ${products.length} products, ${totalStocks} total units, ${formatCurrency(
+        inventoryValue
+      )} estimated value.`;
+    }
   }
 
   if (
