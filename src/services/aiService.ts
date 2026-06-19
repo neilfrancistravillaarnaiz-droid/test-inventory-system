@@ -182,6 +182,14 @@ const isUserIdentityQuestion = (question: string) => {
   return (
     q.includes("who am i") ||
     q.includes("who i am") ||
+    q.includes("what is my name") ||
+    q.includes("what's my name") ||
+    q.includes("whats my name") ||
+    q.includes("my name") ||
+    q.includes("what is my identity") ||
+    q.includes("what's my identity") ||
+    q.includes("whats my identity") ||
+    q.includes("my identity") ||
     q.includes("what is my profile") ||
     q.includes("what's my profile") ||
     q.includes("my account") ||
