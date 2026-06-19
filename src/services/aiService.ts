@@ -252,6 +252,32 @@ const isImageGenerationQuestion = (question: string) => {
   ]);
 };
 
+const isCcdAssetRequest = (question: string) => {
+  const q = question.toLowerCase();
+
+  return (
+    includesAny(q, ["show", "display", "open", "photo", "picture", "image", "logo"]) &&
+    includesAny(q, ["ccd", "city college", "city college of davao"])
+  );
+};
+
+const getCcdAssetResponse = (question: string): AIResponse => {
+  const q = question.toLowerCase();
+  const wantsLogo = q.includes("logo") || q.includes("seal");
+  const imageUrl = wantsLogo ? "/ccd-logo.jpg" : "/ccd-campus1.jpg";
+
+  return {
+    text: wantsLogo
+      ? "Here is the City College of Davao logo from your uploaded project assets."
+      : "Here is a City College of Davao campus photo from your uploaded project assets.",
+    imageUrl,
+    imagePrompt: wantsLogo
+      ? "City College of Davao logo"
+      : "City College of Davao campus photo",
+    actions: [routeAction("Open Dashboard", "/dashboard")],
+  };
+};
+
 const cleanImagePrompt = (question: string) =>
   question
     .replace(
@@ -1477,6 +1503,10 @@ export const getAIInventoryResponse = async (
   products: Product[],
   history: ChatMessage[] = []
 ): Promise<AIResponse> => {
+  if (isCcdAssetRequest(question)) {
+    return getCcdAssetResponse(question);
+  }
+
   if (isImageGenerationQuestion(question)) {
     return generateInventoryImage(question);
   }
