@@ -485,6 +485,56 @@ app.post("/ai/inventory-chat", async (req, res) => {
   }
 });
 
+app.post("/ai/generate-image", (req, res) => {
+  const prompt = String(req.body?.prompt || "").trim();
+
+  if (!prompt) {
+    return res.status(400).json({
+      success: false,
+      message: "Image prompt is required.",
+    });
+  }
+
+  const lowerPrompt = prompt.toLowerCase();
+  const isCcdPrompt =
+    lowerPrompt.includes("ccd") ||
+    lowerPrompt.includes("city college") ||
+    lowerPrompt.includes("city college of davao");
+
+  const systemStyle = [
+    "clean professional inventory system visual",
+    "green glassmorphism interface aesthetic",
+    "soft warehouse technology lighting",
+    "modern dashboard friendly composition",
+    "high quality",
+  ];
+
+  const ccdStyle = isCcdPrompt
+    ? [
+        "City College of Davao inspired",
+        "academic institutional presentation",
+        "green and gold accents",
+        "respectful school branding style",
+      ]
+    : [];
+
+  const finalPrompt = [...ccdStyle, ...systemStyle, prompt]
+    .filter(Boolean)
+    .join(", ");
+
+  const encodedPrompt = encodeURIComponent(finalPrompt);
+  const width = Number(req.body?.width || 1024);
+  const height = Number(req.body?.height || 768);
+  const seed = Math.floor(Date.now() / 1000);
+  const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=${width}&height=${height}&seed=${seed}&nologo=true`;
+
+  res.json({
+    success: true,
+    imageUrl,
+    prompt: finalPrompt,
+  });
+});
+
 /* PRODUCTS */
 
 app.get("/products", async (req, res) => {

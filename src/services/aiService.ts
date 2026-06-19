@@ -15,6 +15,8 @@ export type AIAction = {
 export type AIResponse = {
   text: string;
   actions?: AIAction[];
+  imageUrl?: string;
+  imagePrompt?: string;
 };
 
 type UserProfile = {
@@ -228,6 +230,111 @@ const isWebSearchQuestion = (question: string) => {
     "ssg",
     "osa",
   ]);
+};
+
+const isImageGenerationQuestion = (question: string) => {
+  const q = question.toLowerCase();
+
+  return includesAny(q, [
+    "generate image",
+    "create image",
+    "make image",
+    "provide image",
+    "show me an image",
+    "make a picture",
+    "create a picture",
+    "generate a picture",
+    "image of",
+    "picture of",
+    "poster of",
+    "visual of",
+    "illustration of",
+  ]);
+};
+
+const cleanImagePrompt = (question: string) =>
+  question
+    .replace(
+      /\b(generate|create|make|provide|show me|can you|please|an?|the)\b/gi,
+      " "
+    )
+    .replace(/\b(image|picture|poster|visual|illustration|of|for)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const buildPollinationsUrl = (prompt: string) => {
+  const normalized = prompt.toLowerCase();
+  const ccdStyle =
+    normalized.includes("ccd") ||
+    normalized.includes("city college") ||
+    normalized.includes("city college of davao")
+      ? "City College of Davao inspired, academic institutional presentation, green and gold accents, respectful school branding style, "
+      : "";
+
+  const finalPrompt = `${ccdStyle}clean professional inventory system visual, green glassmorphism interface aesthetic, soft warehouse technology lighting, modern dashboard friendly composition, high quality, ${prompt}`;
+
+  return {
+    imageUrl: `https://image.pollinations.ai/prompt/${encodeURIComponent(
+      finalPrompt
+    )}?width=1024&height=768&seed=${Math.floor(Date.now() / 1000)}&nologo=true`,
+    imagePrompt: finalPrompt,
+  };
+};
+
+const generateInventoryImage = async (question: string): Promise<AIResponse> => {
+  const prompt =
+    cleanImagePrompt(question) ||
+    "StockFlow inventory system assistant visual for City College of Davao";
+
+  if (!API_BASE_URL) {
+    const generated = buildPollinationsUrl(prompt);
+
+    return {
+      text: "I generated a StockFlow-style visual for you.",
+      imageUrl: generated.imageUrl,
+      imagePrompt: generated.imagePrompt,
+      actions: [routeAction("Open Dashboard", "/dashboard")],
+    };
+  }
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/ai/generate-image`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        prompt,
+        width: 1024,
+        height: 768,
+      }),
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        data?.message || `Image generation failed with status ${response.status}.`
+      );
+    }
+
+    return {
+      text: "I generated a StockFlow-style visual for you.",
+      imageUrl: data?.imageUrl,
+      imagePrompt: data?.prompt || prompt,
+      actions: [routeAction("Open Dashboard", "/dashboard")],
+    };
+  } catch (error) {
+    console.warn("Image backend unavailable, using Pollinations URL fallback.", error);
+    const generated = buildPollinationsUrl(prompt);
+
+    return {
+      text: "I generated a visual using the fallback image service.",
+      imageUrl: generated.imageUrl,
+      imagePrompt: generated.imagePrompt,
+      actions: [routeAction("Open Dashboard", "/dashboard")],
+    };
+  }
 };
 
 const formatCurrency = (value: number) =>
@@ -1370,6 +1477,10 @@ export const getAIInventoryResponse = async (
   products: Product[],
   history: ChatMessage[] = []
 ): Promise<AIResponse> => {
+  if (isImageGenerationQuestion(question)) {
+    return generateInventoryImage(question);
+  }
+
   if (!API_BASE_URL) {
     if (isWebSearchQuestion(question)) {
       return reply(

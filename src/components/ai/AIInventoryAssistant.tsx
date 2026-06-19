@@ -16,6 +16,8 @@ type Message = {
   sender: "user" | "ai";
   text: string;
   actions?: AIAction[];
+  imageUrl?: string;
+  imagePrompt?: string;
 };
 
 type AvatarPosition = {
@@ -321,6 +323,8 @@ const AIInventoryAssistant = () => {
         sender: "ai",
         text: aiResponse.text,
         actions: aiResponse.actions,
+        imageUrl: aiResponse.imageUrl,
+        imagePrompt: aiResponse.imagePrompt,
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
@@ -421,6 +425,15 @@ const AIInventoryAssistant = () => {
                 }
               >
                 <span>{msg.text}</span>
+
+                {msg.imageUrl ? (
+                  <figure className="ai-generated-image">
+                    <img src={msg.imageUrl} alt={msg.imagePrompt || msg.text} />
+                    {msg.imagePrompt ? (
+                      <figcaption>{msg.imagePrompt}</figcaption>
+                    ) : null}
+                  </figure>
+                ) : null}
 
                 {msg.actions?.length ? (
                   <div className="ai-message-actions">
