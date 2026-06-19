@@ -8,6 +8,10 @@ type ProductsSnapshot = {
   loading: boolean;
 };
 
+type ProductChange =
+  | { type: "upsert"; product: Product }
+  | { type: "remove"; id: string };
+
 let snapshot: ProductsSnapshot = {
   products: [],
   loading: true,
@@ -96,7 +100,26 @@ export const useProducts = () => {
   }, []);
 
   useEffect(() => {
-    const handleRefreshProducts = () => {
+    const handleRefreshProducts = (event: Event) => {
+      const change = (event as CustomEvent<ProductChange>).detail;
+
+      if (change?.type === "upsert" && change.product) {
+        const products = snapshot.products.some(
+          (product) => product.id === change.product.id
+        )
+          ? snapshot.products.map((product) =>
+              product.id === change.product.id ? change.product : product
+            )
+          : [change.product, ...snapshot.products];
+
+        publish({ products, loading: false });
+      } else if (change?.type === "remove" && change.id) {
+        publish({
+          products: snapshot.products.filter((product) => product.id !== change.id),
+          loading: false,
+        });
+      }
+
       void loadProducts(true);
     };
 

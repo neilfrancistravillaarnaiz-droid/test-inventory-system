@@ -90,8 +90,14 @@ const routeAction = (label: string, path: string): AIAction => ({
   path,
 });
 
-const requestProductRefresh = () => {
-  window.dispatchEvent(new Event("stockflow:refresh-products"));
+type ProductRefreshChange =
+  | { type: "upsert"; product: Product }
+  | { type: "remove"; id: string };
+
+const requestProductRefresh = (change?: ProductRefreshChange) => {
+  window.dispatchEvent(
+    new CustomEvent("stockflow:refresh-products", { detail: change })
+  );
 };
 
 const withDefaultActions = (text: string): AIResponse =>
@@ -509,10 +515,14 @@ const getNameAfterCommand = (question: string, commandPattern: RegExp) => {
 const buildProductPayloadFromCommand = (
   question: string
 ): ProductInput | null => {
-  const name = getNameAfterCommand(
-    question,
-    /\b(?:add|create|new)\s+(?:a\s+|an\s+)?product(?:\s+named|\s+called)?\s+(.+)$/i
-  );
+  const addPatterns = [
+    /\b(?:add|create|register)\s+(?:a\s+|an\s+)?(?:new\s+)?(?:product|item)(?:\s+named|\s+called)?\s+(.+)$/i,
+    /\b(?:add|create|register)\s+(.+?)\s+(?:as\s+)?(?:a\s+|an\s+)?(?:new\s+)?(?:product|item)\b/i,
+    /\b(?:add|create|register)\s+(.+?)\s+to\s+(?:the\s+)?inventory\b/i,
+  ];
+  const name = addPatterns
+    .map((pattern) => getNameAfterCommand(question, pattern))
+    .find(Boolean) || "";
 
   if (!name) return null;
 
@@ -548,10 +558,18 @@ const handleProductCommand = async (
     includesAny(normalizedQuestion, [
       "add product",
       "add a product",
+      "add new product",
+      "add a new product",
+      "add item",
+      "add an item",
       "create product",
       "create a product",
+      "create item",
+      "register product",
+      "register item",
       "new product",
       "new item",
+      "to inventory",
     ])
   ) {
     const payload = buildProductPayloadFromCommand(question);
@@ -573,7 +591,7 @@ const handleProductCommand = async (
       return reply(`I could not add the product. ${error.message}`);
     }
 
-    requestProductRefresh();
+    requestProductRefresh({ type: "upsert", product: data });
 
     return {
       text: `Added ${data.name} to inventory with ${data.quantity} unit(s). SKU: ${
@@ -613,7 +631,7 @@ const handleProductCommand = async (
       return reply(`I could not delete ${product.name}. ${error.message}`);
     }
 
-    requestProductRefresh();
+    requestProductRefresh({ type: "remove", id: product.id });
 
     return {
       text: `Deleted ${product.name} from inventory.`,
@@ -649,16 +667,18 @@ const handleProductCommand = async (
       bin: getCommandValue(question, ["bin"]) || product.bin || "",
     };
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("products")
       .update(locationUpdate)
-      .eq("id", product.id);
+      .eq("id", product.id)
+      .select()
+      .single();
 
     if (error) {
       return reply(`I could not update ${product.name}'s location. ${error.message}`);
     }
 
-    requestProductRefresh();
+    requestProductRefresh({ type: "upsert", product: data });
 
     return {
       text: `Updated ${product.name}'s location to ${[
@@ -732,16 +752,18 @@ const handleProductCommand = async (
       );
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("products")
       .update(updates)
-      .eq("id", product.id);
+      .eq("id", product.id)
+      .select()
+      .single();
 
     if (error) {
       return reply(`I could not update ${product.name}. ${error.message}`);
     }
 
-    requestProductRefresh();
+    requestProductRefresh({ type: "upsert", product: data });
 
     return {
       text: `Updated ${product.name}. Changed: ${Object.keys(updates).join(", ")}.`,
@@ -789,10 +811,12 @@ const handleProductCommand = async (
       );
     }
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("products")
       .update({ quantity: newQuantity })
-      .eq("id", product.id);
+      .eq("id", product.id)
+      .select()
+      .single();
 
     if (error) {
       return reply(`I could not update stock for ${product.name}. ${error.message}`);
@@ -808,7 +832,7 @@ const handleProductCommand = async (
       },
     ]);
 
-    requestProductRefresh();
+    requestProductRefresh({ type: "upsert", product: data });
 
     return {
       text: `${isStockOut ? "Removed" : "Added"} ${quantity} unit(s) ${
