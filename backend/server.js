@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
@@ -33,6 +33,7 @@ app.get("/ai/debug-config", (req, res) => {
   res.json({
     success: true,
     openaiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    groqConfigured: Boolean(process.env.GROQ_API_KEY),
     tavilyConfigured: Boolean(process.env.TAVILY_API_KEY),
     supabaseUrlConfigured: Boolean(process.env.SUPABASE_URL),
     supabaseServiceRoleConfigured: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
@@ -209,6 +210,112 @@ const buildWebOnlyAnswer = (webSearch) => {
   ].join("\n");
 };
 
+const callGroqChat = async ({ systemPrompt, inventoryContext, webContext, history, question }) => {
+  const messages = [
+    {
+      role: "system",
+      content: systemPrompt,
+    },
+    {
+      role: "user",
+      content: `Inventory context:\n${inventoryContext}`,
+    },
+    ...(webContext
+      ? [
+          {
+            role: "user",
+            content: webContext,
+          },
+        ]
+      : []),
+    ...history,
+    {
+      role: "user",
+      content: question,
+    },
+  ];
+
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
+      temperature: 0.25,
+      max_tokens: 500,
+      messages,
+    }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message || `Groq request failed with status ${response.status}.`
+    );
+  }
+
+  return data?.choices?.[0]?.message?.content?.trim() || "";
+};
+
+const callOpenAIResponse = async ({ systemPrompt, inventoryContext, webContext, history, question }) => {
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      temperature: 0.25,
+      max_output_tokens: 500,
+      input: [
+        {
+          role: "system",
+          content: systemPrompt,
+        },
+        {
+          role: "user",
+          content: `Inventory context:\n${inventoryContext}`,
+        },
+        ...(webContext
+          ? [
+              {
+                role: "user",
+                content: webContext,
+              },
+            ]
+          : []),
+        ...history,
+        {
+          role: "user",
+          content: question,
+        },
+      ],
+    }),
+  });
+
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error?.message || `OpenAI request failed with status ${response.status}.`
+    );
+  }
+
+  return (
+    data?.output_text ||
+    data?.output
+      ?.flatMap((item) => item.content || [])
+      ?.map((content) => content.text)
+      ?.filter(Boolean)
+      ?.join("\n")
+      ?.trim() ||
+    ""
+  );
+};
 const buildInventoryContext = async () => {
   const [{ data: products, error: productsError }, { data: stockMovements }] =
     await Promise.all([
@@ -314,7 +421,7 @@ app.post("/ai/inventory-chat", async (req, res) => {
     const needsWebSearch = shouldUseWebSearch(question);
     const webSearch = needsWebSearch ? await searchTavily(question) : null;
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!process.env.GROQ_API_KEY && !process.env.OPENAI_API_KEY) {
       if (needsWebSearch && process.env.TAVILY_API_KEY) {
         return res.json({
           success: true,
@@ -325,7 +432,7 @@ app.post("/ai/inventory-chat", async (req, res) => {
       return res.status(500).json({
         success: false,
         message:
-          "OPENAI_API_KEY is not configured on the backend environment.",
+          "GROQ_API_KEY or OPENAI_API_KEY is required on the backend environment.",
       });
     }
 
@@ -339,63 +446,28 @@ app.post("/ai/inventory-chat", async (req, res) => {
       }))
       .filter((message) => message.content);
 
-    const response = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-        temperature: 0.25,
-        max_output_tokens: 500,
-        input: [
-          {
-            role: "system",
-            content:
-              "You are StockFlow's AI Inventory Assistant. Be warm, conversational, and helpful. For stock inquiries, low-stock alerts, restocking, reports, analytics, QR/barcode workflows, audit logs, suppliers, categories, and locations, answer using the live inventory context. For outside/current/product-market questions, use the provided web search context and cite source URLs briefly. Match a helpful operations-assistant style: summarize the status, name the affected products, include quantities/SKU/supplier/location when available, and suggest the next StockFlow action. Do not invent order numbers, purchase orders, sales totals, sales velocity, turnover rates, transfer orders, audit usernames, emails, lead times, or warehouse splits if they are not in the context. Do not claim you changed settings or completed an action unless the API actually provides that capability. If data is missing, say exactly what is missing and offer the closest action inside StockFlow. Keep answers concise and actionable.",
-          },
-          {
-            role: "user",
-            content: `Inventory context:\n${inventoryContext}`,
-          },
-          ...(webContext
-            ? [
-                {
-                  role: "user",
-                  content: webContext,
-                },
-              ]
-            : []),
-          ...trimmedHistory,
-          {
-            role: "user",
-            content: question,
-          },
-        ],
-      }),
-    });
+    const systemPrompt =
+      "You are StockFlow's AI Inventory Assistant. Be warm, conversational, and helpful. For stock inquiries, low-stock alerts, restocking, reports, analytics, QR/barcode workflows, audit logs, suppliers, categories, and locations, answer using the live inventory context. For outside/current/product-market questions, use the provided web search context and cite source URLs briefly. Match a helpful operations-assistant style: summarize the status, name the affected products, include quantities/SKU/supplier/location when available, and suggest the next StockFlow action. Do not invent order numbers, purchase orders, sales totals, sales velocity, turnover rates, transfer orders, audit usernames, emails, lead times, or warehouse splits if they are not in the context. Do not claim you changed settings or completed an action unless the API actually provides that capability. If data is missing, say exactly what is missing and offer the closest action inside StockFlow. Keep answers concise and actionable.";
 
-    const data = await response.json().catch(() => null);
+    let answer = "";
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        success: false,
-        message:
-          data?.error?.message ||
-          `OpenAI request failed with status ${response.status}.`,
+    if (process.env.GROQ_API_KEY) {
+      answer = await callGroqChat({
+        systemPrompt,
+        inventoryContext,
+        webContext,
+        history: trimmedHistory,
+        question,
+      });
+    } else {
+      answer = await callOpenAIResponse({
+        systemPrompt,
+        inventoryContext,
+        webContext,
+        history: trimmedHistory,
+        question,
       });
     }
-
-    const answer =
-      data?.output_text ||
-      data?.output
-        ?.flatMap((item) => item.content || [])
-        ?.map((content) => content.text)
-        ?.filter(Boolean)
-        ?.join("\n")
-        ?.trim();
-
     res.json({
       success: true,
       answer: answer || "I couldn't generate an answer right now.",
@@ -705,3 +777,5 @@ const HOST = "0.0.0.0";
 app.listen(PORT, HOST, () => {
   console.log(`Backend running at http://${HOST}:${PORT}`);
 });
+
+
