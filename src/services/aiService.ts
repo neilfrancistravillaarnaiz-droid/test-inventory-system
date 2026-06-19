@@ -1,8 +1,17 @@
 import type { Product } from "../types/Product";
+import { supabase } from "../lib/supabaseClient";
 
 type ChatMessage = {
   sender: "user" | "ai";
   text: string;
+};
+
+type UserProfile = {
+  id?: string;
+  full_name?: string | null;
+  email?: string | null;
+  role?: string | null;
+  status?: string | null;
 };
 
 const API_BASE_URL =
@@ -48,9 +57,37 @@ const isCapabilityQuestion = (question: string) => {
   return (
     q.includes("what can you do") ||
     q.includes("help") ||
-    q.includes("how do i use") ||
+    q.includes("how do i use")
+  );
+};
+
+const isIdentityQuestion = (question: string) => {
+  const q = question.toLowerCase();
+
+  return (
+    q.includes("who are you") ||
     q.includes("what are you") ||
-    q.includes("who are you")
+    q.includes("what is your name") ||
+    q.includes("what's your name") ||
+    q.includes("your name") ||
+    q.includes("are you ai") ||
+    q.includes("are you an ai") ||
+    q.includes("who made you")
+  );
+};
+
+const isUserIdentityQuestion = (question: string) => {
+  const q = question.toLowerCase();
+
+  return (
+    q.includes("who am i") ||
+    q.includes("who i am") ||
+    q.includes("what is my profile") ||
+    q.includes("what's my profile") ||
+    q.includes("my account") ||
+    q.includes("my role") ||
+    q.includes("what is my role") ||
+    q.includes("what's my role")
   );
 };
 
@@ -120,6 +157,77 @@ const getRequestedQuantity = (question: string) => {
   const match = question.match(/\b(\d+)\s*(?:units?|pcs|pieces?|items?)?\b/i);
 
   return match ? Number(match[1]) : null;
+};
+
+const getCurrentUserProfile = async () => {
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+
+  if (!user) {
+    return {
+      user: null,
+      profile: null,
+      error: null,
+    };
+  }
+
+  let profile: UserProfile | null = null;
+  let profileError: unknown = null;
+
+  const profileById = await supabase
+    .from("profiles")
+    .select("id, full_name, email, role, status")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  if (profileById.data) {
+    profile = profileById.data;
+  } else {
+    profileError = profileById.error;
+  }
+
+  if (!profile && user.email) {
+    const profileByEmail = await supabase
+      .from("profiles")
+      .select("id, full_name, email, role, status")
+      .eq("email", user.email)
+      .maybeSingle();
+
+    if (profileByEmail.data) {
+      profile = profileByEmail.data;
+      profileError = null;
+    } else {
+      profileError = profileByEmail.error || profileError;
+    }
+  }
+
+  return {
+    user,
+    profile,
+    error: profileError,
+  };
+};
+
+const getUserIdentityResponse = async () => {
+  const { user, profile, error } = await getCurrentUserProfile();
+
+  if (!user) {
+    return "I cannot identify you yet because there is no active signed-in session. Please sign in first, then ask me again.";
+  }
+
+  if (!profile) {
+    return `You are signed in as ${
+      user.email || "the current StockFlow user"
+    }. I could not find a matching profile record in the profiles table${
+      error ? " yet" : ""
+    }, so your role and status are not available from the user database right now.`;
+  }
+
+  return `You are ${profile.full_name || "a StockFlow user"}${
+    profile.email || user.email ? ` (${profile.email || user.email})` : ""
+  }. Your role is ${profile.role || "not set"} and your account status is ${
+    profile.status || "not set"
+  }.`;
 };
 
 const formatProductList = (products: Product[], limit = 8) => {
@@ -239,7 +347,10 @@ const getEmotionResponse = (question: string, normalizedQuestion: string) => {
   return null;
 };
 
-const getLocalInventoryResponse = (question: string, products: Product[]) => {
+const getLocalInventoryResponse = async (
+  question: string,
+  products: Product[]
+) => {
   const q = question.toLowerCase();
   const normalizedQuestion = normalizeQuestion(question);
   const mentionedProduct = findMentionedProduct(question, products);
@@ -331,6 +442,14 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
 
   if (isGreeting(question)) {
     return "Hi! I am your AI Inventory Assistant. You can ask me about low stock, product counts, suppliers, inventory value, restocking, barcode/QR workflows, or a specific product.";
+  }
+
+  if (isUserIdentityQuestion(question)) {
+    return await getUserIdentityResponse();
+  }
+
+  if (isIdentityQuestion(question)) {
+    return "I am your StockFlow AI Inventory Assistant. I help you understand your inventory faster by answering questions about products, stock levels, low-stock alerts, suppliers, categories, locations, reports, QR/barcode tools, audits, and restocking. I use your StockFlow data when it is available, and I will tell you when something needs backend data or a page action.";
   }
 
   if (isCapabilityQuestion(question)) {
@@ -973,7 +1092,11 @@ export const getAIInventoryResponse = async (
   history: ChatMessage[] = []
 ): Promise<string> => {
   if (!API_BASE_URL) {
-    return getLocalInventoryResponse(question, products);
+    return await getLocalInventoryResponse(question, products);
+  }
+
+  if (isUserIdentityQuestion(question)) {
+    return await getLocalInventoryResponse(question, products);
   }
 
   try {
@@ -999,6 +1122,6 @@ export const getAIInventoryResponse = async (
     return data?.answer?.trim() || "I couldn't generate a response right now.";
   } catch (error) {
     console.warn("AI backend unavailable, using local fallback.", error);
-    return getLocalInventoryResponse(question, products);
+    return await getLocalInventoryResponse(question, products);
   }
 };
