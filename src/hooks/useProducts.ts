@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Product } from "../types/Product";
 import { getProducts } from "../services/inventoryService";
-import { supabase } from "../lib/supabaseClient";
 
 export const useProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const refreshQueuedRef = useRef(false);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -43,33 +41,6 @@ export const useProducts = () => {
         "stockflow:refresh-products",
         handleRefreshProducts
       );
-    };
-  }, [fetchProducts]);
-
-  useEffect(() => {
-    const channel = supabase
-      .channel("stockflow-products-live")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "products",
-        },
-        () => {
-          if (refreshQueuedRef.current) return;
-
-          refreshQueuedRef.current = true;
-          window.setTimeout(() => {
-            refreshQueuedRef.current = false;
-            void fetchProducts();
-          }, 160);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      void supabase.removeChannel(channel);
     };
   }, [fetchProducts]);
 
