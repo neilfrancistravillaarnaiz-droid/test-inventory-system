@@ -78,6 +78,17 @@ const shouldUseWebSearch = (question) => {
     "product details online",
     "trend",
     "trends",
+    "who is",
+    "who are",
+    "who was",
+    "where is",
+    "when was",
+    "president",
+    "city college",
+    "city college of davao",
+    "supreme student government",
+    "ssg",
+    "osa",
   ].some((keyword) => q.includes(keyword));
 };
 
