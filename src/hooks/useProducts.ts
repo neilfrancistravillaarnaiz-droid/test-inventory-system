@@ -2,36 +2,70 @@ import { useCallback, useEffect, useState } from "react";
 import type { Product } from "../types/Product";
 import { getProducts } from "../services/inventoryService";
 
-export const useProducts = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+type ProductsSnapshot = {
+  products: Product[];
+  loading: boolean;
+};
 
-  const fetchProducts = useCallback(async () => {
-    setLoading(true);
+let snapshot: ProductsSnapshot = {
+  products: [],
+  loading: true,
+};
+let hasLoaded = false;
+let activeRequest: Promise<void> | null = null;
+const subscribers = new Set<() => void>();
 
+const publish = (next: ProductsSnapshot) => {
+  snapshot = next;
+  subscribers.forEach((subscriber) => subscriber());
+};
+
+const loadProducts = async () => {
+  if (activeRequest) return activeRequest;
+
+  publish({ ...snapshot, loading: true });
+
+  activeRequest = (async () => {
     const { data, error } = await getProducts();
 
     if (error) {
-      alert(error.message);
-      setProducts([]);
+      console.error("Unable to load products:", error.message);
+      publish({ products: snapshot.products, loading: false });
     } else {
-      setProducts(data || []);
+      hasLoaded = true;
+      publish({ products: data || [], loading: false });
     }
+  })().finally(() => {
+    activeRequest = null;
+  });
 
-    setLoading(false);
+  return activeRequest;
+};
+
+export const useProducts = () => {
+  const [currentSnapshot, setCurrentSnapshot] = useState(snapshot);
+
+  const fetchProducts = useCallback(async () => {
+    await loadProducts();
   }, []);
 
   useEffect(() => {
-    const loadProducts = async () => {
-      await fetchProducts();
-    };
+    const updateSnapshot = () => setCurrentSnapshot(snapshot);
+    subscribers.add(updateSnapshot);
+    updateSnapshot();
 
-    loadProducts();
-  }, [fetchProducts]);
+    if (!hasLoaded) {
+      void loadProducts();
+    }
+
+    return () => {
+      subscribers.delete(updateSnapshot);
+    };
+  }, []);
 
   useEffect(() => {
     const handleRefreshProducts = () => {
-      void fetchProducts();
+      void loadProducts();
     };
 
     window.addEventListener("stockflow:refresh-products", handleRefreshProducts);
@@ -42,7 +76,11 @@ export const useProducts = () => {
         handleRefreshProducts
       );
     };
-  }, [fetchProducts]);
+  }, []);
 
-  return { products, loading, fetchProducts };
+  return {
+    products: currentSnapshot.products,
+    loading: currentSnapshot.loading,
+    fetchProducts,
+  };
 };
