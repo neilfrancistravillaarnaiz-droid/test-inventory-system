@@ -83,6 +83,45 @@ const getLocation = (product: Product) => {
   return location || "Not assigned";
 };
 
+const getStockStatus = (product: Product) => {
+  if (Number(product.quantity) <= 0) return "out of stock";
+  if (Number(product.quantity) <= Number(product.low_stock_limit) / 2) {
+    return "critically low";
+  }
+  if (Number(product.quantity) <= Number(product.low_stock_limit)) {
+    return "below reorder threshold";
+  }
+
+  return "healthy";
+};
+
+const getSuggestedRestock = (product: Product) =>
+  Math.max(
+    Number(product.low_stock_limit || 0) * 2 - Number(product.quantity || 0),
+    Number(product.low_stock_limit || 0),
+    1
+  );
+
+const findMentionedProduct = (question: string, products: Product[]) => {
+  const normalized = normalizeQuestion(question);
+
+  return products.find((product) => {
+    const productName = normalizeQuestion(product.name);
+    const productSku = normalizeQuestion(product.sku || "");
+
+    return (
+      normalized.includes(productName) ||
+      Boolean(productSku && normalized.includes(productSku))
+    );
+  });
+};
+
+const getRequestedQuantity = (question: string) => {
+  const match = question.match(/\b(\d+)\s*(?:units?|pcs|pieces?|items?)?\b/i);
+
+  return match ? Number(match[1]) : null;
+};
+
 const formatProductList = (products: Product[], limit = 8) => {
   if (!products.length) {
     return "No products are available in your inventory yet.";
@@ -203,6 +242,8 @@ const getEmotionResponse = (question: string, normalizedQuestion: string) => {
 const getLocalInventoryResponse = (question: string, products: Product[]) => {
   const q = question.toLowerCase();
   const normalizedQuestion = normalizeQuestion(question);
+  const mentionedProduct = findMentionedProduct(question, products);
+  const requestedQuantity = getRequestedQuantity(question);
   const lowStock = products.filter(
     (item) => item.quantity <= item.low_stock_limit
   );
@@ -294,6 +335,196 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
 
   if (isCapabilityQuestion(question)) {
     return "I can help with StockFlow questions about available stocks, low-stock and out-of-stock products, total products, inventory value, suppliers, categories, product locations, SKU details, restock suggestions, stock in/out actions, reports, QR/barcode tools, audit logs, and notifications.";
+  }
+
+  if (
+    mentionedProduct &&
+    includesAny(q, [
+      "how many",
+      "how much",
+      "units left",
+      "stock left",
+      "left",
+      "available",
+      "on hand",
+    ])
+  ) {
+    return `Let me pull that up for you. We currently have ${
+      mentionedProduct.quantity
+    } unit(s) of ${mentionedProduct.name}${
+      mentionedProduct.sku ? ` (${mentionedProduct.sku})` : ""
+    } in stock. Location: ${getLocation(mentionedProduct)}. Reorder point: ${
+      mentionedProduct.low_stock_limit
+    }. Status: ${getStockStatus(mentionedProduct)}. ${
+      getStockStatus(mentionedProduct) === "healthy"
+        ? "No urgent reorder is needed right now."
+        : `I recommend adding about ${getSuggestedRestock(
+            mentionedProduct
+          )} unit(s).`
+    }`;
+  }
+
+  if (
+    includesAny(q, [
+      "overall stock status",
+      "stock status today",
+      "inventory snapshot",
+      "inventory health",
+      "overall inventory",
+    ])
+  ) {
+    const criticalStock = products.filter(
+      (item) =>
+        Number(item.quantity) > 0 &&
+        Number(item.quantity) <= Number(item.low_stock_limit) / 2
+    );
+    const healthyStock = products.filter(
+      (item) => Number(item.quantity) > Number(item.low_stock_limit)
+    );
+
+    return `Here is your StockFlow snapshot: ${products.length} active product(s), ${healthyStock.length} healthy, ${lowStock.length} below reorder threshold, ${criticalStock.length} critically low, and ${outOfStock.length} out of stock. ${
+      criticalStock.length
+        ? `The most urgent items are ${criticalStock
+            .slice(0, 5)
+            .map((item) => `${item.name} (${item.quantity} left)`)
+            .join(", ")}.`
+        : "No critical stock issue is showing right now."
+    }`;
+  }
+
+  if (
+    includesAny(q, [
+      "sales and inventory report",
+      "weekly report",
+      "this week report",
+      "report for this week",
+      "sales report",
+      "weekly summary",
+    ])
+  ) {
+    return `Here is the StockFlow inventory summary I can verify from current product data: ${products.length} active product(s), ${totalStocks} total units on hand, ${formatCurrency(
+      inventoryValue
+    )} estimated inventory value, ${lowStock.length} below reorder threshold, and ${outOfStock.length} out of stock. Sales totals, units sold this week, and week-over-week movement require stock-out/sales history from the backend report data.`;
+  }
+
+  if (
+    includesAny(q, [
+      "not moving",
+      "slow moving",
+      "zero movement",
+      "no movement",
+      "dead stock",
+      "stale stock",
+    ])
+  ) {
+    const highestValueStock = [...products]
+      .sort(
+        (a, b) =>
+          Number(b.quantity) * Number(b.price) -
+          Number(a.quantity) * Number(a.price)
+      )
+      .slice(0, 5);
+
+    return highestValueStock.length
+      ? `I need stock movement or sales history to confirm which products are truly not moving. From current inventory value alone, these products tie up the most stock value and may be worth reviewing: ${highestValueStock
+          .map((item) => `${item.name} (${item.quantity} units, ${formatCurrency(Number(item.quantity) * Number(item.price))})`)
+          .join(", ")}. Check Reports or Stock History for movement details.`
+      : "I need product and movement data to identify non-moving stock.";
+  }
+
+  if (
+    includesAny(q, [
+      "inventory turnover",
+      "turnover rate",
+      "stock turnover",
+      "turnover",
+    ])
+  ) {
+    return `I can calculate inventory value from current stock (${formatCurrency(
+      inventoryValue
+    )}), but turnover rate needs sales or stock-out history over a date range. Open Reports or Stock History to review movement data; once sales/stock-out totals are available, turnover can be estimated as stock moved divided by average inventory.`;
+  }
+
+  if (
+    includesAny(q, [
+      "enough stock",
+      "fulfill",
+      "fulfil",
+      "complete this order",
+      "cover this order",
+      "can we supply",
+    ])
+  ) {
+    if (!mentionedProduct || !requestedQuantity) {
+      return "I can check that for you. Please include the product name and quantity, for example: Do we have enough stock for 20 units of Mouse?";
+    }
+
+    const shortfall = requestedQuantity - Number(mentionedProduct.quantity);
+
+    return shortfall <= 0
+      ? `Yes. You need ${requestedQuantity} unit(s) of ${mentionedProduct.name}, and StockFlow shows ${mentionedProduct.quantity} available. After fulfilling it, about ${mentionedProduct.quantity - requestedQuantity} unit(s) would remain.`
+      : `Not enough stock. You need ${requestedQuantity} unit(s) of ${mentionedProduct.name}, but only ${mentionedProduct.quantity} are available. That is a shortfall of ${shortfall} unit(s). You can record the available quantity through Stock Out and restock about ${Math.max(shortfall, getSuggestedRestock(mentionedProduct))} unit(s).`;
+  }
+
+  if (
+    includesAny(q, [
+      "transfer stock",
+      "transfer between warehouse",
+      "transfer between warehouses",
+      "move stock",
+      "move inventory",
+      "warehouse transfer",
+    ])
+  ) {
+    return "StockFlow currently records Stock In and Stock Out actions, but I do not see a dedicated warehouse transfer module yet. To reflect a transfer now, record stock out from the source location and stock in to the destination location, then update the product location details if needed.";
+  }
+
+  if (
+    includesAny(q, [
+      "change reorder point",
+      "update reorder point",
+      "set reorder point",
+      "change low stock",
+      "update low stock",
+      "set low stock",
+      "threshold",
+    ])
+  ) {
+    if (mentionedProduct) {
+      return `I found ${mentionedProduct.name}. Its current low-stock limit is ${mentionedProduct.low_stock_limit}. To change it, open the product in Inventory, click Edit Product, update the low stock limit, and save. I cannot safely change it from chat yet.`;
+    }
+
+    return "I can help you find the product, but I need the product name or SKU. To update a reorder point, go to Inventory, edit the product, and change the low stock limit.";
+  }
+
+  if (
+    includesAny(q, [
+      "who made changes",
+      "who changed",
+      "inventory last night",
+      "changes last night",
+      "audit last night",
+      "last night",
+    ])
+  ) {
+    return "That information belongs in the Audit Trail. Open the Audit page to review who changed inventory records and when. The fallback chatbot only has product totals, so it cannot verify usernames or exact timestamps without audit log data from the backend.";
+  }
+
+  if (
+    includesAny(q, [
+      "discrepancy",
+      "stock count mismatch",
+      "mismatch",
+      "wrong stock",
+      "incorrect stock",
+      "physical count",
+    ])
+  ) {
+    if (mentionedProduct) {
+      return `Let's check ${mentionedProduct.name}. StockFlow currently shows ${mentionedProduct.quantity} unit(s), SKU ${mentionedProduct.sku || "N/A"}, location ${getLocation(mentionedProduct)}. Compare that with your physical count. If it does not match, review Stock History and record the correction through Stock In or Stock Out with a clear note.`;
+    }
+
+    return "Let's sort that out. Tell me the product name or SKU, and I will show the system count, location, and next steps for checking the stock history.";
   }
 
   if (isShowRequest(q)) {
@@ -435,11 +666,25 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
   }
 
   if (q.includes("low stock")) {
-    return lowStock.length
-      ? `These products are low stock: ${lowStock
-          .map((item) => `${item.name} (${item.quantity} left)`)
-          .join(", ")}.`
-      : "Great news! No products are currently low on stock.";
+    if (!lowStock.length) {
+      return "Great news! No products are currently low on stock.";
+    }
+
+    const urgentLowStock = [...lowStock]
+      .sort(
+        (a, b) =>
+          Number(a.quantity) -
+          Number(a.low_stock_limit) -
+          (Number(b.quantity) - Number(b.low_stock_limit))
+      )
+      .slice(0, 5);
+
+    return `I have flagged ${lowStock.length} item(s) below their reorder points. The most urgent ones are ${urgentLowStock
+      .map(
+        (item) =>
+          `${item.name} at ${item.quantity} unit(s), reorder point ${item.low_stock_limit}`
+      )
+      .join(", ")}. You can review them in Notifications or the Smart Restock Predictor.`;
   }
 
   if (q.includes("total product")) {
@@ -534,6 +779,18 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
   }
 
   if (q.includes("restock") || q.includes("reorder")) {
+    if (mentionedProduct) {
+      return `For ${mentionedProduct.name}, StockFlow shows ${
+        mentionedProduct.quantity
+      } unit(s) on hand with a reorder point of ${
+        mentionedProduct.low_stock_limit
+      }. Preferred supplier from your product record: ${
+        mentionedProduct.supplier || "not assigned"
+      }. I recommend adding about ${getSuggestedRestock(
+        mentionedProduct
+      )} unit(s). You can record the incoming quantity on the Stock In page.`;
+    }
+
     if (!lowStock.length) {
       return "No urgent restock is needed right now. All products are above or equal to their stock requirements.";
     }
@@ -548,6 +805,55 @@ const getLocalInventoryResponse = (question: string, products: Product[]) => {
         return `${item.name}: add about ${recommendedRestock} units`;
       })
       .join(", ")}.`;
+  }
+
+  if (
+    includesAny(q, [
+      "pending purchase order",
+      "pending purchase orders",
+      "open po",
+      "open purchase order",
+      "po status",
+      "purchase order status",
+    ])
+  ) {
+    return "StockFlow currently tracks products, suppliers, stock in/out, reports, alerts, QR/barcode tools, and audit logs. I do not see a purchase order module in the current data, so I cannot verify pending PO status yet.";
+  }
+
+  if (
+    includesAny(q, [
+      "why didnt i get an alert",
+      "why did not i get an alert",
+      "why no alert",
+      "alert earlier",
+      "missed alert",
+    ])
+  ) {
+    return lowStock.length
+      ? `I can confirm ${lowStock.length} product(s) are below their reorder threshold now. If an alert did not appear earlier, check the Notifications page and confirm each product's low-stock limit is set correctly. Current low-stock items: ${lowStock
+          .map((item) => `${item.name} (${item.quantity}/${item.low_stock_limit})`)
+          .join(", ")}.`
+      : "I do not see any low-stock products right now. If you expected an alert, check whether the product's low-stock limit is set high enough in its product details.";
+  }
+
+  if (
+    includesAny(q, [
+      "stockout this week",
+      "stock out this week",
+      "risk of stockout",
+      "projected to stock out",
+      "run out this week",
+    ])
+  ) {
+    const atRisk = [...lowStock]
+      .sort((a, b) => Number(a.quantity) - Number(b.quantity))
+      .slice(0, 5);
+
+    return atRisk.length
+      ? `I do not have sales velocity in the current fallback data, but based on current quantity versus reorder limits, these products are most at risk: ${atRisk
+          .map((item) => `${item.name} (${item.quantity} left, limit ${item.low_stock_limit})`)
+          .join(", ")}.`
+      : "I do not see products below their reorder threshold right now, so no immediate stockout risk is showing from current quantities.";
   }
 
   if (
