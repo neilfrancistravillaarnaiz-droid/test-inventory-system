@@ -86,6 +86,17 @@ const searchTavily = async (query) => {
     return null;
   }
 
+  const supplierSearchDomains = [
+    "lazada.com.ph",
+    "shopee.ph",
+    "siliconvalley.com.ph",
+    "logitech.com",
+    "hp.com",
+    "epson.com.ph",
+    "asus.com",
+    "lenovo.com",
+  ];
+
   const response = await fetch("https://api.tavily.com/search", {
     method: "POST",
     headers: {
@@ -94,9 +105,10 @@ const searchTavily = async (query) => {
     body: JSON.stringify({
       api_key: process.env.TAVILY_API_KEY,
       query,
-      search_depth: "basic",
+      search_depth: "advanced",
       max_results: 5,
       include_answer: true,
+      include_domains: supplierSearchDomains,
     }),
   });
 
