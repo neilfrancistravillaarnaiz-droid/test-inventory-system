@@ -66,13 +66,24 @@ const API_BASE_URL =
   import.meta.env.VITE_BACKEND_URL?.trim() ||
   (import.meta.env.DEV ? "http://localhost:8000" : "");
 
+const cleanAssistantText = (text: string) =>
+  String(text || "")
+    .replace(/\*\*/g, "")
+    .replace(/\*/g, "")
+    .trim();
+
 const reply = (text: string, actions: AIAction[] = []): AIResponse => ({
-  text,
+  text: cleanAssistantText(text),
   actions,
 });
 
 const toAIResponse = (response: string | AIResponse): AIResponse =>
-  typeof response === "string" ? reply(response) : response;
+  typeof response === "string"
+    ? reply(response)
+    : {
+        ...response,
+        text: cleanAssistantText(response.text),
+      };
 
 const routeAction = (label: string, path: string): AIAction => ({
   label,
@@ -500,7 +511,7 @@ const buildProductPayloadFromCommand = (
 ): ProductInput | null => {
   const name = getNameAfterCommand(
     question,
-    /\b(?:add|create|new)\s+product\s+(.+)$/i
+    /\b(?:add|create|new)\s+(?:a\s+|an\s+)?product(?:\s+named|\s+called)?\s+(.+)$/i
   );
 
   if (!name) return null;
@@ -536,8 +547,11 @@ const handleProductCommand = async (
   if (
     includesAny(normalizedQuestion, [
       "add product",
+      "add a product",
       "create product",
+      "create a product",
       "new product",
+      "new item",
     ])
   ) {
     const payload = buildProductPayloadFromCommand(question);
@@ -582,7 +596,7 @@ const handleProductCommand = async (
   ) {
     const name = getNameAfterCommand(
       question,
-      /\b(?:delete|remove)\s+(?:product|item)\s+(.+)$/i
+      /\b(?:delete|remove)\s+(?:(?:the|a)\s+)?(?:product|item)?\s*(.+)$/i
     );
     const product = findProductByCommandName(name, products);
 
@@ -663,13 +677,16 @@ const handleProductCommand = async (
   if (
     includesAny(normalizedQuestion, [
       "edit product",
+      "edit a product",
       "update product",
+      "update a product",
       "change product",
+      "change a product",
     ])
   ) {
     const name = getNameAfterCommand(
       question,
-      /\b(?:edit|update|change)\s+product\s+(.+)$/i
+      /\b(?:edit|update|change)\s+(?:a\s+|the\s+)?product\s+(.+)$/i
     );
     const product = findProductByCommandName(name, products);
 
@@ -1899,15 +1916,15 @@ export const getAIInventoryResponse = async (
   const commandResponse = await handleProductCommand(question, products);
 
   if (commandResponse) {
-    return commandResponse;
+    return toAIResponse(commandResponse);
   }
 
   if (isCcdAssetRequest(question)) {
-    return getCcdAssetResponse(question);
+    return toAIResponse(getCcdAssetResponse(question));
   }
 
   if (isImageGenerationQuestion(question)) {
-    return generateInventoryImage(question);
+    return toAIResponse(await generateInventoryImage(question));
   }
 
   if (!API_BASE_URL) {
