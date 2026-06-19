@@ -29,5 +29,20 @@ export const useProducts = () => {
     loadProducts();
   }, []);
 
+  useEffect(() => {
+    const handleRefreshProducts = () => {
+      void fetchProducts();
+    };
+
+    window.addEventListener("stockflow:refresh-products", handleRefreshProducts);
+
+    return () => {
+      window.removeEventListener(
+        "stockflow:refresh-products",
+        handleRefreshProducts
+      );
+    };
+  }, []);
+
   return { products, loading, fetchProducts };
 };

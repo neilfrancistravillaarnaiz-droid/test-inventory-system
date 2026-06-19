@@ -46,7 +46,7 @@ const INITIAL_MESSAGES: Message[] = [
 
 const AIInventoryAssistant = () => {
   const navigate = useNavigate();
-  const { products } = useProducts();
+  const { products, fetchProducts } = useProducts();
   const [open, setOpen] = useState(false);
   const [avatarVisible, setAvatarVisible] = useState(true);
   const [question, setQuestion] = useState("");
@@ -329,6 +329,10 @@ const AIInventoryAssistant = () => {
         imagePrompt: aiResponse.imagePrompt,
       };
       setMessages((prev) => [...prev, aiMessage]);
+
+      if (aiResponse.shouldRefreshProducts) {
+        await fetchProducts();
+      }
     } catch (error) {
       const fallback = answerQuestion(prompt);
       setAiError(

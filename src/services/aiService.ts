@@ -1,4 +1,4 @@
-import type { Product } from "../types/Product";
+import type { Product, ProductInput } from "../types/Product";
 import { supabase } from "../lib/supabaseClient";
 
 type ChatMessage = {
@@ -17,6 +17,7 @@ export type AIResponse = {
   actions?: AIAction[];
   imageUrl?: string;
   imagePrompt?: string;
+  shouldRefreshProducts?: boolean;
 };
 
 type UserProfile = {
@@ -77,6 +78,10 @@ const routeAction = (label: string, path: string): AIAction => ({
   label,
   path,
 });
+
+const requestProductRefresh = () => {
+  window.dispatchEvent(new Event("stockflow:refresh-products"));
+};
 
 const withDefaultActions = (text: string): AIResponse =>
   reply(text, [
@@ -413,6 +418,394 @@ const findMentionedProduct = (question: string, products: Product[]) => {
       Boolean(productSku && normalized.includes(productSku))
     );
   });
+};
+
+const findProductByCommandName = (rawName: string, products: Product[]) => {
+  const normalizedName = normalizeQuestion(rawName);
+
+  if (!normalizedName) return null;
+
+  return (
+    products.find(
+      (product) => normalizeQuestion(product.name) === normalizedName
+    ) ||
+    products.find((product) =>
+      normalizeQuestion(product.name).includes(normalizedName)
+    ) ||
+    products.find((product) =>
+      normalizedName.includes(normalizeQuestion(product.name))
+    ) ||
+    null
+  );
+};
+
+const getCommandValue = (question: string, keys: string[]) => {
+  const escapedKeys = keys.map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+  const stopWords = [
+    " sku",
+    " category",
+    " supplier",
+    " quantity",
+    " qty",
+    " price",
+    " low stock",
+    " low_stock_limit",
+    " limit",
+    " warehouse",
+    " shelf",
+    " rack",
+    " bin",
+    " location",
+  ].join("|");
+
+  for (const key of escapedKeys) {
+    const match = question.match(
+      new RegExp(`\\b${key}\\s*[:=]?\\s*(\"[^\"]+\"|'[^']+'|.+?)(?=${stopWords}|$)`, "i")
+    );
+
+    if (match?.[1]) {
+      return match[1].replace(/^["']|["']$/g, "").trim();
+    }
+  }
+
+  return "";
+};
+
+const getNumberCommandValue = (
+  question: string,
+  keys: string[],
+  fallback = 0
+) => {
+  const value = getCommandValue(question, keys);
+  const number = Number(String(value).replace(/[^\d.]/g, ""));
+
+  return Number.isFinite(number) ? number : fallback;
+};
+
+const getNameAfterCommand = (question: string, commandPattern: RegExp) => {
+  const match = question.match(commandPattern);
+  const raw = match?.[1] || "";
+
+  return raw
+    .replace(
+      /\s+(sku|category|supplier|quantity|qty|price|low stock|low_stock_limit|limit|warehouse|shelf|rack|bin|location)\b.*$/i,
+      ""
+    )
+    .replace(/^named\s+/i, "")
+    .trim();
+};
+
+const buildProductPayloadFromCommand = (
+  question: string
+): ProductInput | null => {
+  const name = getNameAfterCommand(
+    question,
+    /\b(?:add|create|new)\s+product\s+(.+)$/i
+  );
+
+  if (!name) return null;
+
+  return {
+    name,
+    sku:
+      getCommandValue(question, ["sku", "code"]) ||
+      `SKU-${Date.now().toString().slice(-6)}`,
+    category: getCommandValue(question, ["category"]) || "Uncategorized",
+    supplier: getCommandValue(question, ["supplier"]) || "",
+    quantity: getNumberCommandValue(question, ["quantity", "qty"], 0),
+    price: getNumberCommandValue(question, ["price"], 0),
+    low_stock_limit: getNumberCommandValue(
+      question,
+      ["low stock", "low_stock_limit", "limit"],
+      1
+    ),
+    image_url: "",
+    warehouse: getCommandValue(question, ["warehouse"]),
+    shelf: getCommandValue(question, ["shelf"]),
+    rack: getCommandValue(question, ["rack"]),
+    bin: getCommandValue(question, ["bin"]),
+  };
+};
+
+const handleProductCommand = async (
+  question: string,
+  products: Product[]
+): Promise<AIResponse | null> => {
+  const normalizedQuestion = normalizeQuestion(question);
+
+  if (
+    includesAny(normalizedQuestion, [
+      "add product",
+      "create product",
+      "new product",
+    ])
+  ) {
+    const payload = buildProductPayloadFromCommand(question);
+
+    if (!payload?.name) {
+      return reply(
+        "I can add a product, but I need at least the product name. Try: Add product Paper sku PAP-001 category Supplies quantity 20 price 10 low stock 5 warehouse A shelf B1.",
+        [routeAction("Open Inventory", "/inventory")]
+      );
+    }
+
+    const { data, error } = await supabase
+      .from("products")
+      .insert([payload])
+      .select()
+      .single();
+
+    if (error) {
+      return reply(`I could not add the product. ${error.message}`);
+    }
+
+    requestProductRefresh();
+
+    return {
+      text: `Added ${data.name} to inventory with ${data.quantity} unit(s). SKU: ${
+        data.sku || "N/A"
+      }.`,
+      shouldRefreshProducts: true,
+      actions: [
+        routeAction("Open Inventory", "/inventory"),
+        routeAction("Stock In", "/stock-in"),
+      ],
+    };
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "delete product",
+      "remove product",
+      "delete item",
+    ])
+  ) {
+    const name = getNameAfterCommand(
+      question,
+      /\b(?:delete|remove)\s+(?:product|item)\s+(.+)$/i
+    );
+    const product = findProductByCommandName(name, products);
+
+    if (!product) {
+      return reply(
+        `I could not find "${name || "that product"}" in inventory. Use the exact product name, like: Delete product Mouse.`,
+        [routeAction("Open Inventory", "/inventory")]
+      );
+    }
+
+    const { error } = await supabase.from("products").delete().eq("id", product.id);
+
+    if (error) {
+      return reply(`I could not delete ${product.name}. ${error.message}`);
+    }
+
+    requestProductRefresh();
+
+    return {
+      text: `Deleted ${product.name} from inventory.`,
+      shouldRefreshProducts: true,
+      actions: [routeAction("Open Inventory", "/inventory")],
+    };
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "assign location",
+      "set location",
+      "change location",
+    ])
+  ) {
+    const name = getNameAfterCommand(
+      question,
+      /\b(?:assign|set|change)\s+location\s+(?:for|of|to)?\s*(.+)$/i
+    );
+    const product = findProductByCommandName(name, products);
+
+    if (!product) {
+      return reply(
+        "I need the product name to assign a location. Try: Assign location Mouse warehouse A shelf B rack C bin 01.",
+        [routeAction("Open Inventory", "/inventory")]
+      );
+    }
+
+    const locationUpdate = {
+      warehouse: getCommandValue(question, ["warehouse"]) || product.warehouse || "",
+      shelf: getCommandValue(question, ["shelf"]) || product.shelf || "",
+      rack: getCommandValue(question, ["rack"]) || product.rack || "",
+      bin: getCommandValue(question, ["bin"]) || product.bin || "",
+    };
+
+    const { error } = await supabase
+      .from("products")
+      .update(locationUpdate)
+      .eq("id", product.id);
+
+    if (error) {
+      return reply(`I could not update ${product.name}'s location. ${error.message}`);
+    }
+
+    requestProductRefresh();
+
+    return {
+      text: `Updated ${product.name}'s location to ${[
+        locationUpdate.warehouse,
+        locationUpdate.shelf,
+        locationUpdate.rack,
+        locationUpdate.bin,
+      ]
+        .filter(Boolean)
+        .join(" / ") || "Not assigned"}.`,
+      shouldRefreshProducts: true,
+      actions: [routeAction("Open Inventory", "/inventory")],
+    };
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "edit product",
+      "update product",
+      "change product",
+    ])
+  ) {
+    const name = getNameAfterCommand(
+      question,
+      /\b(?:edit|update|change)\s+product\s+(.+)$/i
+    );
+    const product = findProductByCommandName(name, products);
+
+    if (!product) {
+      return reply(
+        "I need the exact product name to edit it. Try: Edit product Mouse price 450 quantity 8 category Accessories.",
+        [routeAction("Open Inventory", "/inventory")]
+      );
+    }
+
+    const updates: Partial<ProductInput> = {};
+    const textFields: Array<[keyof ProductInput, string[]]> = [
+      ["name", ["name"]],
+      ["sku", ["sku", "code"]],
+      ["category", ["category"]],
+      ["supplier", ["supplier"]],
+      ["warehouse", ["warehouse"]],
+      ["shelf", ["shelf"]],
+      ["rack", ["rack"]],
+      ["bin", ["bin"]],
+    ];
+
+    textFields.forEach(([field, keys]) => {
+      const value = getCommandValue(question, keys);
+      if (value) updates[field] = value as never;
+    });
+
+    const numberFields: Array<[keyof ProductInput, string[]]> = [
+      ["quantity", ["quantity", "qty"]],
+      ["price", ["price"]],
+      ["low_stock_limit", ["low stock", "low_stock_limit", "limit"]],
+    ];
+
+    numberFields.forEach(([field, keys]) => {
+      const value = getCommandValue(question, keys);
+      if (value) updates[field] = Number(String(value).replace(/[^\d.]/g, "")) as never;
+    });
+
+    if (!Object.keys(updates).length) {
+      return reply(
+        "Tell me what to change. Example: Edit product Mouse price 450 quantity 8 low stock 5.",
+        [routeAction("Open Inventory", "/inventory")]
+      );
+    }
+
+    const { error } = await supabase
+      .from("products")
+      .update(updates)
+      .eq("id", product.id);
+
+    if (error) {
+      return reply(`I could not update ${product.name}. ${error.message}`);
+    }
+
+    requestProductRefresh();
+
+    return {
+      text: `Updated ${product.name}. Changed: ${Object.keys(updates).join(", ")}.`,
+      shouldRefreshProducts: true,
+      actions: [routeAction("Open Inventory", "/inventory")],
+    };
+  }
+
+  if (
+    includesAny(normalizedQuestion, [
+      "stock in",
+      "add stock",
+      "stock out",
+      "remove stock",
+    ])
+  ) {
+    const isStockOut =
+      normalizedQuestion.includes("stock out") ||
+      normalizedQuestion.includes("remove stock");
+    const name = getNameAfterCommand(
+      question,
+      isStockOut
+        ? /\b(?:stock out|remove stock)\s+(.+)$/i
+        : /\b(?:stock in|add stock)\s+(.+)$/i
+    );
+    const product = findProductByCommandName(name, products);
+    const quantity = getNumberCommandValue(question, ["quantity", "qty"], 0);
+
+    if (!product || quantity <= 0) {
+      return reply(
+        `I need a product name and quantity. Try: ${
+          isStockOut ? "Stock out Mouse quantity 2" : "Stock in Mouse quantity 10"
+        }.`,
+        [routeAction(isStockOut ? "Open Stock Out" : "Open Stock In", isStockOut ? "/stock-out" : "/stock-in")]
+      );
+    }
+
+    const newQuantity = isStockOut
+      ? Number(product.quantity) - quantity
+      : Number(product.quantity) + quantity;
+
+    if (newQuantity < 0) {
+      return reply(
+        `I cannot remove ${quantity} unit(s) from ${product.name} because only ${product.quantity} unit(s) are available.`
+      );
+    }
+
+    const { error } = await supabase
+      .from("products")
+      .update({ quantity: newQuantity })
+      .eq("id", product.id);
+
+    if (error) {
+      return reply(`I could not update stock for ${product.name}. ${error.message}`);
+    }
+
+    await supabase.from("stock_transactions").insert([
+      {
+        product_id: product.id,
+        product_name: product.name,
+        type: isStockOut ? "stock_out" : "stock_in",
+        quantity,
+        remarks: "Updated by AI assistant command",
+      },
+    ]);
+
+    requestProductRefresh();
+
+    return {
+      text: `${isStockOut ? "Removed" : "Added"} ${quantity} unit(s) ${
+        isStockOut ? "from" : "to"
+      } ${product.name}. New quantity: ${newQuantity}.`,
+      shouldRefreshProducts: true,
+      actions: [
+        routeAction("Open Inventory", "/inventory"),
+        routeAction("Stock History", "/stock-history"),
+      ],
+    };
+  }
+
+  return null;
 };
 
 const getRequestedQuantity = (question: string) => {
@@ -1503,6 +1896,12 @@ export const getAIInventoryResponse = async (
   products: Product[],
   history: ChatMessage[] = []
 ): Promise<AIResponse> => {
+  const commandResponse = await handleProductCommand(question, products);
+
+  if (commandResponse) {
+    return commandResponse;
+  }
+
   if (isCcdAssetRequest(question)) {
     return getCcdAssetResponse(question);
   }

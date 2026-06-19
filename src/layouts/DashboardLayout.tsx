@@ -1,4 +1,11 @@
-import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  type FormEvent,
+  type TouchEvent,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -72,15 +79,18 @@ const navItems: NavItem[] = [
 
 const DashboardLayout = () => {
   const navigate = useNavigate();
-  const { products } = useProducts();
+  const { products, fetchProducts } = useProducts();
   const { profile, role, can } = useCurrentProfile();
 
   const [isLightMode, setIsLightMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
+  const [pullDistance, setPullDistance] = useState(0);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const pullStartYRef = useRef<number | null>(null);
 
   const searchResults = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -196,6 +206,48 @@ const DashboardLayout = () => {
     setSearchFocused(false);
   };
 
+  const refreshActiveData = async () => {
+    setPullRefreshing(true);
+    window.dispatchEvent(new Event("stockflow:refresh-products"));
+    await fetchProducts();
+    window.setTimeout(() => {
+      setPullRefreshing(false);
+      setPullDistance(0);
+    }, 450);
+  };
+
+  const handleTouchStart = (event: TouchEvent<HTMLDivElement>) => {
+    if (window.scrollY > 0 || pullRefreshing) return;
+
+    pullStartYRef.current = event.touches[0]?.clientY ?? null;
+  };
+
+  const handleTouchMove = (event: TouchEvent<HTMLDivElement>) => {
+    if (pullStartYRef.current === null || window.scrollY > 0 || pullRefreshing) {
+      return;
+    }
+
+    const distance = Math.max(
+      0,
+      (event.touches[0]?.clientY ?? pullStartYRef.current) -
+        pullStartYRef.current
+    );
+
+    if (distance > 8) {
+      setPullDistance(Math.min(distance, 104));
+    }
+  };
+
+  const handleTouchEnd = () => {
+    if (pullDistance >= 78 && !pullRefreshing) {
+      void refreshActiveData();
+    } else {
+      setPullDistance(0);
+    }
+
+    pullStartYRef.current = null;
+  };
+
   const visibleNavItems = navItems.filter(
     (item) => !item.permission || can(item.permission)
   );
@@ -204,7 +256,28 @@ const DashboardLayout = () => {
     profile?.full_name || profile?.email || "StockFlow User";
 
   return (
-    <div className="dashboard-layout command-layout">
+    <div
+      className="dashboard-layout command-layout"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
+    >
+      <div
+        className={`pull-refresh-indicator${
+          pullDistance > 0 || pullRefreshing ? " is-visible" : ""
+        }`}
+        style={{
+          transform: `translate(-50%, ${Math.min(pullDistance, 72)}px)`,
+        }}
+      >
+        {pullRefreshing
+          ? "Refreshing..."
+          : pullDistance >= 78
+          ? "Release to refresh"
+          : "Pull to refresh"}
+      </div>
+
       <main className="dashboard-main command-main">
         <header className="topbar command-topbar">
           <div className="command-brand">

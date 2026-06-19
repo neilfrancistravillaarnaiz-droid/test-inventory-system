@@ -4415,6 +4415,38 @@ body.light-mode .ai-generated-image figcaption {
   color: rgba(28, 66, 38, 0.78) !important;
 }
 
+.pull-refresh-indicator {
+  position: fixed !important;
+  top: -54px !important;
+  left: 50% !important;
+  z-index: 100002 !important;
+  min-width: 172px !important;
+  border: 1px solid rgba(255, 255, 255, 0.32) !important;
+  border-radius: 999px !important;
+  background: rgba(15, 44, 22, 0.72) !important;
+  color: #f8fff9 !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  padding: 13px 18px !important;
+  text-align: center !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  box-shadow: 0 18px 42px rgba(5, 18, 8, 0.24) !important;
+  backdrop-filter: blur(22px) saturate(1.25) !important;
+  transition: opacity 0.18s ease, transform 0.18s ease !important;
+}
+
+.pull-refresh-indicator.is-visible {
+  opacity: 1 !important;
+}
+
+body.light-mode .pull-refresh-indicator {
+  border-color: rgba(45, 122, 58, 0.24) !important;
+  background: rgba(248, 253, 249, 0.88) !important;
+  color: #245c2e !important;
+}
+
 @media (max-width: 640px) {
   .ai-panel {
     right: 12px !important;
