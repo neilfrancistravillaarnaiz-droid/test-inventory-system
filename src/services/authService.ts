@@ -43,6 +43,10 @@ export const forgotPassword = async (email: string) => {
   });
 };
 
+export const updatePassword = async (password: string) => {
+  return await supabase.auth.updateUser({ password });
+};
+
 export const getSession = async () => {
   return await supabase.auth.getSession();
 };

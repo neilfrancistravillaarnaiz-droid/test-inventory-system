@@ -7,6 +7,7 @@ import Notifications from "../pages/notifications/Notifications";
 import Settings from "../pages/settings/Settings";
 import Users from "../pages/users/Users";
 import Reports from "../pages/reports/Reports";
+import Profile from "../pages/profile/Profile";
 import StockIn from "../pages/stock/StockIn";
 import StockOut from "../pages/stock/StockOut";
 import StockHistory from "../pages/stock/StockHistory";
@@ -15,6 +16,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import ForgotPassword from "../pages/auth/ForgotPassword";
+import ResetPassword from "../pages/auth/ResetPassword";
 import Dashboard from "../pages/dashboard/Dashboard";
 import Inventory from "../pages/inventory/Inventory";
 import AddProduct from "../pages/inventory/AddProduct";
@@ -33,6 +35,7 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<DashboardLayout />}>
@@ -99,6 +102,7 @@ const AppRoutes = () => {
               </RequirePermission>
             }
           />
+          <Route path="/profile" element={<Profile />} />
           <Route
             path="/users"
             element={

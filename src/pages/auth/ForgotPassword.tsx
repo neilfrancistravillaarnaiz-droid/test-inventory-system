@@ -1,5 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowLeft,
+  Bell,
+  Bot,
+  Mail,
+  MapPin,
+  ScanLine,
+  ShieldCheck,
+  TrendingUp,
+  Zap,
+} from "lucide-react";
 import { forgotPassword } from "../../services/authService";
 
 const ForgotPassword = () => {
@@ -7,6 +18,26 @@ const ForgotPassword = () => {
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  const features = [
+    { icon: Bot, title: "AI Inventory Assistant", desc: "Smart inventory answers instantly." },
+    { icon: TrendingUp, title: "Smart Restock Predictor", desc: "Forecast demand and restock smarter." },
+    { icon: MapPin, title: "Product Location Mapping", desc: "Track product locations instantly." },
+    { icon: Bell, title: "Real-Time Notifications", desc: "Instant low-stock notifications." },
+    { icon: ScanLine, title: "Barcode & QR Scanning", desc: "Scan barcodes and QR codes fast." },
+    { icon: ShieldCheck, title: "Audit Trail Monitoring", desc: "Monitor actions with audit logs." },
+  ];
+
+  const renderTitleLine = (text: string) =>
+    text.split("").map((char, index) => (
+      <span
+        className={char === " " ? "auth-title-space" : "auth-title-letter"}
+        key={`${text}-${index}`}
+        aria-hidden="true"
+      >
+        {char === " " ? "\u00A0" : char}
+      </span>
+    ));
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,90 +56,130 @@ const ForgotPassword = () => {
   };
 
   return (
-    <main className="stock-auth-page">
+    <main className="stock-auth-page auth-final-page auth-forgot-page">
       <section className="stock-auth-left">
+        <video className="auth-bg-video" src="/bg.mp4" autoPlay loop muted playsInline />
+
         <div className="auth-stars">
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
-          <span></span>
+          <span /><span /><span /><span /><span />
         </div>
+        <div className="auth-orb orb-one" />
+        <div className="auth-orb orb-two" />
+        <div className="auth-orb orb-three" />
 
-        <div className="auth-orb orb-one"></div>
-        <div className="auth-orb orb-two"></div>
-        <div className="auth-orb orb-three"></div>
-
-        <div className="brand-block">
-          <div className="brand-icon">▣</div>
-          <h1 className="brand-title">CCD StockFlow</h1>
-          <p>
-            Quickly recover access and stay connected to your inventory operations
-            with the same secure, intelligent StockFlow experience.
-          </p>
-        </div>
-
-        <div className="auth-feature-list">
-          <div className="auth-feature">
-            <div className="feature-icon">🔒</div>
-            <div>
-              <h3>Secure recovery</h3>
-              <p>Fast password reset with secure email verification.</p>
+        <div className="auth-left-content">
+          <div className="auth-hero-brand">
+            <div className="auth-hero-icon">
+              <video src="/logo.mp4" autoPlay loop muted playsInline aria-label="CCD StockFlow logo" />
             </div>
+            <h1 className="auth-hero-title" aria-label="CCD Inventory System">
+              <span className="auth-title-line">{renderTitleLine("CCD Inventory")}</span>
+              <span className="auth-title-line">{renderTitleLine("System")}</span>
+            </h1>
+            <p className="auth-hero-copy">
+              Recover your account securely and get back to managing inventory,
+              stock movement, reports, and alerts.
+            </p>
           </div>
-          <div className="auth-feature">
-            <div className="feature-icon">⚡</div>
-            <div>
-              <h3>Quick access</h3>
-              <p>Get back into your dashboard with minimal delay.</p>
-            </div>
+
+          <div className="auth-feature-list">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+
+              return (
+                <div className="auth-feature" key={feature.title}>
+                  <div className="feature-icon">
+                    <Icon size={18} strokeWidth={2.2} />
+                  </div>
+                  <div>
+                    <h3>{feature.title}</h3>
+                    <p>{feature.desc}</p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
       <section className="stock-auth-right">
-        <div className="right-bg-circle circle-a"></div>
-        <div className="right-bg-circle circle-b"></div>
-        <div className="right-bg-diamond"></div>
+        <video className="auth-bg-video" src="/bg.mp4" autoPlay loop muted playsInline />
+
+        <div className="right-bg-circle circle-a" />
+        <div className="right-bg-circle circle-b" />
+        <div className="right-bg-diamond" />
 
         <div className="auth-flip-wrapper">
           <div className="auth-flip-box">
-            <form className="auth-modern-card auth-login-side" onSubmit={handleForgotPassword}>
+            <form
+              className="auth-modern-card auth-login-side auth-reset-card"
+              onSubmit={handleForgotPassword}
+            >
               <div className="auth-tabs">
                 <button type="button" className="active">
                   Reset Password
                 </button>
-                <button type="button" onClick={() => navigate("/login")}>Sign In</button>
+                <button type="button" onClick={() => navigate("/login")}>
+                  Sign In
+                </button>
               </div>
 
               <div className="auth-form-body">
-                <label>Email Address</label>
+                <div className="auth-card-heading">
+                  <span className="auth-kicker">
+                    <Zap size={16} />
+                    Secure recovery
+                  </span>
+                  <h2>Forgot password?</h2>
+                  <p>
+                    Enter your account email and we will send a reset link to
+                    your inbox.
+                  </p>
+                </div>
+
+                <label htmlFor="reset-email">Email Address</label>
                 <div className="auth-input-wrap">
-                  <span>✉</span>
+                  <span className="auth-input-icon" aria-hidden="true">
+                    <Mail size={16} strokeWidth={2} />
+                  </span>
                   <input
+                    id="reset-email"
                     type="email"
-                    placeholder="Enter your email"
+                    placeholder="you@company.com"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setSent(false);
+                    }}
                     required
                   />
                 </div>
 
-                <button className="auth-submit-btn" type="submit" disabled={loading || sent}>
-                  {loading ? "Sending..." : sent ? "Link Sent" : "Send Reset Link"}
+                {sent && (
+                  <div className="auth-success-message">
+                    Reset link sent. Please check your email inbox and spam
+                    folder.
+                  </div>
+                )}
+
+                <button className="auth-submit-btn" type="submit" disabled={loading}>
+                  {loading ? "Sending..." : sent ? "Send Again" : "Send Reset Link"}
                 </button>
 
-                <p className="register-note">
-                  {sent ? (
-                    <>Reset link sent! Return to <button type="button" onClick={() => navigate("/login")}>Sign in</button>.</>
-                  ) : (
-                    <>Enter your email and we’ll send a reset link to your inbox.</>
-                  )}
-                </p>
+                <button
+                  className="auth-back-btn"
+                  type="button"
+                  onClick={() => navigate("/login")}
+                >
+                  <ArrowLeft size={16} />
+                  Back to Sign In
+                </button>
               </div>
             </form>
           </div>
         </div>
+
+        <p className="auth-footer">&copy; 2026 StockFlow. All rights reserved.</p>
       </section>
     </main>
   );
