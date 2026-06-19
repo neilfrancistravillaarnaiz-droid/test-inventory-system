@@ -67,7 +67,11 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await register(registerEmail, registerPassword);
+    const { error } = await register(
+      registerEmail,
+      registerPassword,
+      registerName
+    );
     setLoading(false);
     if (error) { alert(error.message); return; }
     alert(`Account created successfully${registerName ? `, ${registerName}` : ""}. You can now login.`);

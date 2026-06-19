@@ -1,133 +1,311 @@
-import { Link } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
-import DashboardCard from "../../components/dashboard/DashboardCard";
-import { useProducts } from "../../hooks/useProducts";
-import { getAuditLogs } from "../../services/auditLogService";
+import SuccessModal from "../../components/common/SuccessModal";
+import {
+  addProfile,
+  deleteProfile,
+  getProfiles,
+  updateProfile,
+  type ProfileInput,
+  type UserRole,
+  type UserStatus,
+} from "../../services/userService";
 
-type AuditLog = {
+type Profile = ProfileInput & {
   id: string;
-  action: string;
-  module: string;
-  description: string;
-  created_at: string;
+  created_at?: string;
 };
 
-const Dashboard = () => {
-  const { products, loading } = useProducts();
-  const [logs, setLogs] = useState<AuditLog[]>([]);
+const emptyForm: ProfileInput = {
+  full_name: "",
+  email: "",
+  role: "Viewer",
+  status: "Active",
+};
+
+const roles: UserRole[] = ["Admin", "Staff", "Viewer"];
+const statuses: UserStatus[] = ["Active", "Inactive"];
+
+const Users = () => {
+  const [profiles, setProfiles] = useState<Profile[]>([]);
+  const [form, setForm] = useState<ProfileInput>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [showSavedModal, setShowSavedModal] = useState(false);
+
+  const stats = useMemo(() => {
+    return {
+      total: profiles.length,
+      admins: profiles.filter((profile) => profile.role === "Admin").length,
+      staff: profiles.filter((profile) => profile.role === "Staff").length,
+      viewers: profiles.filter((profile) => profile.role === "Viewer").length,
+    };
+  }, [profiles]);
+
+  const fetchProfiles = async () => {
+    setLoading(true);
+    const { data, error } = await getProfiles();
+
+    if (error) {
+      alert(error.message);
+    } else {
+      setProfiles((data as Profile[]) || []);
+    }
+
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchLogs = async () => {
-      const { data } = await getAuditLogs();
-      setLogs(data || []);
-    };
-
-    fetchLogs();
+    fetchProfiles();
   }, []);
 
-  const totalProducts = products.length;
-  const totalStocks = products.reduce((sum, item) => sum + item.quantity, 0);
-  const inventoryValue = products.reduce(
-    (sum, item) => sum + item.quantity * item.price,
-    0
-  );
+  const resetForm = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+  };
 
-  const lowStockProducts = products.filter(
-    (item) => item.quantity <= item.low_stock_limit
-  );
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setSaving(true);
 
-  const recentLogs = logs.slice(0, 5);
+    const payload: ProfileInput = {
+      ...form,
+      full_name: form.full_name.trim(),
+      email: form.email.trim(),
+    };
+
+    const { error } = editingId
+      ? await updateProfile(editingId, payload)
+      : await addProfile(payload);
+
+    setSaving(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    resetForm();
+    setShowSavedModal(true);
+    fetchProfiles();
+  };
+
+  const handleEdit = (profile: Profile) => {
+    setEditingId(profile.id);
+    setForm({
+      full_name: profile.full_name,
+      email: profile.email,
+      role: profile.role,
+      status: profile.status,
+    });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteId) return;
+
+    const { error } = await deleteProfile(deleteId);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setDeleteId(null);
+    fetchProfiles();
+  };
 
   if (loading) {
-    return <div className="loader">Loading dashboard...</div>;
+    return <div className="loader">Loading users...</div>;
   }
 
   return (
-    <section className="dashboard-page">
-      <div className="dashboard-hero">
-        <div>
-          <PageHeader
-            title="Dashboard"
-            description="Monitor your inventory performance and recent activities."
-          />
-        </div>
+    <section className="users-page">
+      <PageHeader
+        title="Users"
+        description="Manage user profiles, roles, and account access."
+      />
 
-        <div className="quick-actions">
-          <Link to="/inventory/add">Add Product</Link>
-          <Link to="/stock-in">Stock In</Link>
-          <Link to="/stock-out">Stock Out</Link>
-          <Link to="/reports">Reports</Link>
-        </div>
+      <div className="user-stats-grid">
+        <article className="user-stat-card">
+          <span>Total Users</span>
+          <strong>{stats.total}</strong>
+        </article>
+        <article className="user-stat-card">
+          <span>Admins</span>
+          <strong>{stats.admins}</strong>
+        </article>
+        <article className="user-stat-card">
+          <span>Staff</span>
+          <strong>{stats.staff}</strong>
+        </article>
+        <article className="user-stat-card">
+          <span>Viewers</span>
+          <strong>{stats.viewers}</strong>
+        </article>
       </div>
 
-      <div className="card-grid">
-        <DashboardCard title="Total Products" value={totalProducts} />
-        <DashboardCard title="Total Stocks" value={totalStocks} />
-        <DashboardCard
-          title="Inventory Value"
-          value={`₱${inventoryValue.toFixed(2)}`}
-        />
-        <DashboardCard
-          title="Low Stock Items"
-          value={lowStockProducts.length}
-          note="Needs attention"
-        />
-      </div>
+      <div className="users-layout">
+        <form className="user-form" onSubmit={handleSubmit}>
+          <h3>{editingId ? "Edit User Role" : "Add User Profile"}</h3>
 
-      <div className="dashboard-insights">
-        <div className="insight-panel">
-          <div className="section-header">
-            <h3>Low Stock Highlights</h3>
-            <p>Products that need restocking soon.</p>
+          <label>
+            Full Name
+            <input
+              type="text"
+              value={form.full_name}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  full_name: event.target.value,
+                }))
+              }
+              placeholder="Full name"
+              required
+            />
+          </label>
+
+          <label>
+            Email Address
+            <input
+              type="email"
+              value={form.email}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, email: event.target.value }))
+              }
+              placeholder="user@company.com"
+              required
+            />
+          </label>
+
+          <label>
+            Role
+            <select
+              value={form.role}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  role: event.target.value as UserRole,
+                }))
+              }
+            >
+              {roles.map((role) => (
+                <option key={role} value={role}>
+                  {role}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label>
+            Status
+            <select
+              value={form.status}
+              onChange={(event) =>
+                setForm((prev) => ({
+                  ...prev,
+                  status: event.target.value as UserStatus,
+                }))
+              }
+            >
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <button type="submit" disabled={saving}>
+            {saving ? "Saving..." : editingId ? "Save Changes" : "Save User"}
+          </button>
+
+          {editingId && (
+            <button type="button" className="secondary-btn" onClick={resetForm}>
+              Cancel Edit
+            </button>
+          )}
+        </form>
+
+        <div className="users-panel">
+          <div className="users-panel-header">
+            <div>
+              <h3>User List</h3>
+              <p>Only admins can manage this page.</p>
+            </div>
           </div>
 
-          <div className="insight-list">
-            {lowStockProducts.length === 0 ? (
-              <div className="empty-insight">No low stock products.</div>
+          <div className="users-list">
+            {profiles.length === 0 ? (
+              <div className="empty-cell">
+                No profiles found. Add your first admin profile in Supabase if
+                this app has no admin yet.
+              </div>
             ) : (
-              lowStockProducts.slice(0, 5).map((product) => (
-                <div className="insight-item" key={product.id}>
+              profiles.map((profile) => (
+                <article className="user-profile-card" key={profile.id}>
                   <div>
-                    <h4>{product.name}</h4>
-                    <p>{product.category}</p>
+                    <h4>{profile.full_name || "Unnamed User"}</h4>
+                    <p>{profile.email}</p>
                   </div>
 
-                  <span className="badge danger">
-                    {product.quantity} left
-                  </span>
-                </div>
+                  <div className="user-role-pills">
+                    <span className="badge success">{profile.role}</span>
+                    <span
+                      className={
+                        profile.status === "Active"
+                          ? "badge success"
+                          : "badge danger"
+                      }
+                    >
+                      {profile.status}
+                    </span>
+                  </div>
+
+                  <div className="table-actions">
+                    <button
+                      type="button"
+                      className="edit-btn"
+                      onClick={() => handleEdit(profile)}
+                    >
+                      Edit Role
+                    </button>
+                    <button
+                      type="button"
+                      className="danger-btn"
+                      onClick={() => setDeleteId(profile.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </article>
               ))
             )}
           </div>
         </div>
-
-        <div className="insight-panel">
-          <div className="section-header">
-            <h3>Recent Activity</h3>
-            <p>Latest actions recorded in audit logs.</p>
-          </div>
-
-          <div className="insight-list">
-            {recentLogs.length === 0 ? (
-              <div className="empty-insight">No recent activity yet.</div>
-            ) : (
-              recentLogs.map((log) => (
-                <div className="insight-item" key={log.id}>
-                  <div>
-                    <h4>{log.action}</h4>
-                    <p>{log.description}</p>
-                  </div>
-
-                  <small>{new Date(log.created_at).toLocaleDateString()}</small>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
       </div>
+
+      <SuccessModal
+        show={showSavedModal}
+        title="User Saved"
+        message="The user profile and role were saved successfully."
+        confirmText="Okay"
+        onClose={() => setShowSavedModal(false)}
+      />
+
+      <SuccessModal
+        show={!!deleteId}
+        type="warning"
+        title="Delete User Profile?"
+        message="This removes the profile record from the app. It does not delete the Supabase Auth account."
+        confirmText="Yes, Delete"
+        cancelText="Cancel"
+        onClose={() => setDeleteId(null)}
+        onConfirm={confirmDelete}
+      />
     </section>
   );
 };
 
-export default Dashboard;
+export default Users;
