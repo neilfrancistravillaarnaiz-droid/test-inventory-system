@@ -83,6 +83,22 @@ const withDefaultActions = (text: string): AIResponse =>
     routeAction("Reports", "/reports"),
   ]);
 
+const getUnknownQuestionResponse = (products: Product[]): AIResponse =>
+  reply(
+    [
+      "I do not know that yet, but I can still help with StockFlow inventory tasks.",
+      products.length
+        ? `Right now I can answer questions about your ${products.length} product(s), stock levels, low-stock alerts, suppliers, reports, QR/barcode tools, audit logs, and restocking.`
+        : "Your product list is empty right now, so I can mostly guide you around the system pages.",
+      "Try asking: \"What products are available?\", \"What items are low stock?\", \"Show me reports\", or \"How many stocks do we have?\"",
+    ].join(" "),
+    [
+      routeAction("Open Inventory", "/inventory"),
+      routeAction("Open Reports", "/reports"),
+      routeAction("Open Alerts", "/notifications"),
+    ]
+  );
+
 const getAssistantData = async (products: Product[]): Promise<AssistantData> => {
   const [stockMovementsResult, auditLogsResult, suppliersResult] =
     await Promise.allSettled([
@@ -117,33 +133,6 @@ const getAssistantData = async (products: Product[]): Promise<AssistantData> => 
         ? (suppliersResult.value.data as Supplier[]) || []
         : [],
   };
-};
-
-const buildProductSummary = (products: Product[]) => {
-  if (!products.length) {
-    return "Inventory data is empty.";
-  }
-
-  const totalProducts = products.length;
-  const totalStock = products.reduce((sum, item) => sum + item.quantity, 0);
-  const inventoryValue = products.reduce(
-    (sum, item) => sum + item.quantity * item.price,
-    0
-  );
-  const lowStock = products.filter(
-    (item) => item.quantity <= item.low_stock_limit
-  );
-
-  return [
-    `Total products: ${totalProducts}.`,
-    `Total stock quantity: ${totalStock} units.`,
-    `Estimated inventory value: PHP ${inventoryValue.toFixed(2)}.`,
-    lowStock.length
-      ? `Low stock items: ${lowStock
-          .map((item) => `${item.name} (${item.quantity} left)`)
-          .join(", ")}.`
-      : "No products are currently low on stock.",
-  ].join(" ");
 };
 
 const isGreeting = (question: string) =>
@@ -1341,9 +1330,7 @@ const getLocalInventoryResponse = async (
     ).toFixed(2)}.`;
   }
 
-  return `I can still help with your inventory summary while the AI backend is unavailable: ${buildProductSummary(
-    products
-  )}`;
+  return getUnknownQuestionResponse(products);
 };
 
 export const getAIInventoryResponse = async (
@@ -1379,7 +1366,9 @@ export const getAIInventoryResponse = async (
       );
     }
 
-    return reply(data?.answer?.trim() || "I couldn't generate a response right now.");
+    return data?.answer?.trim()
+      ? reply(data.answer.trim())
+      : getUnknownQuestionResponse(products);
   } catch (error) {
     console.warn("AI backend unavailable, using local fallback.", error);
     return toAIResponse(await getLocalInventoryResponse(question, products));
