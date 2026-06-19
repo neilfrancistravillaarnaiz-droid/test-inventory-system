@@ -29,6 +29,16 @@ app.get("/health", (req, res) => {
   });
 });
 
+app.get("/ai/debug-config", (req, res) => {
+  res.json({
+    success: true,
+    openaiConfigured: Boolean(process.env.OPENAI_API_KEY),
+    tavilyConfigured: Boolean(process.env.TAVILY_API_KEY),
+    supabaseUrlConfigured: Boolean(process.env.SUPABASE_URL),
+    supabaseServiceRoleConfigured: Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY),
+  });
+});
+
 app.get("/test-db", async (req, res) => {
   const { data, error } = await supabase
     .from("products")

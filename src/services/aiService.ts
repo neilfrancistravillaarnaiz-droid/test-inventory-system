@@ -1412,8 +1412,11 @@ export const getAIInventoryResponse = async (
     console.warn("AI backend unavailable, using local fallback.", error);
 
     if (isWebSearchQuestion(question)) {
+      const errorMessage =
+        error instanceof Error ? ` Backend message: ${error.message}` : "";
+
       return reply(
-        "I tried to search the web, but I could not reach the AI backend. Please check that your backend is running, TAVILY_API_KEY is set in Render, and VITE_API_BASE_URL points to your Render backend URL.",
+        `I tried to search the web, but the AI backend could not complete the request.${errorMessage} Please check that your backend is running, TAVILY_API_KEY is set in Render, and VITE_API_BASE_URL points to your Render backend URL.`,
         [routeAction("Open Dashboard", "/dashboard")]
       );
     }
