@@ -298,7 +298,11 @@ const DashboardLayout = () => {
 
               {profileOpen && (
                 <div className="supabase-profile-panel" role="menu">
-                  <div className="profile-panel-header">
+                  <NavLink
+                    to="/profile"
+                    className="profile-panel-header profile-panel-link"
+                    onClick={() => setProfileOpen(false)}
+                  >
                     <img
                       src="https://i.pravatar.cc/120?img=12"
                       alt="User Profile"
@@ -308,7 +312,12 @@ const DashboardLayout = () => {
                       <h3>{displayName}</h3>
                       <p>{role}</p>
                     </div>
-                  </div>
+                  </NavLink>
+
+                  <NavLink to="/profile" onClick={() => setProfileOpen(false)}>
+                    <User size={18} />
+                    My Profile
+                  </NavLink>
 
                   {can("users:manage") && (
                     <NavLink to="/users" onClick={() => setProfileOpen(false)}>
