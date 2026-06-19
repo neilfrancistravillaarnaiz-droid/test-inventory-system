@@ -87,6 +87,8 @@ const searchTavily = async (query) => {
   }
 
   const supplierSearchDomains = [
+    "ccd.davaocity.gov.ph",
+    "davaocity.gov.ph",
     "lazada.com.ph",
     "shopee.ph",
     "siliconvalley.com.ph",
@@ -95,6 +97,15 @@ const searchTavily = async (query) => {
     "epson.com.ph",
     "asus.com",
     "lenovo.com",
+    "facebook.com",
+    "wikipedia.org",
+    "wikipedia.com",
+    "sunstar.com.ph",
+    "sunstardavao.com",
+    "mindanaoexaminer.com",
+    "mindanaotimes.com",
+    "instagram.com",
+    "linkedin.com",
   ];
 
   const response = await fetch("https://api.tavily.com/search", {
@@ -108,6 +119,8 @@ const searchTavily = async (query) => {
       search_depth: "advanced",
       max_results: 5,
       include_answer: true,
+      include_images: true,
+      include_image_descriptions: true,
       include_domains: supplierSearchDomains,
     }),
   });
