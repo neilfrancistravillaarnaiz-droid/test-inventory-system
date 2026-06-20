@@ -34,12 +34,14 @@ import { useProducts } from "../hooks/useProducts";
 import { useCurrentProfile } from "../hooks/useCurrentProfile";
 import type { Permission } from "../constants/permissions";
 import LetterHoverText from "../components/common/LetterHoverText";
+import { getUnreadNotificationCount } from "../services/notificationService";
 
 type NavItem = {
   to: string;
   label: string;
   icon: LucideIcon;
   permission?: Permission;
+  keywords?: string[];
 };
 
 const navItems: NavItem[] = [
@@ -89,11 +91,42 @@ const DashboardLayout = () => {
   const [searchFocused, setSearchFocused] = useState(false);
   const [pullDistance, setPullDistance] = useState(0);
   const [pullRefreshing, setPullRefreshing] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
   const profileMenuRef = useRef<HTMLDivElement | null>(null);
   const searchInputRef = useRef<HTMLInputElement | null>(null);
   const pullStartYRef = useRef<number | null>(null);
 
-  const searchResults = useMemo(() => {
+  const searchablePages = useMemo<NavItem[]>(
+    () =>
+      [
+        ...navItems,
+        { to: "/profile", label: "My Profile", icon: User, keywords: ["account"] },
+        {
+          to: "/inventory/add",
+          label: "Add Product",
+          icon: Package,
+          permission: "inventory:create" as Permission,
+          keywords: ["create product", "new item"],
+        },
+        {
+          to: "/users",
+          label: "Users",
+          icon: User,
+          permission: "users:manage" as Permission,
+          keywords: ["roles", "accounts", "permissions"],
+        },
+        {
+          to: "/settings",
+          label: "Settings",
+          icon: Settings,
+          permission: "settings:manage" as Permission,
+          keywords: ["preferences", "company"],
+        },
+      ].filter((item) => !item.permission || can(item.permission)),
+    [can]
+  );
+
+  const productSearchResults = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
 
     if (!query) return [];
@@ -116,6 +149,20 @@ const DashboardLayout = () => {
       .slice(0, 5);
   }, [products, searchTerm]);
 
+  const pageSearchResults = useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+
+    if (!query) return [];
+
+    return searchablePages
+      .filter((page) =>
+        [page.label, page.to, ...(page.keywords || [])].some((value) =>
+          value.toLowerCase().includes(query)
+        )
+      )
+      .slice(0, 5);
+  }, [searchTerm, searchablePages]);
+
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme");
 
@@ -123,6 +170,39 @@ const DashboardLayout = () => {
       document.body.classList.add("light-mode");
       setIsLightMode(true);
     }
+  }, []);
+
+  useEffect(() => {
+    const refreshUnreadCount = async () => {
+      const { count, error } = await getUnreadNotificationCount();
+
+      if (!error) {
+        setUnreadNotificationCount(count || 0);
+      }
+    };
+
+    void refreshUnreadCount();
+    window.addEventListener(
+      "stockflow:refresh-notifications",
+      refreshUnreadCount
+    );
+
+    const channel = supabase
+      .channel(`stockflow-notifications-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "notifications" },
+        () => void refreshUnreadCount()
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener(
+        "stockflow:refresh-notifications",
+        refreshUnreadCount
+      );
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   useEffect(() => {
@@ -194,7 +274,14 @@ const DashboardLayout = () => {
     const query = searchTerm.trim();
 
     if (!query) {
-      navigate("/inventory");
+      searchInputRef.current?.focus();
+      return;
+    }
+
+    if (pageSearchResults.length > 0) {
+      navigate(pageSearchResults[0].to);
+      setSearchTerm("");
+      setSearchFocused(false);
       return;
     }
 
@@ -204,6 +291,13 @@ const DashboardLayout = () => {
 
   const openProduct = (id: string) => {
     navigate(`/products/${id}`);
+    setSearchTerm("");
+    setSearchFocused(false);
+  };
+
+  const openPage = (path: string) => {
+    navigate(path);
+    setSearchTerm("");
     setSearchFocused(false);
   };
 
@@ -310,15 +404,42 @@ const DashboardLayout = () => {
                 onBlur={() => {
                   window.setTimeout(() => setSearchFocused(false), 140);
                 }}
-                placeholder="Search inventory..."
-                aria-label="Search inventory"
+                placeholder="Search products or pages..."
+                aria-label="Search products or system pages"
               />
               <span>Ctrl K</span>
 
               {searchFocused && searchTerm.trim() ? (
                 <div className="command-search-results">
-                  {searchResults.length > 0 ? (
-                    searchResults.map((product) => (
+                  {pageSearchResults.length > 0 && (
+                    <div className="command-search-group">
+                      <p className="command-search-group-label">Pages</p>
+                      {pageSearchResults.map((page) => {
+                        const PageIcon = page.icon;
+
+                        return (
+                          <button
+                            type="button"
+                            className="command-page-result"
+                            key={page.to}
+                            onMouseDown={(event) => event.preventDefault()}
+                            onClick={() => openPage(page.to)}
+                          >
+                            <PageIcon size={17} />
+                            <span>
+                              <strong>{page.label}</strong>
+                              <small>{page.to}</small>
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {productSearchResults.length > 0 && (
+                    <div className="command-search-group">
+                      <p className="command-search-group-label">Products</p>
+                      {productSearchResults.map((product) => (
                       <button
                         type="button"
                         key={product.id}
@@ -331,10 +452,14 @@ const DashboardLayout = () => {
                           {product.sku ? ` | ${product.sku}` : ""}
                         </small>
                       </button>
-                    ))
-                  ) : (
-                    <p>No matching products</p>
+                      ))}
+                    </div>
                   )}
+
+                  {pageSearchResults.length === 0 &&
+                    productSearchResults.length === 0 && (
+                      <p>No matching pages or products</p>
+                    )}
                 </div>
               ) : null}
             </form>
@@ -446,8 +571,20 @@ const DashboardLayout = () => {
               }
               title={item.label}
             >
-              <Icon size={23} strokeWidth={2.2} />
-              <span>{item.label}</span>
+              <span className="command-dock-icon-wrap">
+                <Icon size={23} strokeWidth={2.2} />
+                {item.to === "/notifications" && unreadNotificationCount > 0 && (
+                  <b
+                    className="notification-count-badge"
+                    aria-label={`${unreadNotificationCount} unread notifications`}
+                  >
+                    {unreadNotificationCount > 99
+                      ? "99+"
+                      : unreadNotificationCount}
+                  </b>
+                )}
+              </span>
+              <span className="command-dock-label">{item.label}</span>
             </NavLink>
           );
         })}

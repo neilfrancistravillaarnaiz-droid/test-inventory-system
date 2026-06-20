@@ -4930,6 +4930,39 @@ body:not(.light-mode) .inventory-page .inventory-table td {
   background: rgba(255, 255, 255, 0.54) !important;
 }
 
+.command-search-group {
+  display: grid !important;
+  gap: 6px !important;
+}
+
+.command-search-group + .command-search-group {
+  padding-top: 8px !important;
+  border-top: 1px solid rgba(45, 122, 58, 0.14) !important;
+}
+
+.command-search-results .command-search-group-label {
+  padding: 2px 8px !important;
+  color: rgba(48, 82, 55, 0.62) !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
+}
+
+.command-search-results .command-page-result {
+  grid-template-columns: 28px minmax(0, 1fr) !important;
+  align-items: center !important;
+}
+
+.command-page-result > svg {
+  color: var(--app-green-600) !important;
+}
+
+.command-page-result > span {
+  display: grid !important;
+  gap: 2px !important;
+  min-width: 0 !important;
+}
+
 .command-search-results button:hover {
   background: rgba(82, 168, 98, 0.18) !important;
 }
@@ -5735,5 +5768,97 @@ body.light-mode .letter-hover-character:hover {
   ) {
     transition: none !important;
     transform: none !important;
+  }
+}
+
+/* Notification page rhythm and live unread badge. */
+.notifications-page {
+  display: grid !important;
+  align-content: start !important;
+  row-gap: clamp(30px, 3vw, 46px) !important;
+  padding-top: clamp(22px, 2.4vw, 36px) !important;
+}
+
+.notifications-page .notification-header-row {
+  display: flex !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: clamp(20px, 2.4vw, 36px) !important;
+  margin: 0 !important;
+}
+
+.notifications-page .notification-stats-grid {
+  gap: clamp(24px, 2.4vw, 38px) !important;
+  margin: 0 !important;
+}
+
+.notifications-page .notification-tools,
+.notifications-page .notification-list {
+  margin: 0 !important;
+}
+
+.notifications-page .notification-list {
+  gap: clamp(24px, 2.4vw, 38px) !important;
+}
+
+.command-dock-icon-wrap {
+  position: relative !important;
+  display: grid !important;
+  place-items: center !important;
+  width: 28px !important;
+  height: 28px !important;
+  flex: 0 0 28px !important;
+  max-width: 28px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.command-dock-item:hover .command-dock-icon-wrap,
+.command-dock-item.active .command-dock-icon-wrap {
+  display: grid !important;
+  max-width: 28px !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+.notification-count-badge {
+  position: absolute !important;
+  top: -7px !important;
+  right: -10px !important;
+  z-index: 2 !important;
+  display: grid !important;
+  place-items: center !important;
+  min-width: 19px !important;
+  height: 19px !important;
+  padding: 0 5px !important;
+  border: 2px solid rgba(247, 253, 248, 0.96) !important;
+  border-radius: 999px !important;
+  color: #ffffff !important;
+  background: #e53935 !important;
+  box-shadow: 0 5px 12px rgba(193, 34, 29, 0.34) !important;
+  font-size: 10px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+}
+
+body:not(.light-mode) .notification-count-badge {
+  border-color: #17371f !important;
+}
+
+@media (max-width: 720px) {
+  .notifications-page {
+    row-gap: 24px !important;
+    padding-top: 16px !important;
+  }
+
+  .notifications-page .notification-header-row {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .notifications-page .generate-alert-btn {
+    width: 100% !important;
   }
 }
