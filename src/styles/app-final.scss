@@ -5871,6 +5871,28 @@ body:not(.light-mode) .notification-count-badge {
   border-color: #17371f !important;
 }
 
+.command-dock-item > .command-dock-icon-wrap svg {
+  display: block !important;
+  visibility: visible !important;
+  color: #276f38 !important;
+  stroke: #276f38 !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.command-dock-item:hover > .command-dock-icon-wrap svg,
+.command-dock-item.active > .command-dock-icon-wrap svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+  opacity: 1 !important;
+}
+
+body:not(.light-mode) .command-dock-item:not(.active):not(:hover)
+  > .command-dock-icon-wrap svg {
+  color: #d9f0df !important;
+  stroke: #d9f0df !important;
+}
+
 @media (max-width: 720px) {
   .notifications-page {
     row-gap: 24px !important;
