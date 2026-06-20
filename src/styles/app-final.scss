@@ -5722,6 +5722,30 @@ body:not(.light-mode) .users-page .user-profile-card {
   transform-origin: center bottom !important;
 }
 
+.command-layout .letter-hover-character,
+.command-layout .letter-hover-space {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  height: auto !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  overflow: visible !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  text-transform: none !important;
+}
+
+.command-layout .letter-hover-space {
+  width: 0.32em !important;
+}
+
 .letter-hover-character:hover {
   color: var(--app-gold-400) !important;
   transform: translateY(-5px) scale(1.08) !important;
@@ -5801,7 +5825,7 @@ body.light-mode .letter-hover-character:hover {
   gap: clamp(24px, 2.4vw, 38px) !important;
 }
 
-.command-dock-icon-wrap {
+.command-dock-item > .command-dock-icon-wrap {
   position: relative !important;
   display: grid !important;
   place-items: center !important;
@@ -5814,8 +5838,8 @@ body.light-mode .letter-hover-character:hover {
   transform: none !important;
 }
 
-.command-dock-item:hover .command-dock-icon-wrap,
-.command-dock-item.active .command-dock-icon-wrap {
+.command-dock-item:hover > .command-dock-icon-wrap,
+.command-dock-item.active > .command-dock-icon-wrap {
   display: grid !important;
   max-width: 28px !important;
   overflow: visible !important;
