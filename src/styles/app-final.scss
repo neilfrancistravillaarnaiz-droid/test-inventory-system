@@ -5751,6 +5751,8 @@ body:not(.light-mode) .users-page .user-profile-card {
 .media-upload-button,
 .media-save-button,
 .media-remove-button {
+  width: auto !important;
+  flex: 0 0 auto !important;
   min-height: 42px !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -5762,6 +5764,16 @@ body:not(.light-mode) .users-page .user-profile-card {
   font-size: 13px !important;
   font-weight: 850 !important;
   cursor: pointer !important;
+}
+
+.profile-photo-editor .media-upload-actions {
+  display: grid !important;
+  grid-template-columns: repeat(2, max-content) !important;
+  justify-content: start !important;
+}
+
+.profile-photo-editor .media-upload-actions small {
+  grid-column: 1 / -1 !important;
 }
 
 .media-upload-button,

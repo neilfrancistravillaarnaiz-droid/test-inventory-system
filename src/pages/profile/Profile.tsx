@@ -51,7 +51,10 @@ const Profile = () => {
 
     setPhotoSaving(true);
     const previousUrl = session.user.user_metadata?.avatar_url as string | undefined;
-    const { imageUrl, error: uploadError } = await uploadProfileImage(avatarFile);
+    const { imageUrl, error: uploadError } = await uploadProfileImage(
+      avatarFile,
+      session.user.id
+    );
 
     if (uploadError || !imageUrl) {
       setPhotoSaving(false);

@@ -15,7 +15,7 @@ const validateImage = (file: File) => {
   return null;
 };
 
-const uploadImage = async (file: File, folder: "products" | "profiles") => {
+const uploadImage = async (file: File, folder: string) => {
   const validationError = validateImage(file);
 
   if (validationError) {
@@ -32,7 +32,13 @@ const uploadImage = async (file: File, folder: "products" | "profiles") => {
       upsert: false,
     });
 
-  if (error) return { imageUrl: null, error };
+  if (error) {
+    const message = error.message.toLowerCase().includes("row-level security")
+      ? "Image upload is blocked by Supabase Storage permissions. Run supabase-storage-policies.sql in the Supabase SQL Editor, then try again."
+      : error.message;
+
+    return { imageUrl: null, error: new Error(message) };
+  }
 
   const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(fileName);
   return { imageUrl: data.publicUrl, error: null };
@@ -41,8 +47,8 @@ const uploadImage = async (file: File, folder: "products" | "profiles") => {
 export const uploadProductImage = (file: File) =>
   uploadImage(file, "products");
 
-export const uploadProfileImage = (file: File) =>
-  uploadImage(file, "profiles");
+export const uploadProfileImage = (file: File, userId: string) =>
+  uploadImage(file, `profiles/${userId}`);
 
 export const deleteStoredImage = async (publicUrl?: string | null) => {
   if (!publicUrl) return { error: null };
