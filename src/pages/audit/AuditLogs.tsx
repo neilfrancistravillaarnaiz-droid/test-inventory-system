@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
 import { getAuditLogs } from "../../services/auditLogService";
+import { supabase } from "../../lib/supabaseClient";
 
 type AuditLog = {
   id: string;
@@ -30,7 +31,27 @@ const AuditLogs = () => {
   };
 
   useEffect(() => {
-    fetchLogs();
+    void fetchLogs();
+
+    const handleAuditRefresh = () => void fetchLogs();
+    window.addEventListener("stockflow:refresh-audit-logs", handleAuditRefresh);
+
+    const channel = supabase
+      .channel(`stockflow-audit-logs-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "audit_logs" },
+        handleAuditRefresh
+      )
+      .subscribe();
+
+    return () => {
+      window.removeEventListener(
+        "stockflow:refresh-audit-logs",
+        handleAuditRefresh
+      );
+      void supabase.removeChannel(channel);
+    };
   }, []);
 
   const filteredLogs = logs.filter((log) => {

@@ -1,6 +1,7 @@
 import type { Product, ProductInput } from "../types/Product";
 import { supabase } from "../lib/supabaseClient";
 import { deleteStoredImage } from "./storageService";
+import { addAuditLog } from "./auditLogService";
 
 type ChatMessage = {
   sender: "user" | "ai";
@@ -592,12 +593,18 @@ const handleProductCommand = async (
       return reply(`I could not add the product. ${error.message}`);
     }
 
+    const { error: auditError } = await addAuditLog({
+      action: "Product Added",
+      module: "Inventory",
+      description: `${data.name} was added to the inventory through the AI assistant with ${data.quantity} unit(s).`,
+    });
+
     requestProductRefresh({ type: "upsert", product: data });
 
     return {
       text: `Added ${data.name} to inventory with ${data.quantity} unit(s). SKU: ${
         data.sku || "N/A"
-      }.`,
+      }.${auditError ? " The product was saved, but its audit entry could not be created." : ""}`,
       shouldRefreshProducts: true,
       actions: [
         routeAction("Open Inventory", "/inventory"),
@@ -634,10 +641,18 @@ const handleProductCommand = async (
 
     await deleteStoredImage(product.image_url);
 
+    const { error: auditError } = await addAuditLog({
+      action: "Product Deleted",
+      module: "Inventory",
+      description: `${product.name} was deleted from the inventory through the AI assistant.`,
+    });
+
     requestProductRefresh({ type: "remove", id: product.id });
 
     return {
-      text: `Deleted ${product.name} from inventory.`,
+      text: `Deleted ${product.name} from inventory.${
+        auditError ? " Its audit entry could not be created." : ""
+      }`,
       shouldRefreshProducts: true,
       actions: [routeAction("Open Inventory", "/inventory")],
     };
@@ -681,17 +696,26 @@ const handleProductCommand = async (
       return reply(`I could not update ${product.name}'s location. ${error.message}`);
     }
 
+    const locationText = [
+      locationUpdate.warehouse,
+      locationUpdate.shelf,
+      locationUpdate.rack,
+      locationUpdate.bin,
+    ]
+      .filter(Boolean)
+      .join(" / ") || "Not assigned";
+    const { error: auditError } = await addAuditLog({
+      action: "Product Location Updated",
+      module: "Inventory",
+      description: `${product.name}'s location was changed to ${locationText} through the AI assistant.`,
+    });
+
     requestProductRefresh({ type: "upsert", product: data });
 
     return {
-      text: `Updated ${product.name}'s location to ${[
-        locationUpdate.warehouse,
-        locationUpdate.shelf,
-        locationUpdate.rack,
-        locationUpdate.bin,
-      ]
-        .filter(Boolean)
-        .join(" / ") || "Not assigned"}.`,
+      text: `Updated ${product.name}'s location to ${locationText}.${
+        auditError ? " The audit entry could not be created." : ""
+      }`,
       shouldRefreshProducts: true,
       actions: [routeAction("Open Inventory", "/inventory")],
     };
@@ -766,10 +790,19 @@ const handleProductCommand = async (
       return reply(`I could not update ${product.name}. ${error.message}`);
     }
 
+    const changedFields = Object.keys(updates).join(", ");
+    const { error: auditError } = await addAuditLog({
+      action: "Product Updated",
+      module: "Inventory",
+      description: `${product.name} was updated through the AI assistant. Changed fields: ${changedFields}.`,
+    });
+
     requestProductRefresh({ type: "upsert", product: data });
 
     return {
-      text: `Updated ${product.name}. Changed: ${Object.keys(updates).join(", ")}.`,
+      text: `Updated ${product.name}. Changed: ${changedFields}.${
+        auditError ? " The audit entry could not be created." : ""
+      }`,
       shouldRefreshProducts: true,
       actions: [routeAction("Open Inventory", "/inventory")],
     };
@@ -835,12 +868,22 @@ const handleProductCommand = async (
       },
     ]);
 
+    const { error: auditError } = await addAuditLog({
+      action: isStockOut ? "Stock Out" : "Stock In",
+      module: "Stock",
+      description: `${quantity} unit(s) ${
+        isStockOut ? "removed from" : "added to"
+      } ${product.name} through the AI assistant. New quantity: ${newQuantity}.`,
+    });
+
     requestProductRefresh({ type: "upsert", product: data });
 
     return {
       text: `${isStockOut ? "Removed" : "Added"} ${quantity} unit(s) ${
         isStockOut ? "from" : "to"
-      } ${product.name}. New quantity: ${newQuantity}.`,
+      } ${product.name}. New quantity: ${newQuantity}.${
+        auditError ? " The audit entry could not be created." : ""
+      }`,
       shouldRefreshProducts: true,
       actions: [
         routeAction("Open Inventory", "/inventory"),

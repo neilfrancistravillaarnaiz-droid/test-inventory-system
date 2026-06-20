@@ -12,5 +12,11 @@ export const addAuditLog = async (log: {
   module: string;
   description: string;
 }) => {
-  return await supabase.from("audit_logs").insert([log]);
+  const result = await supabase.from("audit_logs").insert([log]);
+
+  if (!result.error) {
+    window.dispatchEvent(new Event("stockflow:refresh-audit-logs"));
+  }
+
+  return result;
 };
