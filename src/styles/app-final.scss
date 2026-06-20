@@ -5768,12 +5768,79 @@ body:not(.light-mode) .users-page .user-profile-card {
 
 .profile-photo-editor .media-upload-actions {
   display: grid !important;
-  grid-template-columns: repeat(2, max-content) !important;
+  grid-template-columns: repeat(2, minmax(150px, max-content)) !important;
   justify-content: start !important;
+  align-items: center !important;
+  gap: 12px !important;
 }
 
 .profile-photo-editor .media-upload-actions small {
   grid-column: 1 / -1 !important;
+}
+
+.profile-form .profile-photo-editor {
+  display: grid !important;
+  grid-template-columns: 128px minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: clamp(22px, 2.4vw, 34px) !important;
+  width: 100% !important;
+}
+
+.profile-form .profile-photo-editor > img {
+  width: 128px !important;
+  height: 128px !important;
+  min-width: 128px !important;
+  min-height: 128px !important;
+  margin: 0 !important;
+}
+
+.profile-form .profile-photo-editor .media-upload-button,
+.profile-form .profile-photo-editor .media-save-button,
+.profile-form .profile-photo-editor .media-remove-button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 46px !important;
+  margin: 0 !important;
+  padding: 11px 16px !important;
+  opacity: 1 !important;
+  line-height: 1.2 !important;
+}
+
+.profile-form .profile-photo-editor .media-upload-button,
+.profile-form .profile-photo-editor .media-save-button {
+  color: #ffffff !important;
+  background: #347f40 !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+  text-shadow: 0 1px 2px rgba(17, 54, 25, 0.28) !important;
+}
+
+.profile-form .profile-photo-editor .media-upload-button svg,
+.profile-form .profile-photo-editor .media-save-button svg {
+  color: #ffffff !important;
+  stroke: #ffffff !important;
+}
+
+.profile-form .profile-photo-editor .media-remove-button {
+  color: #a82d25 !important;
+  background: rgba(255, 237, 234, 0.96) !important;
+  border-color: rgba(200, 61, 49, 0.24) !important;
+  text-shadow: none !important;
+}
+
+.profile-form .profile-photo-editor .media-remove-button svg {
+  color: #c13b31 !important;
+  stroke: #c13b31 !important;
+}
+
+.profile-form .profile-photo-editor small {
+  margin: 2px 0 0 !important;
+  color: #55765c !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+body:not(.light-mode) .profile-form .profile-photo-editor small {
+  color: rgba(232, 246, 235, 0.76) !important;
 }
 
 .media-upload-button,
@@ -5820,6 +5887,19 @@ body:not(.light-mode) .users-page .user-profile-card {
     width: 112px !important;
     min-height: 112px !important;
     align-self: center !important;
+  }
+
+  .profile-form .profile-photo-editor {
+    grid-template-columns: 1fr !important;
+  }
+
+  .profile-form .profile-photo-editor .media-upload-actions {
+    grid-template-columns: 1fr !important;
+    width: 100% !important;
+  }
+
+  .profile-form .profile-photo-editor .media-upload-actions small {
+    grid-column: 1 !important;
   }
 }
 
