@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useProducts } from "../../hooks/useProducts";
 import { useCurrentProfile } from "../../hooks/useCurrentProfile";
+import LetterHoverText from "../../components/common/LetterHoverText";
 
 const currency = new Intl.NumberFormat("en-PH", {
   style: "currency",
@@ -58,7 +59,7 @@ const Dashboard = () => {
     <section className="dashboard-command-page">
       <div className="dashboard-command-header">
         <div>
-          <h2>Dashboard</h2>
+          <h2><LetterHoverText text="Dashboard" /></h2>
           <p>Welcome to your inventory system.</p>
         </div>
         <span className="dashboard-date-pill">
@@ -120,7 +121,7 @@ const Dashboard = () => {
       <div className="dashboard-command-grid">
         <article className="dashboard-panel stock-level-panel">
           <div className="panel-title-row">
-            <h3>Stock levels by product</h3>
+            <h3><LetterHoverText text="Stock levels by product" /></h3>
             <span>{chartProducts.length} products</span>
           </div>
 
@@ -168,7 +169,7 @@ const Dashboard = () => {
 
         <article className="dashboard-panel activity-panel">
           <div className="panel-title-row">
-            <h3>Recent activity</h3>
+            <h3><LetterHoverText text="Recent activity" /></h3>
             <span>Live</span>
           </div>
 
@@ -213,7 +214,7 @@ const Dashboard = () => {
 
         <article className="dashboard-panel inventory-panel">
           <div className="panel-title-row">
-            <h3>Inventory table</h3>
+            <h3><LetterHoverText text="Inventory table" /></h3>
             <span>{lowStockItems} need attention</span>
           </div>
 
@@ -264,7 +265,7 @@ const Dashboard = () => {
 
         <article className="dashboard-panel actions-panel">
           <div className="panel-title-row">
-            <h3>Quick actions</h3>
+            <h3><LetterHoverText text="Quick actions" /></h3>
           </div>
 
           <div className="quick-action-list">

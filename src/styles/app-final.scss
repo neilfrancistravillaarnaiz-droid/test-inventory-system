@@ -5663,35 +5663,38 @@ body:not(.light-mode) .users-page .user-profile-card {
   font-family: Inter, "Segoe UI", Arial, sans-serif !important;
 }
 
-.command-layout :where(h1, h2, h3, h4),
-.command-layout :where(
-  .command-brand-copy h1,
-  .dock-label,
-  .panel-title-row strong,
-  .quick-action-list strong,
-  .inventory-product-info > span,
-  .profile-panel-link h3
-) {
+.command-layout :where(h1, h2, h3, h4) {
   letter-spacing: 0 !important;
+}
+
+.letter-hover-text {
+  display: inline !important;
+  color: inherit !important;
+  font: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: inherit !important;
+}
+
+.letter-hover-character,
+.letter-hover-space {
+  display: inline-block !important;
+  color: inherit !important;
+  font: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: inherit !important;
   transition:
     color 180ms ease,
     transform 180ms cubic-bezier(0.22, 0.65, 0.34, 1),
     text-shadow 180ms ease !important;
-  transform-origin: left center !important;
+  transform-origin: center bottom !important;
 }
 
-.command-layout :where(h1, h2, h3, h4):hover,
-.command-layout :where(
-  .command-brand-copy h1,
-  .dock-label,
-  .panel-title-row strong,
-  .quick-action-list strong,
-  .inventory-product-info > span,
-  .profile-panel-link h3
-):hover {
+.letter-hover-character:hover {
   color: var(--app-gold-400) !important;
-  transform: translateY(-2px) scale(1.015) !important;
-  text-shadow: 0 8px 22px rgba(240, 217, 138, 0.32) !important;
+  transform: translateY(-5px) scale(1.08) !important;
+  text-shadow:
+    0 4px 14px rgba(240, 217, 138, 0.48),
+    0 10px 24px rgba(20, 78, 34, 0.24) !important;
 }
 
 .command-layout :where(
@@ -5716,28 +5719,15 @@ body:not(.light-mode) .users-page .user-profile-card {
   filter: drop-shadow(0 7px 12px rgba(201, 162, 39, 0.24)) !important;
 }
 
-body.light-mode .command-layout :where(h1, h2, h3, h4):hover,
-body.light-mode .command-layout :where(
-  .command-brand-copy h1,
-  .dock-label,
-  .panel-title-row strong,
-  .quick-action-list strong,
-  .inventory-product-info > span,
-  .profile-panel-link h3
-):hover {
+body.light-mode .letter-hover-character:hover {
   color: #9b7600 !important;
   text-shadow: 0 8px 20px rgba(155, 118, 0, 0.2) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .command-layout :where(h1, h2, h3, h4),
+  .letter-hover-character,
+  .letter-hover-space,
   .command-layout :where(
-    .command-brand-copy h1,
-    .dock-label,
-    .panel-title-row strong,
-    .quick-action-list strong,
-    .inventory-product-info > span,
-    .profile-panel-link h3,
     .command-brand-mark,
     .stat-icon,
     .dock-item svg,

@@ -33,6 +33,7 @@ import AIInventoryAssistant from "../components/ai/AIInventoryAssistant";
 import { useProducts } from "../hooks/useProducts";
 import { useCurrentProfile } from "../hooks/useCurrentProfile";
 import type { Permission } from "../constants/permissions";
+import LetterHoverText from "../components/common/LetterHoverText";
 
 type NavItem = {
   to: string;
@@ -292,7 +293,7 @@ const DashboardLayout = () => {
               />
             </span>
             <div className="command-brand-copy">
-              <h1>CCD Inventory System</h1>
+              <h1><LetterHoverText text="CCD Inventory System" /></h1>
               <p>Track inventory, stocks, reports, QR tools, and alerts.</p>
             </div>
           </div>

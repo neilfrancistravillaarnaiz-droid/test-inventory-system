@@ -1,3 +1,5 @@
+import LetterHoverText from "./LetterHoverText";
+
 type PageHeaderProps = {
   title: string;
   description: string;
@@ -6,7 +8,7 @@ type PageHeaderProps = {
 const PageHeader = ({ title, description }: PageHeaderProps) => {
   return (
     <div className="page-header">
-      <h2>{title}</h2>
+      <h2><LetterHoverText text={title} /></h2>
       <p>{description}</p>
     </div>
   );

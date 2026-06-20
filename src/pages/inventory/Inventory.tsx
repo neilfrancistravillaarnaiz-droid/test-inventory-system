@@ -5,6 +5,7 @@ import ProductTable from "../../components/inventory/ProductTable";
 import SearchBar from "../../components/inventory/SearchBar";
 import InventoryStats from "../../components/inventory/InventoryStats";
 import { useCurrentProfile } from "../../hooks/useCurrentProfile";
+import LetterHoverText from "../../components/common/LetterHoverText";
 
 const Inventory = () => {
   const { products, loading, fetchProducts } = useProducts();
@@ -38,7 +39,7 @@ const Inventory = () => {
     <section className="inventory-page">
       <div className="page-row inventory-header-row">
         <div className="page-header">
-          <h2>Inventory</h2>
+          <h2><LetterHoverText text="Inventory" /></h2>
           <p>Manage all products.</p>
         </div>
 
