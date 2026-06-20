@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { getCategories } from "../../services/categoryService";
 import { getSuppliers } from "../../services/supplierService";
+import { ImagePlus, Trash2 } from "lucide-react";
+import {
+  deleteStoredImage,
+  uploadProductImage,
+} from "../../services/storageService";
 
 type ProductData = {
   name: string;
@@ -18,7 +23,7 @@ type ProductData = {
 };
 
 type ProductFormProps = {
-  onSubmit: (product: ProductData) => Promise<void>;
+  onSubmit: (product: ProductData) => Promise<boolean>;
   initialData?: ProductData | null;
 };
 
@@ -65,6 +70,10 @@ const ProductForm = ({ onSubmit, initialData }: ProductFormProps) => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState(initialData?.image_url || "");
+  const [removeImage, setRemoveImage] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchDropdowns = async () => {
@@ -77,6 +86,33 @@ const ProductForm = ({ onSubmit, initialData }: ProductFormProps) => {
 
     fetchDropdowns();
   }, []);
+
+  useEffect(() => {
+    return () => {
+      if (imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
+    };
+  }, [imagePreview]);
+
+  const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+
+    if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) {
+      alert("Please choose an image file that is 5 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
+
+    setImageFile(file);
+    setRemoveImage(false);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview("");
+    setRemoveImage(true);
+  };
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -100,7 +136,38 @@ const ProductForm = ({ onSubmit, initialData }: ProductFormProps) => {
       return;
     }
 
-    await onSubmit(form);
+    setSubmitting(true);
+    let nextImageUrl = removeImage ? "" : form.image_url || "";
+    let uploadedImageUrl = "";
+
+    if (imageFile) {
+      const { imageUrl, error } = await uploadProductImage(imageFile);
+
+      if (error || !imageUrl) {
+        setSubmitting(false);
+        alert(error?.message || "Unable to upload the product image.");
+        return;
+      }
+
+      nextImageUrl = imageUrl;
+      uploadedImageUrl = imageUrl;
+    }
+
+    const saved = await onSubmit({ ...form, image_url: nextImageUrl });
+
+    if (!saved && uploadedImageUrl) {
+      await deleteStoredImage(uploadedImageUrl);
+    }
+
+    if (
+      saved &&
+      initialData?.image_url &&
+      initialData.image_url !== nextImageUrl
+    ) {
+      await deleteStoredImage(initialData.image_url);
+    }
+
+    setSubmitting(false);
   };
 
   return (
@@ -120,6 +187,39 @@ const ProductForm = ({ onSubmit, initialData }: ProductFormProps) => {
             <option key={item} value={item} />
           ))}
         </datalist>
+      </div>
+
+      <div className="form-field full-field product-image-field">
+        <label>Product Image</label>
+        <div className="media-upload-control">
+          <div className="media-preview product-media-preview">
+            {imagePreview ? (
+              <img src={imagePreview} alt="Product preview" />
+            ) : (
+              <ImagePlus size={28} aria-hidden="true" />
+            )}
+          </div>
+
+          <div className="media-upload-actions">
+            <label className="media-upload-button">
+              <ImagePlus size={17} aria-hidden="true" />
+              {imagePreview ? "Change Image" : "Add Image"}
+              <input type="file" accept="image/*" onChange={handleImageChange} />
+            </label>
+
+            {imagePreview && (
+              <button
+                type="button"
+                className="media-remove-button"
+                onClick={handleRemoveImage}
+              >
+                <Trash2 size={17} aria-hidden="true" />
+                Remove
+              </button>
+            )}
+            <small>JPG, PNG, or WebP. Maximum 5 MB.</small>
+          </div>
+        </div>
       </div>
 
       <div className="form-field">
@@ -229,8 +329,8 @@ const ProductForm = ({ onSubmit, initialData }: ProductFormProps) => {
         />
       </div>
 
-      <button type="submit" className="save-product-btn">
-        Save Product Record
+      <button type="submit" className="save-product-btn" disabled={submitting}>
+        {submitting ? "Saving Product..." : "Save Product Record"}
       </button>
     </form>
   );

@@ -1,5 +1,6 @@
 import type { Product, ProductInput } from "../types/Product";
 import { supabase } from "../lib/supabaseClient";
+import { deleteStoredImage } from "./storageService";
 
 type ChatMessage = {
   sender: "user" | "ai";
@@ -630,6 +631,8 @@ const handleProductCommand = async (
     if (error) {
       return reply(`I could not delete ${product.name}. ${error.message}`);
     }
+
+    await deleteStoredImage(product.image_url);
 
     requestProductRefresh({ type: "remove", id: product.id });
 

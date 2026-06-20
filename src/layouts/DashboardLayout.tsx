@@ -83,7 +83,7 @@ const navItems: NavItem[] = [
 const DashboardLayout = () => {
   const navigate = useNavigate();
   const { products, fetchProducts } = useProducts();
-  const { profile, role, can } = useCurrentProfile();
+  const { session, profile, role, can } = useCurrentProfile();
 
   const [isLightMode, setIsLightMode] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -349,6 +349,9 @@ const DashboardLayout = () => {
 
   const displayName =
     profile?.full_name || profile?.email || "StockFlow User";
+  const profileAvatarUrl =
+    session?.user.user_metadata?.avatar_url ||
+    "https://i.pravatar.cc/120?img=12";
 
   return (
     <div
@@ -497,7 +500,7 @@ const DashboardLayout = () => {
                 aria-haspopup="menu"
               >
                 <img
-                  src="https://i.pravatar.cc/120?img=12"
+                  src={profileAvatarUrl}
                   alt="User Profile"
                 />
               </button>
@@ -510,7 +513,7 @@ const DashboardLayout = () => {
                     onClick={() => setProfileOpen(false)}
                   >
                     <img
-                      src="https://i.pravatar.cc/120?img=12"
+                      src={profileAvatarUrl}
                       alt="User Profile"
                     />
 

@@ -16,7 +16,7 @@ const AddProduct = () => {
 
     if (error) {
       alert(error.message);
-      return;
+      return false;
     }
 
     await addAuditLog({
@@ -26,6 +26,7 @@ const AddProduct = () => {
     });
 
     setShowSuccess(true);
+    return true;
   };
 
   return (

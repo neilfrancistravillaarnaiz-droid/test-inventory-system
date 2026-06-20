@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader";
 import ProductForm from "../../components/inventory/ProductForm";
 import { getProductById, updateProduct } from "../../services/inventoryService";
+import type { ProductInput } from "../../types/Product";
 
 const EditProduct = () => {
   const { id } = useParams();
@@ -29,26 +30,19 @@ const EditProduct = () => {
     fetchProduct();
   }, [id, navigate]);
 
-  const handleUpdate = async (product: {
-    name: string;
-    sku: string;
-    category: string;
-    supplier: string;
-    quantity: number;
-    price: number;
-    low_stock_limit: number;
-  }) => {
-    if (!id) return;
+  const handleUpdate = async (product: ProductInput) => {
+    if (!id) return false;
 
     const { error } = await updateProduct(id, product);
 
     if (error) {
       alert(error.message);
-      return;
+      return false;
     }
 
     alert("Product updated successfully!");
     navigate("/inventory");
+    return true;
   };
 
   if (loading) {
