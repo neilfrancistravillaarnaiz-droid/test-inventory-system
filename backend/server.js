@@ -103,6 +103,17 @@ const shouldUseWebSearch = (question) => {
   ].some((keyword) => q.includes(keyword));
 };
 
+const shouldUseInventoryContext = (text) => {
+  const value = String(text || "").toLowerCase();
+
+  return [
+    "inventory", "product", "stock", "sku", "supplier", "category",
+    "warehouse", "shelf", "rack", "bin", "restock", "reorder", "quantity",
+    "price", "value", "report", "audit", "alert", "notification", "barcode",
+    "qr", "available", "location", "movement",
+  ].some((keyword) => value.includes(keyword));
+};
+
 const searchTavily = async (query) => {
   if (!process.env.TAVILY_API_KEY) {
     return null;
@@ -210,16 +221,15 @@ const buildWebOnlyAnswer = (webSearch) => {
   ].join("\n");
 };
 
-const callGroqChat = async ({ systemPrompt, inventoryContext, webContext, history, question }) => {
+const callGroqChat = async ({ systemPrompt, inventoryContext, webContext, history, question, temperature }) => {
   const messages = [
     {
       role: "system",
       content: systemPrompt,
     },
-    {
-      role: "user",
-      content: `Inventory context:\n${inventoryContext}`,
-    },
+    ...(inventoryContext
+      ? [{ role: "user", content: `Inventory context:\n${inventoryContext}` }]
+      : []),
     ...(webContext
       ? [
           {
@@ -243,8 +253,8 @@ const callGroqChat = async ({ systemPrompt, inventoryContext, webContext, histor
     },
     body: JSON.stringify({
       model: process.env.GROQ_MODEL || "llama-3.1-8b-instant",
-      temperature: 0.25,
-      max_tokens: 500,
+      temperature,
+      max_tokens: 700,
       messages,
     }),
   });
@@ -260,7 +270,7 @@ const callGroqChat = async ({ systemPrompt, inventoryContext, webContext, histor
   return data?.choices?.[0]?.message?.content?.trim() || "";
 };
 
-const callOpenAIResponse = async ({ systemPrompt, inventoryContext, webContext, history, question }) => {
+const callOpenAIResponse = async ({ systemPrompt, inventoryContext, webContext, history, question, temperature }) => {
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
     headers: {
@@ -269,17 +279,16 @@ const callOpenAIResponse = async ({ systemPrompt, inventoryContext, webContext, 
     },
     body: JSON.stringify({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
-      temperature: 0.25,
-      max_output_tokens: 500,
+      temperature,
+      max_output_tokens: 700,
       input: [
         {
           role: "system",
           content: systemPrompt,
         },
-        {
-          role: "user",
-          content: `Inventory context:\n${inventoryContext}`,
-        },
+        ...(inventoryContext
+          ? [{ role: "user", content: `Inventory context:\n${inventoryContext}` }]
+          : []),
         ...(webContext
           ? [
               {
@@ -410,6 +419,7 @@ app.post("/ai/inventory-chat", async (req, res) => {
   try {
     const question = String(req.body?.question || "").trim();
     const history = Array.isArray(req.body?.history) ? req.body.history : [];
+    const userContext = req.body?.userContext || {};
 
     if (!question) {
       return res.status(400).json({
@@ -436,8 +446,6 @@ app.post("/ai/inventory-chat", async (req, res) => {
       });
     }
 
-    const inventoryContext = await buildInventoryContext();
-    const webContext = buildWebContext(webSearch);
     const trimmedHistory = history
       .slice(-20)
       .map((message) => ({
@@ -445,9 +453,21 @@ app.post("/ai/inventory-chat", async (req, res) => {
         content: String(message.text || "").slice(0, 1000),
       }))
       .filter((message) => message.content);
+    const recentConversation = [
+      ...trimmedHistory.slice(-6).map((message) => message.content),
+      question,
+    ].join(" ");
+    const needsInventoryContext = shouldUseInventoryContext(recentConversation);
+    const inventoryContext = needsInventoryContext
+      ? await buildInventoryContext()
+      : "";
+    const webContext = buildWebContext(webSearch);
+    const temperature = needsInventoryContext || needsWebSearch ? 0.25 : 0.7;
+    const safeUserName = String(userContext?.name || "").slice(0, 100);
+    const safeUserRole = String(userContext?.role || "").slice(0, 40);
 
     const systemPrompt =
-      "You are StockFlow's AI Inventory Assistant for City College of Davao. You are also a friendly general conversational assistant, so naturally answer personal and non-inventory conversation instead of rejecting or forcing every topic back to inventory. Handle greetings, casual questions, jokes, playful remarks, brainstorming, study help, encouragement, gratitude, frustration, sadness, confusion, and goodbyes with warmth and tact. Match the user's tone, use light humor when appropriate, remember relevant details from the supplied conversation history, and ask a natural follow-up only when it genuinely helps. Never claim to possess real emotions, consciousness, personal experiences, or a human identity; communicate with empathy without pretending. For stock inquiries, low-stock alerts, restocking, reports, analytics, QR/barcode workflows, audit logs, suppliers, categories, and locations, answer using the live inventory context. For outside, current, or product-market questions, use the provided web search context and cite source URLs briefly. Match a helpful operations-assistant style for system questions: summarize the status, name affected products, include quantities, SKU, supplier, and location when available, and suggest the next StockFlow action. Product mutations are executed only by the frontend command handler. If asked to add, edit, delete, relocate, stock in, or stock out a product and no confirmed tool result is supplied, never say that it succeeded or use words such as done, added, updated, or deleted. Instead, ask the user to use a complete command with product name and required values. Do not invent order numbers, purchase orders, sales totals, sales velocity, turnover rates, transfer orders, audit usernames, emails, lead times, or warehouse splits if they are not in the context. If data is missing, say exactly what is missing and offer the closest useful action. Do not use markdown asterisks. Keep answers natural, concise, and conversational.";
+      `You are StockFlow's AI Inventory Assistant and friendly chatmate for City College of Davao. The signed-in user is ${safeUserName || "not named"} with role ${safeUserRole || "unknown"}. Naturally handle personal and non-inventory conversation without forcing it back to inventory. Notice emotional cues such as happiness, excitement, pride, anxiety, frustration, sadness, anger, loneliness, confusion, embarrassment, and humor. Acknowledge the feeling briefly, respond with warmth and tact, and then engage with what the user actually said. Do not diagnose mental health conditions, manipulate dependency, or claim to possess emotions, consciousness, memories outside the supplied history, personal experiences, or a human identity. You may use light humor and friendly Tagalog or Bisaya phrases when the user uses them, but remain clear and respectful. Remember relevant details from conversation history and avoid repeatedly introducing yourself. Ask at most one natural follow-up when it genuinely helps. For inventory questions, use only the supplied live inventory context. For web questions, use the supplied web context and cite source URLs briefly. For operations questions, name affected products and include quantities, SKU, supplier, and location when available. Product mutations are executed only by the frontend command handler. Without a confirmed tool result, never claim an add, edit, delete, relocation, stock-in, or stock-out succeeded. Ask for a complete command instead. Never invent business records or unavailable facts. If data is missing, say what is missing. Do not use markdown asterisks. Keep responses natural, concise, and conversational.`;
 
     let answer = "";
 
@@ -458,6 +478,7 @@ app.post("/ai/inventory-chat", async (req, res) => {
         webContext,
         history: trimmedHistory,
         question,
+        temperature,
       });
     } else {
       answer = await callOpenAIResponse({
@@ -466,6 +487,7 @@ app.post("/ai/inventory-chat", async (req, res) => {
         webContext,
         history: trimmedHistory,
         question,
+        temperature,
       });
     }
     res.json({

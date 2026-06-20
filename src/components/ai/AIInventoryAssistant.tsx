@@ -11,6 +11,7 @@ import {
   type AIAction,
   getAIInventoryResponse,
 } from "../../services/aiService";
+import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 
 type Message = {
   sender: "user" | "ai";
@@ -47,12 +48,14 @@ const INITIAL_MESSAGES: Message[] = [
 const AIInventoryAssistant = () => {
   const navigate = useNavigate();
   const { products, fetchProducts } = useProducts();
+  const { session, profile } = useCurrentProfile();
   const [open, setOpen] = useState(false);
   const [avatarVisible, setAvatarVisible] = useState(true);
   const [question, setQuestion] = useState("");
   const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [loadingResponse, setLoadingResponse] = useState(false);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [historyReady, setHistoryReady] = useState(false);
   const [avatarPosition, setAvatarPosition] = useState<AvatarPosition | null>(
     null
   );
@@ -65,6 +68,47 @@ const AIInventoryAssistant = () => {
     offsetY: 0,
   });
   const idleTimerRef = useRef<number | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const historyKey = session?.user.id
+    ? `stockflow-ai-history:${session.user.id}`
+    : null;
+
+  useEffect(() => {
+    if (!historyKey) return;
+
+    try {
+      const savedMessages = window.localStorage.getItem(historyKey);
+      const parsed = savedMessages ? JSON.parse(savedMessages) : null;
+
+      setMessages(
+        Array.isArray(parsed) && parsed.length > 0
+          ? parsed.slice(-40)
+          : [
+              {
+                sender: "ai",
+                text: `Hi${
+                  profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""
+                }! I am your CCD Inventory Assistant and chatmate. I can help with inventory work or simply have a conversation with you.`,
+              },
+            ]
+      );
+    } catch {
+      window.localStorage.removeItem(historyKey);
+      setMessages(INITIAL_MESSAGES);
+    }
+
+    setHistoryReady(true);
+  }, [historyKey, profile?.full_name]);
+
+  useEffect(() => {
+    if (!historyReady || !historyKey) return;
+    window.localStorage.setItem(historyKey, JSON.stringify(messages.slice(-40)));
+  }, [historyKey, historyReady, messages]);
+
+  useEffect(() => {
+    if (!open) return;
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+  }, [messages, loadingResponse, open]);
 
   const clampAvatarPosition = (position: AvatarPosition): AvatarPosition => {
     if (typeof window === "undefined") return position;
@@ -319,7 +363,8 @@ const AIInventoryAssistant = () => {
       const aiResponse = await getAIInventoryResponse(
         prompt,
         products,
-        messages
+        messages,
+        { name: profile?.full_name, role: profile?.role }
       );
       const aiMessage: Message = {
         sender: "ai",
@@ -382,6 +427,7 @@ const AIInventoryAssistant = () => {
     setMessages(INITIAL_MESSAGES);
     setQuestion("");
     setAiError(null);
+    if (historyKey) window.localStorage.removeItem(historyKey);
   };
 
   const handleAction = (action: AIAction) => {
@@ -443,7 +489,7 @@ const AIInventoryAssistant = () => {
           <div className="ai-header">
             <div>
               <h3>AI Inventory Assistant</h3>
-              <p>Ask inventory questions instantly.</p>
+              <p>Inventory copilot and friendly chatmate.</p>
             </div>
 
             <div className="ai-header-actions">
@@ -528,6 +574,7 @@ const AIInventoryAssistant = () => {
                 ) : null}
               </div>
             ))}
+            <div ref={messagesEndRef} aria-hidden="true" />
           </div>
 
           {aiError ? (

@@ -44,6 +44,12 @@ const Categories = () => {
     };
 
     loadCategories();
+
+    const handleRefresh = () => void fetchCategories();
+    window.addEventListener("stockflow:refresh-categories", handleRefresh);
+
+    return () =>
+      window.removeEventListener("stockflow:refresh-categories", handleRefresh);
   }, []);
 
   const handleAddCategory = async (e: React.FormEvent) => {

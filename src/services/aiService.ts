@@ -2,6 +2,14 @@ import type { Product, ProductInput } from "../types/Product";
 import { supabase } from "../lib/supabaseClient";
 import { deleteStoredImage } from "./storageService";
 import { addAuditLog } from "./auditLogService";
+import { addCategory, deleteCategory, getCategories } from "./categoryService";
+import { addSupplier, deleteSupplier, getSuppliers } from "./supplierService";
+import {
+  addNotification,
+  getNotifications,
+  updateNotificationStatus,
+} from "./notificationService";
+import { hasPermission, type Permission } from "../constants/permissions";
 
 type ChatMessage = {
   sender: "user" | "ai";
@@ -20,6 +28,11 @@ export type AIResponse = {
   imageUrl?: string;
   imagePrompt?: string;
   shouldRefreshProducts?: boolean;
+};
+
+export type AIUserContext = {
+  name?: string | null;
+  role?: string | null;
 };
 
 type UserProfile = {
@@ -475,6 +488,10 @@ const getCommandValue = (question: string, keys: string[]) => {
     " rack",
     " bin",
     " location",
+    " description",
+    " email",
+    " phone",
+    " address",
   ].join("|");
 
   for (const key of escapedKeys) {
@@ -507,7 +524,7 @@ const getNameAfterCommand = (question: string, commandPattern: RegExp) => {
 
   return raw
     .replace(
-      /\s+(sku|category|supplier|quantity|qty|price|low stock|low_stock_limit|limit|warehouse|shelf|rack|bin|location)\b.*$/i,
+      /\s+(sku|category|supplier|quantity|qty|price|low stock|low_stock_limit|limit|warehouse|shelf|rack|bin|location|description|email|phone|address)\b.*$/i,
       ""
     )
     .replace(/^named\s+/i, "")
@@ -574,6 +591,9 @@ const handleProductCommand = async (
       "to inventory",
     ])
   ) {
+    const denied = await getPermissionDeniedResponse("inventory:create");
+    if (denied) return denied;
+
     const payload = buildProductPayloadFromCommand(question);
 
     if (!payload?.name) {
@@ -620,6 +640,9 @@ const handleProductCommand = async (
       "delete item",
     ])
   ) {
+    const denied = await getPermissionDeniedResponse("inventory:delete");
+    if (denied) return denied;
+
     const name = getNameAfterCommand(
       question,
       /\b(?:delete|remove)\s+(?:(?:the|a)\s+)?(?:product|item)?\s*(.+)$/i
@@ -665,6 +688,9 @@ const handleProductCommand = async (
       "change location",
     ])
   ) {
+    const denied = await getPermissionDeniedResponse("inventory:update");
+    if (denied) return denied;
+
     const name = getNameAfterCommand(
       question,
       /\b(?:assign|set|change)\s+location\s+(?:for|of|to)?\s*(.+)$/i
@@ -731,6 +757,9 @@ const handleProductCommand = async (
       "change a product",
     ])
   ) {
+    const denied = await getPermissionDeniedResponse("inventory:update");
+    if (denied) return denied;
+
     const name = getNameAfterCommand(
       question,
       /\b(?:edit|update|change)\s+(?:a\s+|the\s+)?product\s+(.+)$/i
@@ -816,6 +845,9 @@ const handleProductCommand = async (
       "remove stock",
     ])
   ) {
+    const denied = await getPermissionDeniedResponse("stock:move");
+    if (denied) return denied;
+
     const isStockOut =
       normalizedQuestion.includes("stock out") ||
       normalizedQuestion.includes("remove stock");
@@ -948,6 +980,191 @@ const getCurrentUserProfile = async () => {
     profile,
     error: profileError,
   };
+};
+
+const getPermissionDeniedResponse = async (
+  permission: Permission
+): Promise<AIResponse | null> => {
+  const { user, profile } = await getCurrentUserProfile();
+
+  if (!user) {
+    return reply("Please sign in before asking me to change system records.");
+  }
+
+  if (!hasPermission(profile?.role, permission)) {
+    return reply(
+      `Your ${profile?.role || "Viewer"} role does not have permission to perform that action.`,
+      [routeAction("Open Profile", "/profile")]
+    );
+  }
+
+  return null;
+};
+
+const handleManagementCommand = async (
+  question: string,
+  products: Product[]
+): Promise<AIResponse | null> => {
+  const q = normalizeQuestion(question);
+
+  if (/\b(?:add|create)\s+(?:a\s+)?(?:new\s+)?category\b/i.test(question)) {
+    const denied = await getPermissionDeniedResponse("categories:manage");
+    if (denied) return denied;
+
+    const name = getNameAfterCommand(
+      question,
+      /\b(?:add|create)\s+(?:a\s+)?(?:new\s+)?category(?:\s+named|\s+called)?\s+(.+)$/i
+    );
+    if (!name) {
+      return reply(
+        "Tell me the category name. Example: Add category Office Supplies description Everyday office items.",
+        [routeAction("Open Categories", "/categories")]
+      );
+    }
+
+    const description = getCommandValue(question, ["description"]);
+    const { error } = await addCategory({ name, description });
+    if (error) return reply(`I could not add category ${name}. ${error.message}`);
+
+    await addAuditLog({
+      action: "Category Added",
+      module: "Categories",
+      description: `${name} was added through the AI assistant.`,
+    });
+    return reply(`Added ${name} to Categories.`, [
+      routeAction("Open Categories", "/categories"),
+    ]);
+  }
+
+  if (/\b(?:delete|remove)\s+(?:the\s+)?category\b/i.test(question)) {
+    const denied = await getPermissionDeniedResponse("categories:manage");
+    if (denied) return denied;
+
+    const name = getNameAfterCommand(
+      question,
+      /\b(?:delete|remove)\s+(?:the\s+)?category\s+(.+)$/i
+    );
+    const { data } = await getCategories();
+    const category = (data || []).find(
+      (item) => normalizeQuestion(item.name) === normalizeQuestion(name)
+    );
+    if (!category) return reply(`I could not find category "${name}".`);
+
+    const { error } = await deleteCategory(category.id);
+    if (error) return reply(`I could not delete ${category.name}. ${error.message}`);
+    await addAuditLog({
+      action: "Category Deleted",
+      module: "Categories",
+      description: `${category.name} was deleted through the AI assistant.`,
+    });
+    return reply(`Deleted category ${category.name}.`);
+  }
+
+  if (/\b(?:add|create)\s+(?:a\s+)?(?:new\s+)?supplier\b/i.test(question)) {
+    const denied = await getPermissionDeniedResponse("suppliers:manage");
+    if (denied) return denied;
+
+    const name = getNameAfterCommand(
+      question,
+      /\b(?:add|create)\s+(?:a\s+)?(?:new\s+)?supplier(?:\s+named|\s+called)?\s+(.+)$/i
+    );
+    if (!name) {
+      return reply(
+        "Tell me the supplier name. You may include email, phone, and address.",
+        [routeAction("Open Suppliers", "/suppliers")]
+      );
+    }
+
+    const supplier = {
+      name,
+      email: getCommandValue(question, ["email"]),
+      phone: getCommandValue(question, ["phone"]),
+      address: getCommandValue(question, ["address"]),
+    };
+    const { error } = await addSupplier(supplier);
+    if (error) return reply(`I could not add supplier ${name}. ${error.message}`);
+    await addAuditLog({
+      action: "Supplier Added",
+      module: "Suppliers",
+      description: `${name} was added through the AI assistant.`,
+    });
+    return reply(`Added ${name} to Suppliers.`, [
+      routeAction("Open Suppliers", "/suppliers"),
+    ]);
+  }
+
+  if (/\b(?:delete|remove)\s+(?:the\s+)?supplier\b/i.test(question)) {
+    const denied = await getPermissionDeniedResponse("suppliers:manage");
+    if (denied) return denied;
+
+    const name = getNameAfterCommand(
+      question,
+      /\b(?:delete|remove)\s+(?:the\s+)?supplier\s+(.+)$/i
+    );
+    const { data } = await getSuppliers();
+    const supplier = (data || []).find(
+      (item) => normalizeQuestion(item.name) === normalizeQuestion(name)
+    );
+    if (!supplier) return reply(`I could not find supplier "${name}".`);
+
+    const { error } = await deleteSupplier(supplier.id);
+    if (error) return reply(`I could not delete ${supplier.name}. ${error.message}`);
+    await addAuditLog({
+      action: "Supplier Deleted",
+      module: "Suppliers",
+      description: `${supplier.name} was deleted through the AI assistant.`,
+    });
+    return reply(`Deleted supplier ${supplier.name}.`);
+  }
+
+  if (includesAny(q, ["mark all notifications read", "mark all alerts read"])) {
+    const denied = await getPermissionDeniedResponse("alerts:view");
+    if (denied) return denied;
+
+    const { data, error } = await getNotifications();
+    if (error) return reply(`I could not load notifications. ${error.message}`);
+    const unread = (data || []).filter((item) => item.status === "Unread");
+    await Promise.all(
+      unread.map((item) => updateNotificationStatus(item.id, "Read"))
+    );
+    return reply(
+      unread.length
+        ? `Marked ${unread.length} notification(s) as read.`
+        : "You have no unread notifications.",
+      [routeAction("Open Alerts", "/notifications")]
+    );
+  }
+
+  if (includesAny(q, ["generate low stock alerts", "create low stock alerts"])) {
+    const denied = await getPermissionDeniedResponse("alerts:view");
+    if (denied) return denied;
+
+    const lowStock = products.filter(
+      (product) => product.quantity <= product.low_stock_limit
+    );
+    if (!lowStock.length) return reply("No products currently need a low-stock alert.");
+
+    await Promise.all(
+      lowStock.map((product) =>
+        addNotification({
+          title: "Low Stock Alert",
+          message: `${product.name} is low on stock. Current quantity: ${product.quantity}.`,
+          type: "warning",
+          status: "Unread",
+        })
+      )
+    );
+    await addAuditLog({
+      action: "Low Stock Alerts Generated",
+      module: "Notifications",
+      description: `${lowStock.length} low-stock alert(s) were generated through the AI assistant.`,
+    });
+    return reply(`Generated ${lowStock.length} low-stock alert(s).`, [
+      routeAction("Open Alerts", "/notifications"),
+    ]);
+  }
+
+  return null;
 };
 
 const getUserIdentityResponse = async () => {
@@ -1981,8 +2198,15 @@ const getLocalInventoryResponse = async (
 export const getAIInventoryResponse = async (
   question: string,
   products: Product[],
-  history: ChatMessage[] = []
+  history: ChatMessage[] = [],
+  userContext: AIUserContext = {}
 ): Promise<AIResponse> => {
+  const managementResponse = await handleManagementCommand(question, products);
+
+  if (managementResponse) {
+    return toAIResponse(managementResponse);
+  }
+
   const commandResponse = await handleProductCommand(question, products);
 
   if (commandResponse) {
@@ -2021,6 +2245,7 @@ export const getAIInventoryResponse = async (
       body: JSON.stringify({
         question,
         history,
+        userContext,
       }),
     });
 

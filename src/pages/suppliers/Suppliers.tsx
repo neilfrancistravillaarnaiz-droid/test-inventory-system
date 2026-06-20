@@ -53,6 +53,12 @@ const Suppliers = () => {
     };
 
     loadSuppliers();
+
+    const handleRefresh = () => void fetchSuppliers();
+    window.addEventListener("stockflow:refresh-suppliers", handleRefresh);
+
+    return () =>
+      window.removeEventListener("stockflow:refresh-suppliers", handleRefresh);
   }, []);
 
   const handleChange = (

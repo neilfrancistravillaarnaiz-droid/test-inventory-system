@@ -1,5 +1,8 @@
 import { supabase } from "../lib/supabaseClient";
 
+const announceSupplierChange = () =>
+  window.dispatchEvent(new Event("stockflow:refresh-suppliers"));
+
 export const getSuppliers = async () => {
   return await supabase
     .from("suppliers")
@@ -13,9 +16,13 @@ export const addSupplier = async (supplier: {
   phone: string;
   address: string;
 }) => {
-  return await supabase.from("suppliers").insert([supplier]);
+  const result = await supabase.from("suppliers").insert([supplier]);
+  if (!result.error) announceSupplierChange();
+  return result;
 };
 
 export const deleteSupplier = async (id: string) => {
-  return await supabase.from("suppliers").delete().eq("id", id);
+  const result = await supabase.from("suppliers").delete().eq("id", id);
+  if (!result.error) announceSupplierChange();
+  return result;
 };
