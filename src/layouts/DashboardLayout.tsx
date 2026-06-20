@@ -282,11 +282,18 @@ const DashboardLayout = () => {
         <header className="topbar command-topbar">
           <div className="command-brand">
             <span className="command-brand-mark">
-              <Package size={21} />
+              <video
+                src="/logo.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+                aria-label="City College of Davao logo"
+              />
             </span>
-            <div>
-              <h1>StockFlow Command Center</h1>
-              <p>Control inventory, stocks, reports, QR tools, and alerts.</p>
+            <div className="command-brand-copy">
+              <h1>CCD Inventory System</h1>
+              <p>Track inventory, stocks, reports, QR tools, and alerts.</p>
             </div>
           </div>
 

@@ -485,6 +485,21 @@ body.light-mode .report-card span {
   stroke: #ffffff !important;
 }
 
+.command-brand-mark video {
+  width: 88% !important;
+  height: 88% !important;
+  display: block !important;
+  object-fit: contain !important;
+  border-radius: 999px !important;
+  opacity: 1 !important;
+  mix-blend-mode: normal !important;
+  filter: saturate(1.08) contrast(1.04) brightness(1.02) !important;
+}
+
+.command-brand-copy {
+  min-width: 0 !important;
+}
+
 .command-topbar h1 {
   margin: 0 !important;
   color: #17301a !important;
@@ -492,6 +507,7 @@ body.light-mode .report-card span {
   line-height: 1.05 !important;
   letter-spacing: -0.03em !important;
   text-shadow: none !important;
+  white-space: nowrap !important;
 }
 
 .command-topbar p {
@@ -1131,6 +1147,10 @@ body.light-mode .report-card span {
 
   .command-brand {
     min-width: 0 !important;
+  }
+
+  .command-topbar h1 {
+    white-space: normal !important;
   }
 
   .command-top-actions {
