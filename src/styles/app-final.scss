@@ -477,8 +477,9 @@ body.light-mode .report-card span {
   flex: 0 0 auto !important;
   border-radius: 14px !important;
   color: #ffffff !important;
-  background: linear-gradient(135deg, #5aa05d, #2f7d3b) !important;
-  box-shadow: 0 12px 26px rgba(45, 122, 58, 0.24) !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
 }
 
 .command-brand-mark svg {
@@ -486,8 +487,8 @@ body.light-mode .report-card span {
 }
 
 .command-brand-mark video {
-  width: 88% !important;
-  height: 88% !important;
+  width: 100% !important;
+  height: 100% !important;
   display: block !important;
   object-fit: contain !important;
   border-radius: 999px !important;
