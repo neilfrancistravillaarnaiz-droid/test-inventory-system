@@ -6964,3 +6964,169 @@ body:not(.light-mode) .command-layout :where(.danger-btn, .category-delete-btn) 
   -webkit-text-fill-color: #ffffff !important;
   background: linear-gradient(135deg, #ef3b2d, #c9392d) !important;
 }
+
+/* Audit timeline polish: remove the flat white slab behind each log entry. */
+.audit-page .audit-timeline {
+  display: grid !important;
+  gap: clamp(22px, 2.2vw, 34px) !important;
+  margin-top: clamp(22px, 2.2vw, 34px) !important;
+}
+
+.audit-page .audit-item {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: 42px minmax(0, 1fr) !important;
+  gap: clamp(16px, 1.5vw, 24px) !important;
+  align-items: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
+.audit-page .audit-item::before {
+  content: "" !important;
+  position: absolute !important;
+  left: 20px !important;
+  top: -22px !important;
+  bottom: -22px !important;
+  width: 1px !important;
+  background: linear-gradient(
+    rgba(45, 122, 58, 0),
+    rgba(45, 122, 58, 0.24),
+    rgba(45, 122, 58, 0)
+  ) !important;
+  z-index: 0 !important;
+}
+
+.audit-page .audit-dot {
+  position: relative !important;
+  z-index: 1 !important;
+  width: 22px !important;
+  height: 22px !important;
+  margin: 0 auto !important;
+  border: 3px solid rgba(255, 255, 255, 0.74) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #52a862, #2d7a3a) !important;
+  box-shadow:
+    0 0 0 8px rgba(45, 122, 58, 0.12),
+    0 12px 26px rgba(20, 87, 34, 0.22) !important;
+}
+
+.audit-page .audit-content {
+  min-height: 132px !important;
+  padding: clamp(24px, 2.4vw, 34px) !important;
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(226, 244, 231, 0.58)),
+    rgba(233, 247, 236, 0.68) !important;
+  border: 1px solid rgba(255, 255, 255, 0.74) !important;
+  box-shadow:
+    0 18px 48px rgba(48, 94, 58, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(22px) saturate(160%) !important;
+  -webkit-backdrop-filter: blur(22px) saturate(160%) !important;
+}
+
+.audit-page .audit-content::before {
+  opacity: 0.45 !important;
+}
+
+.audit-page .audit-content > span {
+  display: inline-flex !important;
+  align-items: center !important;
+  width: fit-content !important;
+  min-height: 34px !important;
+  padding: 7px 16px !important;
+  margin-bottom: 18px !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: linear-gradient(135deg, rgba(82, 168, 98, 0.96), rgba(45, 122, 58, 0.96)) !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 10px 24px rgba(45, 122, 58, 0.20) !important;
+  font-size: 0.86rem !important;
+  font-weight: 950 !important;
+  letter-spacing: 0 !important;
+}
+
+.audit-page .audit-content h3 {
+  margin: 0 0 8px !important;
+  color: #12361c !important;
+  -webkit-text-fill-color: #12361c !important;
+  font-size: clamp(1.15rem, 1.4vw, 1.45rem) !important;
+  line-height: 1.15 !important;
+  text-shadow: none !important;
+}
+
+.audit-page .audit-content p {
+  margin: 0 0 10px !important;
+  color: #55735b !important;
+  -webkit-text-fill-color: #55735b !important;
+  font-size: clamp(0.98rem, 1.15vw, 1.12rem) !important;
+  line-height: 1.45 !important;
+}
+
+.audit-page .audit-content small {
+  color: #6c8771 !important;
+  -webkit-text-fill-color: #6c8771 !important;
+  font-weight: 700 !important;
+}
+
+body:not(.light-mode) .audit-page .audit-item {
+  background: transparent !important;
+}
+
+body:not(.light-mode) .audit-page .audit-item::before {
+  background: linear-gradient(
+    rgba(217, 246, 223, 0),
+    rgba(217, 246, 223, 0.20),
+    rgba(217, 246, 223, 0)
+  ) !important;
+}
+
+body:not(.light-mode) .audit-page .audit-dot {
+  border-color: rgba(229, 246, 233, 0.72) !important;
+  box-shadow:
+    0 0 0 8px rgba(217, 246, 223, 0.08),
+    0 12px 26px rgba(0, 0, 0, 0.32) !important;
+}
+
+body:not(.light-mode) .audit-page .audit-content {
+  color: #f6fff7 !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(181, 229, 190, 0.07)),
+    rgba(37, 70, 44, 0.78) !important;
+  border-color: rgba(229, 246, 233, 0.24) !important;
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+}
+
+body:not(.light-mode) .audit-page .audit-content h3 {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: 0 12px 30px rgba(0, 0, 0, 0.22) !important;
+}
+
+body:not(.light-mode) .audit-page .audit-content p,
+body:not(.light-mode) .audit-page .audit-content small {
+  color: #d8eadc !important;
+  -webkit-text-fill-color: #d8eadc !important;
+}
+
+@media (max-width: 720px) {
+  .audit-page .audit-item {
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    gap: 12px !important;
+  }
+
+  .audit-page .audit-item::before {
+    left: 14px !important;
+  }
+
+  .audit-page .audit-content {
+    padding: 20px !important;
+  }
+}
