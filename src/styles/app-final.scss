@@ -7130,3 +7130,179 @@ body:not(.light-mode) .audit-page .audit-content small {
     padding: 20px !important;
   }
 }
+
+/* Brighter dark mode: readable, still green, no muddy black glass. */
+body:not(.light-mode),
+body:not(.light-mode) .command-layout {
+  --theme-text: #f8fff9 !important;
+  --theme-heading: #ffffff !important;
+  --theme-muted: #e1f2e5 !important;
+  --theme-subtle: #c8dfce !important;
+  --theme-border: rgba(239, 255, 243, 0.34) !important;
+  --theme-glass: rgba(73, 111, 80, 0.74) !important;
+  --theme-glass-soft: rgba(86, 126, 93, 0.58) !important;
+  --theme-control: rgba(248, 255, 250, 0.94) !important;
+  --theme-control-text: #102817 !important;
+  --theme-placeholder: #617765 !important;
+}
+
+body:not(.light-mode) .command-layout {
+  color: var(--theme-text) !important;
+  background:
+    radial-gradient(circle at 12% 10%, rgba(169, 219, 177, 0.24), transparent 28%),
+    radial-gradient(circle at 78% 18%, rgba(240, 217, 138, 0.16), transparent 30%),
+    radial-gradient(circle at 80% 86%, rgba(82, 168, 98, 0.24), transparent 36%),
+    linear-gradient(135deg, #1c3d25 0%, #2d5f39 46%, #3f7550 100%) !important;
+}
+
+body:not(.light-mode) .command-layout::after {
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(104, 163, 114, 0.10)),
+    rgba(210, 236, 216, 0.08) !important;
+  backdrop-filter: blur(1px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(1px) saturate(145%) !important;
+}
+
+body:not(.light-mode) .command-layout::before {
+  opacity: 0.42 !important;
+  background-image:
+    linear-gradient(rgba(235, 255, 240, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(235, 255, 240, 0.055) 1px, transparent 1px) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  .command-topbar,
+  .content-card,
+  .table-card,
+  .dashboard-card,
+  .dashboard-stat-card,
+  .dashboard-panel,
+  .product-form,
+  .add-product-card,
+  .category-form,
+  .category-list,
+  .category-item,
+  .supplier-form,
+  .supplier-list,
+  .supplier-item,
+  .stock-mini-card,
+  .stock-form-card,
+  .stock-preview-card,
+  .history-card,
+  .report-card,
+  .report-section,
+  .user-form,
+  .users-panel,
+  .user-profile-card,
+  .user-stat-card,
+  .settings-form,
+  .settings-preview,
+  .notification-stat-card,
+  .notification-item,
+  .audit-content,
+  .insight-panel,
+  .insight-item,
+  .qr-card,
+  .qr-search-panel,
+  .qr-search-card,
+  .product-info-card,
+  .product-image-card,
+  .product-location-card,
+  .restock-card,
+  .activity-item,
+  .quick-action-list a,
+  .mini-inventory-table,
+  .profile-photo-editor,
+  .profile-summary-card
+) {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(210, 241, 216, 0.10)),
+    var(--theme-glass) !important;
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.26) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  .category-item,
+  .supplier-item,
+  .history-card,
+  .notification-item,
+  .activity-item,
+  .quick-action-list a,
+  .qr-search-card,
+  .insight-item,
+  .mini-table-row,
+  .inventory-table tbody tr,
+  .table-card tbody tr
+) {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.20), rgba(206, 238, 212, 0.09)),
+    rgba(96, 134, 103, 0.54) !important;
+  border-color: rgba(239, 255, 243, 0.25) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  strong,
+  th,
+  .page-header h1,
+  .page-header h2,
+  .section-header h3,
+  .command-topbar h1,
+  .category-item h4,
+  .supplier-item h4,
+  .inventory-product-info span
+) {
+  color: var(--theme-heading) !important;
+  -webkit-text-fill-color: var(--theme-heading) !important;
+  text-shadow: 0 10px 26px rgba(0, 0, 0, 0.24) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  p,
+  small,
+  label,
+  td,
+  li,
+  .page-header p,
+  .section-header p,
+  .command-topbar p,
+  .category-item p,
+  .supplier-item p,
+  .history-card p,
+  .history-card small,
+  .notification-item p,
+  .activity-item p,
+  .activity-item time,
+  .quick-action-list p,
+  .mini-table-head,
+  .mini-table-row,
+  .empty-text
+) {
+  color: var(--theme-muted) !important;
+  -webkit-text-fill-color: var(--theme-muted) !important;
+}
+
+body:not(.light-mode) .command-layout :where(input, select, textarea, .search-input, .command-search input) {
+  color: var(--theme-control-text) !important;
+  -webkit-text-fill-color: var(--theme-control-text) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(232, 247, 236, 0.92)),
+    var(--theme-control) !important;
+  border-color: rgba(255, 255, 255, 0.76) !important;
+}
+
+body:not(.light-mode) .command-layout :where(.command-dock, .supabase-profile-panel) {
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(210, 241, 216, 0.12)),
+    rgba(70, 111, 78, 0.80) !important;
+  border-color: rgba(239, 255, 243, 0.34) !important;
+}
