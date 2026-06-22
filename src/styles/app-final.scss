@@ -6752,3 +6752,215 @@ body:not(.light-mode) .dashboard-command-page :where(.dashboard-date-pill, .pane
     padding: 20px !important;
   }
 }
+
+/* Final global dark-mode contrast pass.
+   Keep this at the end so older page-specific rules cannot bury text in dark glass. */
+body:not(.light-mode) .command-layout {
+  --theme-text: #f6fff7 !important;
+  --theme-heading: #ffffff !important;
+  --theme-muted: #d8eadc !important;
+  --theme-subtle: #b8d2be !important;
+  --theme-border: rgba(231, 250, 235, 0.26) !important;
+  --theme-glass: rgba(47, 78, 53, 0.76) !important;
+  --theme-glass-soft: rgba(61, 93, 67, 0.64) !important;
+  --theme-control: rgba(245, 255, 247, 0.92) !important;
+  --theme-control-text: #102817 !important;
+  --theme-placeholder: #68806d !important;
+  color: var(--theme-text) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  .content-card,
+  .table-card,
+  .dashboard-card,
+  .dashboard-stat-card,
+  .dashboard-panel,
+  .product-form,
+  .add-product-card,
+  .category-form,
+  .category-list,
+  .category-item,
+  .supplier-form,
+  .supplier-list,
+  .supplier-item,
+  .stock-mini-card,
+  .stock-form-card,
+  .stock-preview-card,
+  .history-card,
+  .report-card,
+  .report-section,
+  .user-form,
+  .users-panel,
+  .user-profile-card,
+  .user-stat-card,
+  .settings-form,
+  .settings-preview,
+  .notification-stat-card,
+  .notification-item,
+  .audit-content,
+  .insight-panel,
+  .insight-item,
+  .qr-card,
+  .qr-search-panel,
+  .qr-search-card,
+  .product-info-card,
+  .product-image-card,
+  .product-location-card,
+  .restock-card,
+  .activity-item,
+  .quick-action-list a,
+  .mini-inventory-table,
+  .profile-photo-editor,
+  .profile-summary-card
+) {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(183, 228, 191, 0.08)),
+    var(--theme-glass) !important;
+  box-shadow:
+    0 24px 62px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.20) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  .page-title,
+  .page-header h1,
+  .page-header h2,
+  .section-header h3,
+  .command-topbar h1,
+  .dashboard-card h3,
+  .dashboard-stat-card strong,
+  .stock-mini-card strong,
+  .report-card strong,
+  .notification-stat-card strong,
+  .user-stat-card strong,
+  .category-item h4,
+  .supplier-item h4,
+  .history-card h3,
+  .audit-content h3,
+  .qr-card h3,
+  .qr-search-card h3,
+  .restock-card-header h3,
+  .product-info-card h2,
+  .category-summary-name,
+  .inventory-product-info span,
+  th,
+  strong
+) {
+  color: var(--theme-heading) !important;
+  -webkit-text-fill-color: var(--theme-heading) !important;
+  text-shadow: 0 12px 34px rgba(0, 0, 0, 0.22) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  p,
+  small,
+  label,
+  span,
+  td,
+  li,
+  .page-header p,
+  .section-header p,
+  .command-topbar p,
+  .dashboard-card p,
+  .dashboard-card span,
+  .dashboard-stat-card p,
+  .dashboard-stat-card small,
+  .stock-mini-card span,
+  .report-card span,
+  .notification-stat-card span,
+  .category-item p,
+  .supplier-item p,
+  .history-card p,
+  .history-card small,
+  .audit-content p,
+  .audit-content time,
+  .qr-card p,
+  .qr-card small,
+  .qr-search-card p,
+  .qr-search-card span,
+  .restock-card p,
+  .restock-metrics small,
+  .activity-item p,
+  .activity-item time,
+  .quick-action-list p,
+  .mini-table-head,
+  .mini-table-row,
+  .empty-text
+) {
+  color: var(--theme-muted) !important;
+  -webkit-text-fill-color: var(--theme-muted) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  input,
+  select,
+  textarea,
+  .search-input,
+  .command-search,
+  .command-search input
+) {
+  color: var(--theme-control-text) !important;
+  -webkit-text-fill-color: var(--theme-control-text) !important;
+  caret-color: var(--theme-control-text) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(232, 246, 236, 0.88)),
+    var(--theme-control) !important;
+  border-color: rgba(236, 255, 240, 0.70) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    0 12px 32px rgba(0, 0, 0, 0.20) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  input::placeholder,
+  textarea::placeholder,
+  .search-input::placeholder,
+  .command-search input::placeholder
+) {
+  color: var(--theme-placeholder) !important;
+  -webkit-text-fill-color: var(--theme-placeholder) !important;
+  opacity: 1 !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  .badge,
+  .status-badge,
+  .location-pill,
+  .dashboard-date-pill,
+  .panel-title-row span,
+  .notification-filter,
+  .history-type,
+  .audit-content > span
+) {
+  color: var(--theme-heading) !important;
+  -webkit-text-fill-color: var(--theme-heading) !important;
+  border-color: var(--theme-border) !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+body:not(.light-mode) .command-layout :where(
+  table,
+  thead,
+  tbody,
+  tr,
+  .mini-table-head,
+  .mini-table-row,
+  .inventory-table tbody tr,
+  .table-card tbody tr
+) {
+  border-color: rgba(231, 250, 235, 0.16) !important;
+}
+
+body:not(.light-mode) .command-layout :where(.danger-btn, .category-delete-btn) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: linear-gradient(135deg, #ef3b2d, #c9392d) !important;
+}
