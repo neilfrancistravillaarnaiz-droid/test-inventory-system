@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import PageHeader from "../../components/common/PageHeader";
 import SuccessModal from "../../components/common/SuccessModal";
+import { supabase } from "../../lib/supabaseClient";
+import { getAuditLogs, type AuditLog } from "../../services/auditLogService";
 import {
   addProfile,
   deleteProfile,
@@ -14,6 +16,11 @@ import {
 type Profile = ProfileInput & {
   id: string;
   created_at?: string;
+};
+
+type UserAccessSummary = {
+  lastOpenedAt?: string;
+  accessCount: number;
 };
 
 const emptyForm: ProfileInput = {
@@ -34,19 +41,64 @@ const Users = () => {
   const [saving, setSaving] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [showSavedModal, setShowSavedModal] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+
+  const accessByEmail = useMemo(() => {
+    const summaries = new Map<string, UserAccessSummary>();
+
+    auditLogs
+      .filter(
+        (log) =>
+          log.module === "Access" &&
+          log.action === "System Opened" &&
+          log.description
+      )
+      .forEach((log) => {
+        const emailMatch = log.description.match(/\(([^)@\s]+@[^)\s]+)\)/);
+        const email = emailMatch?.[1]?.toLowerCase();
+
+        if (!email) return;
+
+        const current = summaries.get(email) || { accessCount: 0 };
+        const currentLast = current.lastOpenedAt
+          ? new Date(current.lastOpenedAt).getTime()
+          : 0;
+        const nextTime = new Date(log.created_at).getTime();
+
+        summaries.set(email, {
+          accessCount: current.accessCount + 1,
+          lastOpenedAt:
+            nextTime > currentLast ? log.created_at : current.lastOpenedAt,
+        });
+      });
+
+    return summaries;
+  }, [auditLogs]);
 
   const stats = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
     return {
       total: profiles.length,
       admins: profiles.filter((profile) => profile.role === "Admin").length,
       staff: profiles.filter((profile) => profile.role === "Staff").length,
       viewers: profiles.filter((profile) => profile.role === "Viewer").length,
+      openedToday: profiles.filter((profile) => {
+        const access = accessByEmail.get(profile.email.toLowerCase());
+        return access?.lastOpenedAt
+          ? new Date(access.lastOpenedAt).getTime() >= today.getTime()
+          : false;
+      }).length,
     };
-  }, [profiles]);
+  }, [accessByEmail, profiles]);
 
   const fetchProfiles = async () => {
     setLoading(true);
-    const { data, error } = await getProfiles();
+    const [{ data, error }, auditResponse] = await Promise.all([
+      getProfiles(),
+      getAuditLogs(),
+    ]);
 
     if (error) {
       alert(error.message);
@@ -54,12 +106,47 @@ const Users = () => {
       setProfiles((data as Profile[]) || []);
     }
 
+    if (!auditResponse.error) {
+      setAuditLogs(auditResponse.data || []);
+    }
+
     setLoading(false);
   };
 
   useEffect(() => {
     fetchProfiles();
+
+    const refreshUsers = () => void fetchProfiles();
+
+    const profilesChannel = supabase
+      .channel(`stockflow-user-profiles-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "profiles" },
+        refreshUsers
+      )
+      .subscribe();
+
+    const accessChannel = supabase
+      .channel(`stockflow-user-access-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "audit_logs" },
+        refreshUsers
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(profilesChannel);
+      void supabase.removeChannel(accessChannel);
+    };
   }, []);
+
+  const formatDateTime = (value?: string) => {
+    if (!value) return "No app open recorded yet";
+
+    return new Date(value).toLocaleString();
+  };
 
   const resetForm = () => {
     setForm(emptyForm);
@@ -124,7 +211,7 @@ const Users = () => {
     <section className="users-page">
       <PageHeader
         title="Users"
-        description="Manage user profiles, roles, and account access."
+        description="Track registered users, roles, and recent system access."
       />
 
       <div className="user-stats-grid">
@@ -143,6 +230,10 @@ const Users = () => {
         <article className="user-stat-card">
           <span>Viewers</span>
           <strong>{stats.viewers}</strong>
+        </article>
+        <article className="user-stat-card">
+          <span>Opened Today</span>
+          <strong>{stats.openedToday}</strong>
         </article>
       </div>
 
@@ -232,7 +323,9 @@ const Users = () => {
           <div className="users-panel-header">
             <div>
               <h3>User List</h3>
-              <p>Only admins can manage this page.</p>
+              <p>
+                Admins can see registered profiles and recent app access.
+              </p>
             </div>
           </div>
 
@@ -245,9 +338,29 @@ const Users = () => {
             ) : (
               profiles.map((profile) => (
                 <article className="user-profile-card" key={profile.id}>
-                  <div>
-                    <h4>{profile.full_name || "Unnamed User"}</h4>
-                    <p>{profile.email}</p>
+                  <div className="user-profile-main">
+                    <div>
+                      <h4>{profile.full_name || "Unnamed User"}</h4>
+                      <p>{profile.email}</p>
+                    </div>
+
+                    <div className="user-tracking-meta">
+                      <span>
+                        Registered: {formatDateTime(profile.created_at)}
+                      </span>
+                      <span>
+                        Last opened:{" "}
+                        {formatDateTime(
+                          accessByEmail.get(profile.email.toLowerCase())
+                            ?.lastOpenedAt
+                        )}
+                      </span>
+                      <span>
+                        System opens:{" "}
+                        {accessByEmail.get(profile.email.toLowerCase())
+                          ?.accessCount || 0}
+                      </span>
+                    </div>
                   </div>
 
                   <div className="user-role-pills">

@@ -35,6 +35,7 @@ import { useCurrentProfile } from "../hooks/useCurrentProfile";
 import type { Permission } from "../constants/permissions";
 import LetterHoverText from "../components/common/LetterHoverText";
 import { getUnreadNotificationCount } from "../services/notificationService";
+import { addAuditLog } from "../services/auditLogService";
 
 type NavItem = {
   to: string;
@@ -174,6 +175,26 @@ const DashboardLayout = () => {
     document.documentElement.style.colorScheme = isLightMode ? "light" : "dark";
     localStorage.setItem("theme", isLightMode ? "light" : "dark");
   }, [isLightMode]);
+
+  useEffect(() => {
+    if (!session?.user || !profile) return;
+
+    const accessKey = `stockflow-access-log-${session.user.id}`;
+    const accessWindowMs = 1000 * 60 * 30;
+    const lastAccessLog = Number(sessionStorage.getItem(accessKey) || "0");
+
+    if (Date.now() - lastAccessLog < accessWindowMs) return;
+
+    sessionStorage.setItem(accessKey, String(Date.now()));
+
+    void addAuditLog({
+      action: "System Opened",
+      module: "Access",
+      description: `${profile.full_name || "A user"} (${
+        profile.email || session.user.email || "no email"
+      }) opened the inventory system.`,
+    });
+  }, [profile, session]);
 
   useEffect(() => {
     const refreshUnreadCount = async () => {
