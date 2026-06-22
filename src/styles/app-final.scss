@@ -6568,3 +6568,187 @@ body:not(.light-mode) .command-dock-item:not(.active):not(:hover)
     width: 100% !important;
   }
 }
+
+/* Dashboard final layout and theme refinement. */
+.dashboard-command-page {
+  display: grid !important;
+  align-content: start !important;
+  gap: clamp(28px, 2.8vw, 42px) !important;
+  padding-bottom: clamp(120px, 12vh, 160px) !important;
+}
+
+.dashboard-command-page > * {
+  margin: 0 !important;
+}
+
+.dashboard-command-page .dashboard-command-header {
+  margin: 0 !important;
+}
+
+.dashboard-command-page .dashboard-stat-grid {
+  gap: clamp(22px, 2vw, 30px) !important;
+  margin: 0 !important;
+}
+
+.dashboard-command-page .dashboard-command-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.42fr) minmax(360px, 0.9fr) !important;
+  align-items: start !important;
+  gap: clamp(28px, 2.4vw, 38px) !important;
+  margin: 0 !important;
+}
+
+.dashboard-command-page .dashboard-column {
+  display: grid !important;
+  align-content: start !important;
+  gap: clamp(28px, 2.4vw, 38px) !important;
+  min-width: 0 !important;
+}
+
+.dashboard-command-page :where(.dashboard-panel, .dashboard-stat-card) {
+  position: relative !important;
+  overflow: visible !important;
+  border-radius: 24px !important;
+}
+
+.dashboard-command-page .dashboard-panel {
+  padding: clamp(26px, 2.2vw, 34px) !important;
+}
+
+.dashboard-command-page .dashboard-stat-card {
+  min-height: 150px !important;
+  padding: clamp(22px, 2vw, 30px) !important;
+}
+
+.dashboard-command-page .panel-title-row {
+  margin-bottom: clamp(22px, 2vw, 30px) !important;
+}
+
+.dashboard-command-page .stock-chart {
+  min-height: 184px !important;
+  height: 184px !important;
+  padding: 18px 10px 0 !important;
+}
+
+.dashboard-command-page .chart-legend {
+  margin-top: 22px !important;
+}
+
+.dashboard-command-page .activity-list,
+.dashboard-command-page .quick-action-list {
+  gap: clamp(16px, 1.5vw, 22px) !important;
+}
+
+.dashboard-command-page .activity-item,
+.dashboard-command-page .quick-action-list a {
+  min-height: 78px !important;
+  padding: clamp(14px, 1.4vw, 18px) !important;
+  border-radius: 18px !important;
+}
+
+.dashboard-command-page .category-summary-table {
+  gap: 0 !important;
+}
+
+.dashboard-command-page .category-summary-table .mini-table-head,
+.dashboard-command-page .category-summary-table .mini-table-row {
+  min-height: 52px !important;
+  padding-inline: 0 !important;
+}
+
+.dashboard-command-page .category-summary-table .mini-table-row span:nth-child(3) {
+  height: auto !important;
+  border-radius: 0 !important;
+  color: var(--theme-text, #17301a) !important;
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.dashboard-command-page .category-summary-table .mini-table-row span:last-child {
+  color: var(--theme-heading, #17301a) !important;
+  font-weight: 950 !important;
+}
+
+body.light-mode .dashboard-command-page :where(.dashboard-panel, .dashboard-stat-card) {
+  color: #15351d !important;
+  border: 1px solid rgba(45, 122, 58, 0.18) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(233, 248, 237, 0.66)),
+    rgba(255, 255, 255, 0.76) !important;
+  box-shadow:
+    0 22px 58px rgba(44, 96, 54, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92) !important;
+}
+
+body:not(.light-mode) .dashboard-command-page :where(.dashboard-panel, .dashboard-stat-card) {
+  color: #f5fff7 !important;
+  border: 1px solid rgba(217, 246, 223, 0.26) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(153, 211, 164, 0.08)),
+    rgba(21, 54, 28, 0.82) !important;
+  box-shadow:
+    0 24px 62px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+body:not(.light-mode) .dashboard-command-page :where(
+  .dashboard-panel h3,
+  .dashboard-stat-card strong,
+  .activity-item strong,
+  .quick-action-list strong,
+  .category-summary-name
+) {
+  color: #ffffff !important;
+}
+
+body:not(.light-mode) .dashboard-command-page :where(
+  .dashboard-command-header p,
+  .dashboard-stat-card p,
+  .dashboard-stat-card small,
+  .activity-item p,
+  .quick-action-list p,
+  .activity-item time,
+  .stock-chart-item > small,
+  .chart-legend,
+  .mini-table-head,
+  .mini-table-row
+) {
+  color: rgba(229, 246, 233, 0.82) !important;
+}
+
+body:not(.light-mode) .dashboard-command-page :where(.activity-item, .quick-action-list a) {
+  border-color: rgba(217, 246, 223, 0.2) !important;
+  background: rgba(54, 88, 61, 0.72) !important;
+}
+
+body.light-mode .dashboard-command-page :where(.activity-item, .quick-action-list a) {
+  border-color: rgba(45, 122, 58, 0.14) !important;
+  background: rgba(248, 253, 249, 0.78) !important;
+}
+
+body:not(.light-mode) .dashboard-command-page :where(.dashboard-date-pill, .panel-title-row span) {
+  color: #e6f7e9 !important;
+  border-color: rgba(217, 246, 223, 0.2) !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-command-page .dashboard-command-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .dashboard-command-page {
+    gap: 24px !important;
+  }
+
+  .dashboard-command-page .dashboard-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-command-page .dashboard-panel,
+  .dashboard-command-page .dashboard-stat-card {
+    padding: 20px !important;
+  }
+}
