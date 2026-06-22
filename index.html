@@ -7,6 +7,19 @@
     <title>inventory</title>
   </head>
   <body>
+    <script>
+      (() => {
+        const savedTheme = localStorage.getItem("theme");
+        const useLightTheme = savedTheme
+          ? savedTheme === "light"
+          : !window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+        document.body.classList.toggle("light-mode", useLightTheme);
+        document.documentElement.style.colorScheme = useLightTheme
+          ? "light"
+          : "dark";
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

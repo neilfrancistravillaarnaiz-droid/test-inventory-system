@@ -1,19 +1,32 @@
+import { useCallback, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   AlertTriangle,
+  ArrowDownToLine,
   ArrowRight,
+  ArrowUpFromLine,
   Bell,
   CalendarDays,
   CircleDollarSign,
   FileDown,
+  History,
+  MapPin,
   Package,
+  Pencil,
   Plus,
   ScanLine,
+  Trash2,
   TrendingUp,
+  type LucideIcon,
 } from "lucide-react";
 import { useProducts } from "../../hooks/useProducts";
 import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 import LetterHoverText from "../../components/common/LetterHoverText";
+import { supabase } from "../../lib/supabaseClient";
+import {
+  getRecentAuditLogs,
+  type AuditLog,
+} from "../../services/auditLogService";
 
 const currency = new Intl.NumberFormat("en-PH", {
   style: "currency",
@@ -21,9 +34,99 @@ const currency = new Intl.NumberFormat("en-PH", {
   maximumFractionDigits: 0,
 });
 
+type ActivityStyle = {
+  className: "success" | "danger" | "blue" | "gold";
+  icon: LucideIcon;
+};
+
+const getActivityStyle = (log: AuditLog): ActivityStyle => {
+  const value = `${log.action} ${log.module}`.toLowerCase();
+
+  if (value.includes("delete") || value.includes("remove")) {
+    return { className: "danger", icon: Trash2 };
+  }
+
+  if (value.includes("stock out")) {
+    return { className: "danger", icon: ArrowUpFromLine };
+  }
+
+  if (value.includes("stock in") || value.includes("add")) {
+    return { className: "success", icon: ArrowDownToLine };
+  }
+
+  if (value.includes("location") || value.includes("assign")) {
+    return { className: "blue", icon: MapPin };
+  }
+
+  if (value.includes("edit") || value.includes("update")) {
+    return { className: "gold", icon: Pencil };
+  }
+
+  return { className: "blue", icon: History };
+};
+
+const formatRelativeTime = (dateValue: string, now: number) => {
+  const elapsedSeconds = Math.max(
+    0,
+    Math.floor((now - new Date(dateValue).getTime()) / 1000)
+  );
+
+  if (elapsedSeconds < 60) return "now";
+  if (elapsedSeconds < 3600) return `${Math.floor(elapsedSeconds / 60)}m`;
+  if (elapsedSeconds < 86400) return `${Math.floor(elapsedSeconds / 3600)}h`;
+  if (elapsedSeconds < 604800) return `${Math.floor(elapsedSeconds / 86400)}d`;
+
+  return new Intl.DateTimeFormat("en-PH", {
+    month: "short",
+    day: "numeric",
+  }).format(new Date(dateValue));
+};
+
 const Dashboard = () => {
   const { products, loading } = useProducts();
   const { can } = useCurrentProfile();
+  const [recentActivity, setRecentActivity] = useState<AuditLog[]>([]);
+  const [activityLoading, setActivityLoading] = useState(true);
+  const [now, setNow] = useState(Date.now());
+
+  const fetchRecentActivity = useCallback(async () => {
+    const { data, error } = await getRecentAuditLogs(5);
+
+    if (error) {
+      console.error("Unable to load dashboard activity:", error.message);
+    } else {
+      setRecentActivity((data as AuditLog[]) || []);
+    }
+
+    setActivityLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void fetchRecentActivity();
+
+    const handleAuditRefresh = () => void fetchRecentActivity();
+    window.addEventListener("stockflow:refresh-audit-logs", handleAuditRefresh);
+
+    const channel = supabase
+      .channel(`stockflow-dashboard-activity-${Date.now()}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "audit_logs" },
+        handleAuditRefresh
+      )
+      .subscribe();
+
+    const clock = window.setInterval(() => setNow(Date.now()), 60_000);
+
+    return () => {
+      window.removeEventListener(
+        "stockflow:refresh-audit-logs",
+        handleAuditRefresh
+      );
+      window.clearInterval(clock);
+      void supabase.removeChannel(channel);
+    };
+  }, [fetchRecentActivity]);
 
   const totalProducts = products.length;
   const totalQuantity = products.reduce(
@@ -39,11 +142,31 @@ const Dashboard = () => {
   );
   const lowStockItems = lowStockProducts.length;
   const chartProducts = products.slice(0, 7);
-  const tableProducts = products.slice(0, 5);
   const maxQuantity = Math.max(
     1,
     ...chartProducts.map((product) => product.quantity || 0)
   );
+  const categorySummary = Array.from(
+    products.reduce((categories, product) => {
+      const category = product.category?.trim() || "Uncategorized";
+      const current = categories.get(category) || {
+        name: category,
+        products: 0,
+        quantity: 0,
+        value: 0,
+      };
+
+      current.products += 1;
+      current.quantity += product.quantity || 0;
+      current.value += (product.quantity || 0) * (product.price || 0);
+      categories.set(category, current);
+
+      return categories;
+    }, new Map<string, { name: string; products: number; quantity: number; value: number }>())
+      .values()
+  )
+    .sort((a, b) => b.quantity - a.quantity)
+    .slice(0, 5);
 
   const today = new Intl.DateTimeFormat("en-US", {
     month: "long",
@@ -125,11 +248,21 @@ const Dashboard = () => {
             <span>{chartProducts.length} products</span>
           </div>
 
-          <div className="stock-chart" aria-label="Stock levels by product">
-            {chartProducts.map((product, index) => {
+          <div
+            className="stock-chart"
+            aria-label="Stock levels by product"
+            style={{
+              gridTemplateColumns: `repeat(${Math.max(
+                chartProducts.length,
+                1
+              )}, minmax(0, 1fr))`,
+            }}
+          >
+            {chartProducts.map((product) => {
               const isCritical = product.quantity <= product.low_stock_limit;
               const isLow =
                 !isCritical && product.quantity <= product.low_stock_limit + 5;
+              const productLabel = product.sku || product.name;
 
               return (
                 <div className="stock-chart-item" key={product.id || product.name}>
@@ -147,8 +280,19 @@ const Dashboard = () => {
                         ((product.quantity || 0) / maxQuantity) * 96
                       )}px`,
                     }}
-                  />
-                  <small>{String.fromCharCode(65 + index)}</small>
+                    tabIndex={0}
+                    role="img"
+                    aria-label={`${product.name}: ${product.quantity || 0} units`}
+                  >
+                    <span className="stock-bar-tooltip" role="tooltip">
+                      <strong>{product.name}</strong>
+                      <small>{product.sku || "No product code"}</small>
+                      <b>{product.quantity || 0} units</b>
+                    </span>
+                  </span>
+                  <small title={`${product.name}${product.sku ? ` (${product.sku})` : ""}`}>
+                    {productLabel}
+                  </small>
                 </div>
               );
             })}
@@ -174,92 +318,61 @@ const Dashboard = () => {
           </div>
 
           <div className="activity-list">
-            <div className="activity-item success">
-              <Plus size={16} />
-              <div>
-                <strong>Product restocked</strong>
-                <p>+20 units added</p>
-              </div>
-              <time>2m</time>
-            </div>
+            {activityLoading ? (
+              <div className="activity-empty">Loading recent activity...</div>
+            ) : recentActivity.length === 0 ? (
+              <div className="activity-empty">No inventory activity yet.</div>
+            ) : (
+              recentActivity.map((log) => {
+                const activityStyle = getActivityStyle(log);
+                const ActivityIcon = activityStyle.icon;
 
-            <div className="activity-item danger">
-              <AlertTriangle size={16} />
-              <div>
-                <strong>Low stock alert</strong>
-                <p>{lowStockProducts[0]?.name || "No product"} needs review</p>
-              </div>
-              <time>14m</time>
-            </div>
-
-            <div className="activity-item blue">
-              <ScanLine size={16} />
-              <div>
-                <strong>QR scan logged</strong>
-                <p>Warehouse B</p>
-              </div>
-              <time>1h</time>
-            </div>
-
-            <div className="activity-item gold">
-              <FileDown size={16} />
-              <div>
-                <strong>Report exported</strong>
-                <p>June monthly</p>
-              </div>
-              <time>3h</time>
-            </div>
+                return (
+                  <div
+                    className={`activity-item ${activityStyle.className}`}
+                    key={log.id}
+                  >
+                    <ActivityIcon size={16} />
+                    <div>
+                      <strong>{log.action}</strong>
+                      <p>{log.description}</p>
+                    </div>
+                    <time dateTime={log.created_at} title={new Date(log.created_at).toLocaleString()}>
+                      {formatRelativeTime(log.created_at, now)}
+                    </time>
+                  </div>
+                );
+              })
+            )}
           </div>
         </article>
 
         <article className="dashboard-panel inventory-panel">
           <div className="panel-title-row">
-            <h3><LetterHoverText text="Inventory table" /></h3>
-            <span>{lowStockItems} need attention</span>
+            <h3><LetterHoverText text="Category overview" /></h3>
+            <span>{categorySummary.length} categories</span>
           </div>
 
-          <div className="mini-inventory-table">
+          <div className="mini-inventory-table category-summary-table">
             <div className="mini-table-head">
-              <span>Product</span>
-              <span>Qty</span>
-              <span>Level</span>
-              <span>Status</span>
+              <span>Category</span>
+              <span>Products</span>
+              <span>Units</span>
+              <span>Value</span>
             </div>
 
-            {tableProducts.map((product) => {
-              const isCritical = product.quantity <= product.low_stock_limit;
-              const isLow =
-                !isCritical && product.quantity <= product.low_stock_limit + 5;
-
-              return (
-                <div className="mini-table-row" key={product.id || product.name}>
-                  <span>{product.name}</span>
-                  <span>{product.quantity}</span>
-                  <span>
-                    <i
-                      className={isCritical ? "critical" : isLow ? "low" : "ok"}
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          Math.max(10, ((product.quantity || 0) / maxQuantity) * 100)
-                        )}%`,
-                      }}
-                    />
-                  </span>
-                  <span
-                    className={
-                      isCritical
-                        ? "mini-status critical"
-                        : isLow
-                          ? "mini-status low"
-                          : "mini-status ok"
-                    }
-                  >
-                    {isCritical ? "Critical" : isLow ? "Low" : "OK"}
-                  </span>
+            {categorySummary.length === 0 ? (
+              <div className="activity-empty">No category data available.</div>
+            ) : (
+              categorySummary.map((category) => (
+                <div className="mini-table-row" key={category.name}>
+                  <span className="category-summary-name">{category.name}</span>
+                  <span>{category.products}</span>
+                  <span>{category.quantity}</span>
+                  <span>{currency.format(category.value)}</span>
                 </div>
-              );
-            })}
+              ))
+            )}
           </div>
         </article>
 

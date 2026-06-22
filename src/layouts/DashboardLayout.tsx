@@ -85,7 +85,13 @@ const DashboardLayout = () => {
   const { products, fetchProducts } = useProducts();
   const { session, profile, role, can } = useCurrentProfile();
 
-  const [isLightMode, setIsLightMode] = useState(false);
+  const [isLightMode, setIsLightMode] = useState(() => {
+    const savedTheme = localStorage.getItem("theme");
+
+    if (savedTheme) return savedTheme === "light";
+
+    return !window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -164,13 +170,10 @@ const DashboardLayout = () => {
   }, [searchTerm, searchablePages]);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme");
-
-    if (savedTheme === "light") {
-      document.body.classList.add("light-mode");
-      setIsLightMode(true);
-    }
-  }, []);
+    document.body.classList.toggle("light-mode", isLightMode);
+    document.documentElement.style.colorScheme = isLightMode ? "light" : "dark";
+    localStorage.setItem("theme", isLightMode ? "light" : "dark");
+  }, [isLightMode]);
 
   useEffect(() => {
     const refreshUnreadCount = async () => {
@@ -248,19 +251,7 @@ const DashboardLayout = () => {
   }, []);
 
   const toggleTheme = () => {
-    setIsLightMode((prev) => {
-      const newMode = !prev;
-
-      if (newMode) {
-        document.body.classList.add("light-mode");
-        localStorage.setItem("theme", "light");
-      } else {
-        document.body.classList.remove("light-mode");
-        localStorage.setItem("theme", "dark");
-      }
-
-      return newMode;
-    });
+    setIsLightMode((prev) => !prev);
   };
 
   const handleLogout = async () => {
@@ -472,7 +463,11 @@ const DashboardLayout = () => {
                 {isLightMode ? <Sun size={17} /> : <Moon size={17} />}
               </span>
 
-              <label className="switch" aria-label="Toggle theme">
+              <label
+                className="switch"
+                aria-label={`Switch to ${isLightMode ? "dark" : "light"} mode`}
+                title={`Switch to ${isLightMode ? "dark" : "light"} mode`}
+              >
                 <input
                   type="checkbox"
                   checked={isLightMode}

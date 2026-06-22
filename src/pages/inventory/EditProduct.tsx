@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader";
 import ProductForm from "../../components/inventory/ProductForm";
 import { getProductById, updateProduct } from "../../services/inventoryService";
+import { addAuditLog } from "../../services/auditLogService";
 import type { ProductInput } from "../../types/Product";
 
 const EditProduct = () => {
@@ -39,6 +40,12 @@ const EditProduct = () => {
       alert(error.message);
       return false;
     }
+
+    await addAuditLog({
+      action: "Product Updated",
+      module: "Inventory",
+      description: `${product.name} product details were updated.`,
+    });
 
     alert("Product updated successfully!");
     navigate("/inventory");

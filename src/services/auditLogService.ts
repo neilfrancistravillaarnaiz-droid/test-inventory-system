@@ -1,5 +1,13 @@
 import { supabase } from "../lib/supabaseClient";
 
+export type AuditLog = {
+  id: string;
+  action: string;
+  module: string;
+  description: string;
+  created_at: string;
+};
+
 export const getAuditLogs = async () => {
   return await supabase
     .from("audit_logs")
@@ -19,4 +27,12 @@ export const addAuditLog = async (log: {
   }
 
   return result;
+};
+
+export const getRecentAuditLogs = async (limit = 5) => {
+  return await supabase
+    .from("audit_logs")
+    .select("id, action, module, description, created_at")
+    .order("created_at", { ascending: false })
+    .limit(limit);
 };

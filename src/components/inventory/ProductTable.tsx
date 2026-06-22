@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import type { Product } from "../../types/Product";
 import { deleteProduct } from "../../services/inventoryService";
+import { addAuditLog } from "../../services/auditLogService";
 import SuccessModal from "../common/SuccessModal";
 
 type Props = {
@@ -33,12 +34,22 @@ const ProductTable = ({
   const confirmDelete = async () => {
     if (!selectedProductId || !canDelete) return;
 
+    const selectedProduct = products.find(
+      (product) => product.id === selectedProductId
+    );
+
     const { error } = await deleteProduct(selectedProductId);
 
     if (error) {
       alert(error.message);
       return;
     }
+
+    await addAuditLog({
+      action: "Product Deleted",
+      module: "Inventory",
+      description: `${selectedProduct?.name || "A product"} was removed from the inventory.`,
+    });
 
     setShowDeleteConfirm(false);
     setSelectedProductId(null);
