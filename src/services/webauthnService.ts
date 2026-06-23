@@ -87,10 +87,15 @@ export const registerFingerprint = async (
     }
 
     // Check for user verification support
-    if (!(await browserSupportsWebauthnUserVerification())) {
-      console.warn(
-        "Browser does not support user verification (fingerprint)"
-      );
+    try {
+      const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+      if (!available) {
+        console.warn(
+          "Browser does not support user verification (fingerprint)"
+        );
+      }
+    } catch (e) {
+      console.warn("Could not check user verification support");
     }
 
     // Step 1: Get registration options from server
