@@ -1,10 +1,62 @@
 import { supabase } from "../lib/supabaseClient";
 
+export const ADMIN_OTP_STORAGE_KEY = "stockflow-admin-otp-verified-at";
+const ADMIN_OTP_WINDOW_MS = 1000 * 60 * 60 * 8;
+
 export const login = async (email: string, password: string) => {
   return await supabase.auth.signInWithPassword({
     email,
     password,
   });
+};
+
+export const getProfileForAuthUser = async (userId: string, email?: string | null) => {
+  let response = await supabase
+    .from("profiles")
+    .select("id, full_name, email, role, status")
+    .eq("id", userId)
+    .maybeSingle();
+
+  if (!response.data && email) {
+    response = await supabase
+      .from("profiles")
+      .select("id, full_name, email, role, status")
+      .eq("email", email)
+      .maybeSingle();
+  }
+
+  return response;
+};
+
+export const requestAdminEmailOtp = async (email: string) => {
+  return await supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+    },
+  });
+};
+
+export const verifyAdminEmailOtp = async (email: string, token: string) => {
+  return await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: "email",
+  });
+};
+
+export const markAdminOtpVerified = () => {
+  sessionStorage.setItem(ADMIN_OTP_STORAGE_KEY, String(Date.now()));
+};
+
+export const clearAdminOtpVerified = () => {
+  sessionStorage.removeItem(ADMIN_OTP_STORAGE_KEY);
+};
+
+export const isAdminOtpVerified = () => {
+  const verifiedAt = Number(sessionStorage.getItem(ADMIN_OTP_STORAGE_KEY) || "0");
+
+  return verifiedAt > 0 && Date.now() - verifiedAt < ADMIN_OTP_WINDOW_MS;
 };
 
 export const register = async (
@@ -34,6 +86,7 @@ export const register = async (
 };
 
 export const logout = async () => {
+  clearAdminOtpVerified();
   return await supabase.auth.signOut();
 };
 

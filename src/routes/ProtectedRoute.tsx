@@ -1,16 +1,43 @@
 import { useEffect, useState } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
+import {
+  clearAdminOtpVerified,
+  getProfileForAuthUser,
+  isAdminOtpVerified,
+} from "../services/authService";
 
 const ProtectedRoute = () => {
   const [checking, setChecking] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [redirectTo, setRedirectTo] = useState("/login");
 
   useEffect(() => {
     const checkUser = async () => {
       const { data } = await supabase.auth.getSession();
 
-      setIsLoggedIn(!!data.session);
+      if (!data.session) {
+        setRedirectTo("/login");
+        setIsLoggedIn(false);
+        setChecking(false);
+        return;
+      }
+
+      const { data: profile } = await getProfileForAuthUser(
+        data.session.user.id,
+        data.session.user.email
+      );
+
+      if (profile?.role === "Admin" && !isAdminOtpVerified()) {
+        clearAdminOtpVerified();
+        await supabase.auth.signOut();
+        setRedirectTo("/admin-login");
+        setIsLoggedIn(false);
+        setChecking(false);
+        return;
+      }
+
+      setIsLoggedIn(true);
       setChecking(false);
     };
 
@@ -22,7 +49,7 @@ const ProtectedRoute = () => {
   }
 
   if (!isLoggedIn) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={redirectTo} replace />;
   }
 
   return <Outlet />;

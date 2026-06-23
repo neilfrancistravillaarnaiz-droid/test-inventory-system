@@ -12,8 +12,13 @@ import {
   Lock,
   User,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { login, register } from "../../services/authService";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  getProfileForAuthUser,
+  login,
+  logout,
+  register,
+} from "../../services/authService";
 
 type LoginProps = {
   defaultRegister?: boolean;
@@ -58,9 +63,24 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await login(loginEmail, loginPassword);
+    const { data, error } = await login(loginEmail.trim().toLowerCase(), loginPassword);
     setLoading(false);
     if (error) { alert(error.message); return; }
+
+    if (data.user) {
+      const { data: profile } = await getProfileForAuthUser(
+        data.user.id,
+        data.user.email
+      );
+
+      if (profile?.role === "Admin") {
+        await logout();
+        alert("Admin accounts must use the secure Admin Login with email OTP.");
+        navigate("/admin-login");
+        return;
+      }
+    }
+
     navigate("/dashboard");
   };
 
@@ -215,6 +235,10 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
                   </label>
                   <a href="/forgot-password">Forgot password?</a>
                 </div>
+
+                <Link className="auth-admin-link" to="/admin-login">
+                  Admin login with email OTP
+                </Link>
 
                 <button className="auth-submit-btn" type="submit" disabled={loading}>
                   {loading ? "Please wait…" : "Sign In"}

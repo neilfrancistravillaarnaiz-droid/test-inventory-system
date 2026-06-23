@@ -13,6 +13,7 @@ import StockOut from "../pages/stock/StockOut";
 import StockHistory from "../pages/stock/StockHistory";
 import Suppliers from "../pages/suppliers/Suppliers";
 import { Routes, Route, Navigate } from "react-router-dom";
+import AdminLogin from "../pages/auth/AdminLogin";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import ForgotPassword from "../pages/auth/ForgotPassword";
@@ -33,6 +34,7 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
       <Route path="/login" element={<Login />} />
+      <Route path="/admin-login" element={<AdminLogin />} />
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
