@@ -24,6 +24,37 @@ import { supabase } from "../../lib/supabaseClient";
 
 const PENDING_ADMIN_EMAIL_KEY = "stockflow-pending-admin-email";
 
+const getAuthErrorMessage = (error: unknown, fallback: string) => {
+  if (!error) return fallback;
+
+  if (typeof error === "string") {
+    return error === "{}" ? fallback : error;
+  }
+
+  if (typeof error === "object") {
+    const maybeError = error as {
+      message?: string;
+      error_description?: string;
+      name?: string;
+      status?: number;
+    };
+
+    if (maybeError.message && maybeError.message !== "{}") {
+      return maybeError.message;
+    }
+
+    if (maybeError.error_description) {
+      return maybeError.error_description;
+    }
+
+    if (maybeError.status === 400) {
+      return "Invalid email, password, or OTP. Please check your credentials and try again.";
+    }
+  }
+
+  return fallback;
+};
+
 const AdminLogin = () => {
   const navigate = useNavigate();
   const [step, setStep] = useState<"password" | "sendOtp" | "otp">("password");
@@ -73,7 +104,12 @@ const AdminLogin = () => {
     const { data, error } = await login(normalizedEmail, password);
     if (error || !data.user) {
       setLoading(false);
-      alert(error?.message || "Admin login failed.");
+      alert(
+        getAuthErrorMessage(
+          error,
+          "Admin login failed. Please check your email and password."
+        )
+      );
       return;
     }
 
@@ -85,7 +121,14 @@ const AdminLogin = () => {
     if (profileError || profile?.role !== "Admin") {
       await supabase.auth.signOut();
       setLoading(false);
-      alert("This portal is only for Admin accounts.");
+      alert(
+        profileError
+          ? getAuthErrorMessage(
+              profileError,
+              "Could not verify your admin profile. Please check your profile role."
+            )
+          : "This portal is only for Admin accounts."
+      );
       return;
     }
 
@@ -109,7 +152,12 @@ const AdminLogin = () => {
     setLoading(false);
 
     if (otpResponse.error) {
-      alert(otpResponse.error.message);
+      alert(
+        getAuthErrorMessage(
+          otpResponse.error,
+          "Could not send the email OTP. Please check Supabase SMTP and email template settings."
+        )
+      );
       return;
     }
 
@@ -129,7 +177,12 @@ const AdminLogin = () => {
     const { data, error } = await verifyAdminEmailOtp(targetEmail, otp.trim());
     if (error || !data.user) {
       setLoading(false);
-      alert(error?.message || "Invalid or expired OTP.");
+      alert(
+        getAuthErrorMessage(
+          error,
+          "Invalid or expired OTP. Please request a new code and try again."
+        )
+      );
       return;
     }
 
