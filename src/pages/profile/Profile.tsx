@@ -4,7 +4,14 @@ import PageHeader from "../../components/common/PageHeader";
 import SuccessModal from "../../components/common/SuccessModal";
 import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 import { updateProfile, type ProfileInput } from "../../services/userService";
-import { ImagePlus, KeyRound, ShieldCheck, Trash2, UserCog } from "lucide-react";
+import {
+  ClipboardList,
+  ImagePlus,
+  KeyRound,
+  ShieldCheck,
+  Trash2,
+  UserCog,
+} from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import {
   deleteStoredImage,
@@ -407,17 +414,33 @@ const Profile = () => {
             </div>
           </div>
 
-          <div className="profile-quick-actions">
-            {can("users:manage") && (
-              <Link to="/users">
-                <UserCog size={17} aria-hidden="true" />
-                Manage Users
-              </Link>
-            )}
-            {can("audit:view") && <Link to="/audit-logs">View Audit Logs</Link>}
-          </div>
         </aside>
       </div>
+
+      <footer className="profile-footer">
+        <div>
+          <span>CCD Inventory System</span>
+          <p>
+            Keep your profile updated so access logs, approvals, and activity
+            records stay accurate.
+          </p>
+        </div>
+
+        <div className="profile-footer-actions">
+          {can("users:manage") && (
+            <Link to="/users">
+              <UserCog size={17} aria-hidden="true" />
+              Manage Users
+            </Link>
+          )}
+          {can("audit:view") && (
+            <Link to="/audit-logs">
+              <ClipboardList size={17} aria-hidden="true" />
+              View Audit Logs
+            </Link>
+          )}
+        </div>
+      </footer>
 
       <SuccessModal
         show={showSuccess}
