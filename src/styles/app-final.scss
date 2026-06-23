@@ -7831,3 +7831,101 @@ body:not(.light-mode) .profile-footer-actions a {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* Dashboard alignment pass: prevent uneven columns from creating large blank areas. */
+.dashboard-command-page {
+  gap: clamp(24px, 2.4vw, 34px) !important;
+}
+
+.dashboard-command-page .dashboard-command-grid {
+  grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.92fr) !important;
+  gap: clamp(24px, 2.2vw, 34px) !important;
+  align-items: start !important;
+}
+
+.dashboard-command-page .dashboard-column {
+  gap: clamp(24px, 2.2vw, 34px) !important;
+}
+
+.dashboard-command-page .dashboard-panel {
+  padding: clamp(24px, 2.1vw, 32px) !important;
+}
+
+.dashboard-command-page .stock-level-panel {
+  min-height: 360px !important;
+}
+
+.dashboard-command-page .activity-panel {
+  min-height: 360px !important;
+  max-height: 520px !important;
+  overflow: hidden !important;
+}
+
+.dashboard-command-page .activity-panel .activity-list {
+  max-height: 390px !important;
+  overflow-y: auto !important;
+  padding-right: 4px !important;
+  scrollbar-width: thin !important;
+}
+
+.dashboard-command-page .activity-panel .activity-list::-webkit-scrollbar {
+  width: 7px !important;
+}
+
+.dashboard-command-page .activity-panel .activity-list::-webkit-scrollbar-thumb {
+  border-radius: 999px !important;
+  background: rgba(45, 122, 58, 0.34) !important;
+}
+
+.dashboard-command-page .inventory-panel,
+.dashboard-command-page .actions-panel {
+  min-height: 360px !important;
+}
+
+.dashboard-command-page .actions-panel {
+  display: grid !important;
+  align-content: start !important;
+}
+
+.dashboard-command-page .quick-action-list {
+  gap: clamp(14px, 1.3vw, 18px) !important;
+}
+
+.dashboard-command-page .quick-action-list a {
+  min-height: 74px !important;
+}
+
+.dashboard-command-page .category-summary-table {
+  min-height: 235px !important;
+}
+
+.dashboard-command-page .category-summary-table .mini-table-row {
+  min-height: 58px !important;
+}
+
+body:not(.light-mode) .dashboard-command-page .activity-panel .activity-list::-webkit-scrollbar-thumb {
+  background: rgba(239, 255, 243, 0.28) !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-command-page .dashboard-command-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-command-page .activity-panel {
+    max-height: none !important;
+  }
+
+  .dashboard-command-page .activity-panel .activity-list {
+    max-height: none !important;
+    overflow: visible !important;
+    padding-right: 0 !important;
+  }
+
+  .dashboard-command-page .stock-level-panel,
+  .dashboard-command-page .activity-panel,
+  .dashboard-command-page .inventory-panel,
+  .dashboard-command-page .actions-panel {
+    min-height: auto !important;
+  }
+}
