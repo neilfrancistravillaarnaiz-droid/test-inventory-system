@@ -7929,3 +7929,83 @@ body:not(.light-mode) .dashboard-command-page .activity-panel .activity-list::-w
     min-height: auto !important;
   }
 }
+
+.dashboard-command-page .dashboard-footer-panel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: clamp(18px, 2vw, 30px) !important;
+  min-height: 140px !important;
+  margin-top: 0 !important;
+}
+
+.dashboard-command-page .dashboard-footer-panel > div:first-child {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) !important;
+  align-items: center !important;
+  gap: 18px !important;
+  min-width: 0 !important;
+}
+
+.dashboard-command-page .dashboard-footer-panel h3 {
+  margin: 0 0 6px !important;
+  color: var(--theme-heading, #12361c) !important;
+  font-size: clamp(1.25rem, 1.8vw, 1.65rem) !important;
+  line-height: 1.1 !important;
+}
+
+.dashboard-command-page .dashboard-footer-panel p {
+  max-width: 760px !important;
+  margin: 0 !important;
+  color: var(--theme-muted, #55735b) !important;
+  font-weight: 800 !important;
+  line-height: 1.45 !important;
+}
+
+.dashboard-footer-actions {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  flex: 0 0 auto !important;
+}
+
+.dashboard-footer-actions a {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 48px !important;
+  padding: 12px 18px !important;
+  border: 1px solid var(--theme-border, rgba(45, 122, 58, 0.16)) !important;
+  border-radius: 999px !important;
+  color: #2d7a3a !important;
+  background: rgba(255, 255, 255, 0.58) !important;
+  font-weight: 950 !important;
+  white-space: nowrap !important;
+}
+
+body:not(.light-mode) .dashboard-command-page .dashboard-footer-panel h3,
+body:not(.light-mode) .dashboard-footer-actions a {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+body:not(.light-mode) .dashboard-command-page .dashboard-footer-panel p {
+  color: #e1f2e5 !important;
+  -webkit-text-fill-color: #e1f2e5 !important;
+}
+
+body:not(.light-mode) .dashboard-footer-actions a {
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-command-page .dashboard-footer-panel {
+    align-items: flex-start !important;
+    flex-direction: column !important;
+  }
+
+  .dashboard-footer-actions {
+    justify-content: flex-start !important;
+  }
+}

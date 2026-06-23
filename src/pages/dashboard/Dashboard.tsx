@@ -14,6 +14,7 @@ import {
   Package,
   Pencil,
   Plus,
+  ShieldCheck,
   ScanLine,
   Trash2,
   TrendingUp,
@@ -434,6 +435,26 @@ const Dashboard = () => {
           </article>
         </div>
       </div>
+
+      <article className="dashboard-panel dashboard-footer-panel">
+        <div>
+          <span className="stat-icon stat-icon-green">
+            <ShieldCheck size={18} />
+          </span>
+          <div>
+            <h3><LetterHoverText text="Inventory control center" /></h3>
+            <p>
+              Monitor stock levels, review recent activity, scan QR/barcodes,
+              and manage replenishment from one organized workspace.
+            </p>
+          </div>
+        </div>
+
+        <div className="dashboard-footer-actions">
+          <Link to="/stock-history">View stock history</Link>
+          <Link to="/audit-logs">Open audit logs</Link>
+        </div>
+      </article>
     </section>
   );
 };
