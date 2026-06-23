@@ -4,6 +4,7 @@ import {
   Bot,
   Eye,
   EyeOff,
+  Fingerprint,
   KeyRound,
   Lock,
   Mail,
@@ -13,6 +14,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import FingerprintLogin from "../../components/auth/FingerprintLogin";
 import {
   getProfileForAuthUser,
   login,
@@ -75,6 +77,7 @@ const AdminLogin = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
+  const [showFingerprintLogin, setShowFingerprintLogin] = useState(false);
 
   const features = [
     { icon: Bot, title: "AI Inventory Assistant", desc: "Smart inventory answers instantly." },
@@ -400,7 +403,47 @@ const AdminLogin = () => {
                         : "Verify and Enter"}
                 </button>
 
-                {step !== "password" && (
+                {step === "otp" && !showFingerprintLogin && (
+                  <>
+                    <div className="auth-divider">
+                      <span>or</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowFingerprintLogin(true)}
+                      className="auth-fingerprint-btn"
+                    >
+                      <Fingerprint size={18} strokeWidth={2} />
+                      <span>Sign in with Fingerprint</span>
+                    </button>
+                  </>
+                )}
+
+                {showFingerprintLogin && step === "otp" && (
+                  <>
+                    <div className="auth-fingerprint-section">
+                      <FingerprintLogin
+                        email={email}
+                        onSuccess={() => {
+                          navigate("/dashboard");
+                        }}
+                        onError={(error) => {
+                          alert(error);
+                          setShowFingerprintLogin(false);
+                        }}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setShowFingerprintLogin(false)}
+                      className="auth-back-btn"
+                    >
+                      ← Back to OTP
+                    </button>
+                  </>
+                )}
+
+                {step !== "password" && !showFingerprintLogin && (
                   <button type="button" className="auth-secondary-btn" onClick={restartLogin}>
                     Use a different admin account
                   </button>
