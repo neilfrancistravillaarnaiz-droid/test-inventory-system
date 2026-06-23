@@ -8082,3 +8082,87 @@ body:not(.light-mode) .dashboard-footer-actions a {
     justify-content: flex-start !important;
   }
 }
+
+/* Dashboard gap correction: keep panel rows close instead of forcing tall whitespace. */
+.dashboard-command-page {
+  gap: clamp(18px, 1.8vw, 26px) !important;
+}
+
+.dashboard-command-page .dashboard-command-grid {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.45fr) minmax(360px, 0.92fr) !important;
+  grid-template-areas:
+    "stock activity"
+    "category actions" !important;
+  grid-auto-rows: auto !important;
+  align-items: stretch !important;
+  gap: clamp(18px, 1.8vw, 26px) !important;
+}
+
+.dashboard-command-page .stock-level-panel {
+  grid-area: stock !important;
+}
+
+.dashboard-command-page .activity-panel {
+  grid-area: activity !important;
+}
+
+.dashboard-command-page .inventory-panel {
+  grid-area: category !important;
+}
+
+.dashboard-command-page .actions-panel {
+  grid-area: actions !important;
+}
+
+.dashboard-command-page :where(
+  .stock-level-panel,
+  .activity-panel,
+  .inventory-panel,
+  .actions-panel
+) {
+  min-height: 0 !important;
+}
+
+.dashboard-command-page .stock-level-panel,
+.dashboard-command-page .activity-panel {
+  height: auto !important;
+}
+
+.dashboard-command-page .inventory-panel,
+.dashboard-command-page .actions-panel {
+  align-self: start !important;
+  height: auto !important;
+}
+
+.dashboard-command-page .activity-panel {
+  max-height: 440px !important;
+}
+
+.dashboard-command-page .activity-panel .activity-list {
+  max-height: 310px !important;
+}
+
+.dashboard-command-page .category-summary-table {
+  min-height: 0 !important;
+}
+
+.dashboard-command-page .dashboard-footer-panel {
+  margin-top: 0 !important;
+}
+
+@media (max-width: 1180px) {
+  .dashboard-command-page .dashboard-command-grid {
+    grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "stock"
+      "activity"
+      "category"
+      "actions" !important;
+  }
+
+  .dashboard-command-page .activity-panel,
+  .dashboard-command-page .activity-panel .activity-list {
+    max-height: none !important;
+  }
+}
