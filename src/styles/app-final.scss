@@ -663,7 +663,7 @@ body.light-mode .report-card span {
   max-width: min(1280px, calc(100% - 64px)) !important;
   margin: 0 auto !important;
   padding: 20px 24px !important;
-  gap: 20px !important;
+  gap: 16px !important;
 }
 
 .dashboard-command-header {
@@ -708,7 +708,7 @@ body.light-mode .report-card span {
 .dashboard-stat-grid {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  gap: 16px !important;
+  gap: 14px !important;
 }
 
 .dashboard-stat-card,
@@ -795,7 +795,7 @@ body.light-mode .report-card span {
 .dashboard-command-grid {
   display: grid !important;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr) !important;
-  gap: 16px !important;
+  gap: 12px !important;
 }
 
 .dashboard-panel {
