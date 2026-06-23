@@ -245,97 +245,134 @@ const Profile = () => {
       />
 
       <div className="settings-layout profile-layout">
-        <form className="settings-form profile-form" onSubmit={handleSave}>
-          <div className="profile-section-heading">
-            <div>
-              <span>Account Center</span>
-              <h3>Profile Information</h3>
-            </div>
-            <ShieldCheck size={24} aria-hidden="true" />
-          </div>
-
-          <div className="profile-photo-editor">
-            <div className="profile-avatar-frame">
-              <img src={avatarPreview} alt="Profile preview" />
-            </div>
-            <div className="media-upload-actions">
-              <label className="media-upload-button">
-                <ImagePlus size={17} aria-hidden="true" />
-                {avatarFile ? "Choose Another" : "Change Picture"}
-                <input type="file" accept="image/*" onChange={handleAvatarChange} />
-              </label>
-
-              {avatarFile && (
-                <button
-                  type="button"
-                  className="media-save-button"
-                  onClick={saveProfilePhoto}
-                  disabled={photoSaving}
-                >
-                  {photoSaving ? "Uploading..." : "Save Picture"}
-                </button>
-              )}
-
-              {(avatarFile || session?.user.user_metadata?.avatar_url) && (
-                <button
-                  type="button"
-                  className="media-remove-button"
-                  onClick={removeProfilePhoto}
-                  disabled={photoSaving}
-                >
-                  <Trash2 size={17} aria-hidden="true" />
-                  Remove Picture
-                </button>
-              )}
-              <small>JPG, PNG, or WebP. Maximum 5 MB.</small>
-            </div>
-          </div>
-
-          <div className="profile-insight-grid">
-            <article>
-              <span>Member Since</span>
-              <strong>{formatDateTime(profile.created_at)}</strong>
-            </article>
-            <article>
-              <span>Last Opened</span>
-              <strong>{formatDateTime(accessSummary.lastOpenedAt)}</strong>
-            </article>
-            <article>
-              <span>System Opens</span>
-              <strong>{accessSummary.accessCount}</strong>
-            </article>
-          </div>
-
-          <div className="settings-grid">
-            <div className="form-field full-field">
-              <label>Full Name</label>
-              <input
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-                placeholder="Enter your full name"
-              />
+        <div className="profile-main-column">
+          <form className="settings-form profile-form" onSubmit={handleSave}>
+            <div className="profile-section-heading">
+              <div>
+                <span>Account Center</span>
+                <h3>Profile Information</h3>
+              </div>
+              <ShieldCheck size={24} aria-hidden="true" />
             </div>
 
-            <div className="form-field">
-              <label>Email Address</label>
-              <input value={profile.email || ""} readOnly />
+            <div className="profile-photo-editor">
+              <div className="profile-avatar-frame">
+                <img src={avatarPreview} alt="Profile preview" />
+              </div>
+              <div className="media-upload-actions">
+                <label className="media-upload-button">
+                  <ImagePlus size={17} aria-hidden="true" />
+                  {avatarFile ? "Choose Another" : "Change Picture"}
+                  <input type="file" accept="image/*" onChange={handleAvatarChange} />
+                </label>
+
+                {avatarFile && (
+                  <button
+                    type="button"
+                    className="media-save-button"
+                    onClick={saveProfilePhoto}
+                    disabled={photoSaving}
+                  >
+                    {photoSaving ? "Uploading..." : "Save Picture"}
+                  </button>
+                )}
+
+                {(avatarFile || session?.user.user_metadata?.avatar_url) && (
+                  <button
+                    type="button"
+                    className="media-remove-button"
+                    onClick={removeProfilePhoto}
+                    disabled={photoSaving}
+                  >
+                    <Trash2 size={17} aria-hidden="true" />
+                    Remove Picture
+                  </button>
+                )}
+                <small>JPG, PNG, or WebP. Maximum 5 MB.</small>
+              </div>
             </div>
 
-            <div className="form-field">
-              <label>Role</label>
-              <input value={role} readOnly />
+            <div className="profile-insight-grid">
+              <article>
+                <span>Member Since</span>
+                <strong>{formatDateTime(profile.created_at)}</strong>
+              </article>
+              <article>
+                <span>Last Opened</span>
+                <strong>{formatDateTime(accessSummary.lastOpenedAt)}</strong>
+              </article>
+              <article>
+                <span>System Opens</span>
+                <strong>{accessSummary.accessCount}</strong>
+              </article>
             </div>
 
-            <div className="form-field">
-              <label>Status</label>
-              <input value={profile.status || "Active"} readOnly />
-            </div>
-          </div>
+            <div className="settings-grid">
+              <div className="form-field full-field">
+                <label>Full Name</label>
+                <input
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  placeholder="Enter your full name"
+                />
+              </div>
 
-          <button type="submit" disabled={saving}>
-            {saving ? "Saving..." : "Save Profile"}
-          </button>
-        </form>
+              <div className="form-field">
+                <label>Email Address</label>
+                <input value={profile.email || ""} readOnly />
+              </div>
+
+              <div className="form-field">
+                <label>Role</label>
+                <input value={role} readOnly />
+              </div>
+
+              <div className="form-field">
+                <label>Status</label>
+                <input value={profile.status || "Active"} readOnly />
+              </div>
+            </div>
+
+            <button type="submit" disabled={saving}>
+              {saving ? "Saving..." : "Save Profile"}
+            </button>
+          </form>
+
+          <form className="settings-form profile-security-card" onSubmit={handlePasswordSave}>
+            <div className="profile-section-heading">
+              <div>
+                <span>Security</span>
+                <h3>Change Password</h3>
+              </div>
+              <KeyRound size={24} aria-hidden="true" />
+            </div>
+
+            <div className="settings-grid">
+              <div className="form-field">
+                <label>New Password</label>
+                <input
+                  type="password"
+                  value={newPassword}
+                  onChange={(event) => setNewPassword(event.target.value)}
+                  placeholder="At least 6 characters"
+                />
+              </div>
+              <div className="form-field">
+                <label>Confirm Password</label>
+                <input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  placeholder="Repeat new password"
+                />
+              </div>
+            </div>
+
+            <button type="submit" disabled={passwordSaving || !newPassword}>
+              {passwordSaving ? "Updating..." : "Update Password"}
+            </button>
+          </form>
+        </div>
 
         <aside className="settings-preview profile-summary">
           <img className="profile-summary-avatar" src={avatarPreview} alt="Profile" />
@@ -381,41 +418,6 @@ const Profile = () => {
           </div>
         </aside>
       </div>
-
-      <form className="settings-form profile-security-card" onSubmit={handlePasswordSave}>
-        <div className="profile-section-heading">
-          <div>
-            <span>Security</span>
-            <h3>Change Password</h3>
-          </div>
-          <KeyRound size={24} aria-hidden="true" />
-        </div>
-
-        <div className="settings-grid">
-          <div className="form-field">
-            <label>New Password</label>
-            <input
-              type="password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
-              placeholder="At least 6 characters"
-            />
-          </div>
-          <div className="form-field">
-            <label>Confirm Password</label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              placeholder="Repeat new password"
-            />
-          </div>
-        </div>
-
-        <button type="submit" disabled={passwordSaving || !newPassword}>
-          {passwordSaving ? "Updating..." : "Update Password"}
-        </button>
-      </form>
 
       <SuccessModal
         show={showSuccess}

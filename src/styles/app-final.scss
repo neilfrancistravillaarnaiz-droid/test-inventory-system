@@ -7652,3 +7652,63 @@ body:not(.light-mode) .profile-permission-list > div span {
     height: 132px !important;
   }
 }
+
+/* Profile spacing fix: keep cards stacked tightly with no empty left-column void. */
+.profile-main-column {
+  display: grid !important;
+  align-content: start !important;
+  gap: clamp(22px, 2vw, 30px) !important;
+  min-width: 0 !important;
+}
+
+.profile-page .profile-layout {
+  align-items: start !important;
+}
+
+.profile-page .profile-summary {
+  align-content: start !important;
+  gap: clamp(14px, 1.4vw, 20px) !important;
+}
+
+.profile-page .settings-form,
+.profile-page .settings-preview {
+  margin: 0 !important;
+}
+
+.profile-security-card {
+  align-self: start !important;
+}
+
+.profile-page .profile-permission-list {
+  gap: 12px !important;
+  padding: clamp(16px, 1.5vw, 22px) !important;
+}
+
+.profile-page .profile-permission-list > div {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  align-items: flex-start !important;
+}
+
+.profile-page .profile-permission-list > div span {
+  min-height: 34px !important;
+  padding: 7px 12px !important;
+  font-size: 0.78rem !important;
+  line-height: 1 !important;
+}
+
+.profile-page .settings-preview-box {
+  min-height: auto !important;
+  padding: clamp(16px, 1.4vw, 20px) !important;
+}
+
+.profile-page .profile-quick-actions a {
+  min-height: 48px !important;
+}
+
+@media (max-width: 1160px) {
+  .profile-main-column {
+    gap: 22px !important;
+  }
+}
