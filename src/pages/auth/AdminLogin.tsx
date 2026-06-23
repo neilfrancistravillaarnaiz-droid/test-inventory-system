@@ -12,7 +12,7 @@ import {
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   getProfileForAuthUser,
   login,
@@ -26,7 +26,7 @@ const PENDING_ADMIN_EMAIL_KEY = "stockflow-pending-admin-email";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"password" | "otp">("password");
+  const [step, setStep] = useState<"password" | "sendOtp" | "otp">("password");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
@@ -47,8 +47,8 @@ const AdminLogin = () => {
     const pendingEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY);
     if (pendingEmail) {
       setEmail(pendingEmail);
-      setStep("otp");
-      setNotice("Enter the latest OTP sent to your admin email.");
+      setStep("sendOtp");
+      setNotice("Admin password confirmed. Send an email OTP to continue.");
     }
   }, []);
 
@@ -89,8 +89,23 @@ const AdminLogin = () => {
       return;
     }
 
-    const otpResponse = await requestAdminEmailOtp(normalizedEmail);
     await supabase.auth.signOut();
+    setLoading(false);
+
+    sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, normalizedEmail);
+    setStep("sendOtp");
+    setNotice("Admin password confirmed. Send an email OTP to continue.");
+  };
+
+  const handleSendOtpStep = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setNotice("");
+
+    const targetEmail =
+      sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || normalizedEmail;
+
+    const otpResponse = await requestAdminEmailOtp(targetEmail);
     setLoading(false);
 
     if (otpResponse.error) {
@@ -98,7 +113,7 @@ const AdminLogin = () => {
       return;
     }
 
-    sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, normalizedEmail);
+    sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, targetEmail);
     setStep("otp");
     setNotice("OTP sent. Check your email, then enter the code here.");
   };
@@ -210,13 +225,18 @@ const AdminLogin = () => {
           <div className="auth-flip-box">
             <form
               className="auth-modern-card auth-login-side admin-auth-card"
-              onSubmit={step === "password" ? handlePasswordStep : handleOtpStep}
+              onSubmit={
+                step === "password"
+                  ? handlePasswordStep
+                  : step === "sendOtp"
+                    ? handleSendOtpStep
+                    : handleOtpStep
+              }
             >
-              <div className="auth-tabs">
+              <div className="auth-tabs admin-only-tabs">
                 <button type="button" className="active">
                   Admin Login
                 </button>
-                <Link to="/login">Staff / Viewer</Link>
               </div>
 
               <div className="auth-form-body">
@@ -224,11 +244,19 @@ const AdminLogin = () => {
                   <ShieldCheck size={22} />
                 </div>
                 <div className="auth-card-heading">
-                  <h2>{step === "password" ? "Admin security" : "Email OTP"}</h2>
+                  <h2>
+                    {step === "password"
+                      ? "Admin security"
+                      : step === "sendOtp"
+                        ? "Email verification"
+                        : "Email OTP"}
+                  </h2>
                   <p>
                     {step === "password"
                       ? "Sign in with your admin password first."
-                      : "Enter the one-time code sent to your email."}
+                      : step === "sendOtp"
+                        ? "Send a one-time code to your admin email."
+                        : "Enter the one-time code sent to your email."}
                   </p>
                 </div>
 
@@ -245,12 +273,12 @@ const AdminLogin = () => {
                     placeholder="admin@ccd.edu.ph"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={step === "otp"}
+                    disabled={step !== "password"}
                     required
                   />
                 </div>
 
-                {step === "password" ? (
+                {step === "password" && (
                   <>
                     <label htmlFor="admin-password">Password</label>
                     <div className="auth-input-wrap">
@@ -275,7 +303,9 @@ const AdminLogin = () => {
                       </button>
                     </div>
                   </>
-                ) : (
+                )}
+
+                {step === "otp" && (
                   <>
                     <label htmlFor="admin-otp">Email OTP</label>
                     <div className="auth-input-wrap admin-otp-code">
@@ -299,11 +329,13 @@ const AdminLogin = () => {
                   {loading
                     ? "Verifying..."
                     : step === "password"
-                      ? "Send Email OTP"
-                      : "Verify and Enter"}
+                      ? "Login"
+                      : step === "sendOtp"
+                        ? "Send Email OTP"
+                        : "Verify and Enter"}
                 </button>
 
-                {step === "otp" && (
+                {step !== "password" && (
                   <button type="button" className="auth-secondary-btn" onClick={restartLogin}>
                     Use a different admin account
                   </button>

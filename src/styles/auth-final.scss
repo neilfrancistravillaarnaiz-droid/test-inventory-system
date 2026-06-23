@@ -733,6 +733,15 @@
   text-decoration: none !important;
 }
 
+.admin-auth-page .admin-only-tabs {
+  grid-template-columns: 1fr !important;
+}
+
+.admin-auth-page .admin-only-tabs button {
+  width: 100% !important;
+  justify-content: center !important;
+}
+
 .admin-auth-page .admin-lock-badge {
   width: 56px !important;
   height: 56px !important;
