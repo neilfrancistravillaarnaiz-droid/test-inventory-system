@@ -4,8 +4,11 @@ import PageHeader from "../../components/common/PageHeader";
 import SuccessModal from "../../components/common/SuccessModal";
 import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 import { updateProfile, type ProfileInput } from "../../services/userService";
+import CredentialsManager from "../../components/auth/CredentialsManager";
+import FingerprintRegistrationModal from "../../components/auth/FingerprintRegistrationModal";
 import {
   ClipboardList,
+  Fingerprint,
   ImagePlus,
   KeyRound,
   ShieldCheck,
@@ -35,6 +38,7 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
+  const [showFingerprintModal, setShowFingerprintModal] = useState(false);
 
   useEffect(() => {
     setFullName(profile?.full_name || "");
@@ -379,6 +383,21 @@ const Profile = () => {
               {passwordSaving ? "Updating..." : "Update Password"}
             </button>
           </form>
+
+          <div className="settings-form profile-security-card">
+            <div className="profile-section-heading">
+              <div>
+                <span>Security</span>
+                <h3>Fingerprint Authentication</h3>
+              </div>
+              <Fingerprint size={24} aria-hidden="true" />
+            </div>
+
+            <CredentialsManager
+              userId={session?.user.id || ""}
+              onAddNew={() => setShowFingerprintModal(true)}
+            />
+          </div>
         </div>
 
         <aside className="settings-preview profile-summary">
@@ -449,6 +468,17 @@ const Profile = () => {
         confirmText="Okay"
         onClose={() => setShowSuccess(false)}
       />
+
+      {showFingerprintModal && (
+        <FingerprintRegistrationModal
+          userId={session?.user.id || ""}
+          onClose={() => setShowFingerprintModal(false)}
+          onSuccess={() => {
+            setShowFingerprintModal(false);
+            setShowSuccess(true);
+          }}
+        />
+      )}
     </section>
   );
 };
