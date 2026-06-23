@@ -14,7 +14,6 @@ import {
   Package,
   Pencil,
   Plus,
-  ShieldCheck,
   ScanLine,
   Trash2,
   TrendingUp,
@@ -243,8 +242,7 @@ const Dashboard = () => {
       </div>
 
       <div className="dashboard-command-grid">
-        <div className="dashboard-column dashboard-column-main">
-          <article className="dashboard-panel stock-level-panel">
+        <article className="dashboard-panel stock-level-panel">
           <div className="panel-title-row">
             <h3><LetterHoverText text="Stock levels by product" /></h3>
             <span>{chartProducts.length} products</span>
@@ -311,40 +309,9 @@ const Dashboard = () => {
               <i className="critical" /> Critical
             </span>
           </div>
-          </article>
+        </article>
 
-          <article className="dashboard-panel inventory-panel">
-            <div className="panel-title-row">
-              <h3><LetterHoverText text="Category overview" /></h3>
-              <span>{categorySummary.length} categories</span>
-            </div>
-
-            <div className="mini-inventory-table category-summary-table">
-              <div className="mini-table-head">
-                <span>Category</span>
-                <span>Products</span>
-                <span>Units</span>
-                <span>Value</span>
-              </div>
-
-              {categorySummary.length === 0 ? (
-                <div className="activity-empty">No category data available.</div>
-              ) : (
-                categorySummary.map((category) => (
-                  <div className="mini-table-row" key={category.name}>
-                    <span className="category-summary-name">{category.name}</span>
-                    <span>{category.products}</span>
-                    <span>{category.quantity}</span>
-                    <span>{currency.format(category.value)}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          </article>
-        </div>
-
-        <div className="dashboard-column dashboard-column-side">
-          <article className="dashboard-panel activity-panel">
+        <article className="dashboard-panel activity-panel">
           <div className="panel-title-row">
             <h3><LetterHoverText text="Recent activity" /></h3>
             <span>Live</span>
@@ -378,9 +345,38 @@ const Dashboard = () => {
               })
             )}
           </div>
-          </article>
+        </article>
 
-          <article className="dashboard-panel actions-panel">
+        <article className="dashboard-panel inventory-panel">
+          <div className="panel-title-row">
+            <h3><LetterHoverText text="Category overview" /></h3>
+            <span>{categorySummary.length} categories</span>
+          </div>
+
+          <div className="mini-inventory-table category-summary-table">
+            <div className="mini-table-head">
+              <span>Category</span>
+              <span>Products</span>
+              <span>Units</span>
+              <span>Value</span>
+            </div>
+
+            {categorySummary.length === 0 ? (
+              <div className="activity-empty">No category data available.</div>
+            ) : (
+              categorySummary.map((category) => (
+                <div className="mini-table-row" key={category.name}>
+                  <span className="category-summary-name">{category.name}</span>
+                  <span>{category.products}</span>
+                  <span>{category.quantity}</span>
+                  <span>{currency.format(category.value)}</span>
+                </div>
+              ))
+            )}
+          </div>
+        </article>
+
+        <article className="dashboard-panel actions-panel">
           <div className="panel-title-row">
             <h3><LetterHoverText text="Quick actions" /></h3>
           </div>
@@ -432,29 +428,8 @@ const Dashboard = () => {
               <ArrowRight size={16} />
             </Link>
           </div>
-          </article>
-        </div>
+        </article>
       </div>
-
-      <article className="dashboard-panel dashboard-footer-panel">
-        <div>
-          <span className="stat-icon stat-icon-green">
-            <ShieldCheck size={18} />
-          </span>
-          <div>
-            <h3><LetterHoverText text="Inventory control center" /></h3>
-            <p>
-              Monitor stock levels, review recent activity, scan QR/barcodes,
-              and manage replenishment from one organized workspace.
-            </p>
-          </div>
-        </div>
-
-        <div className="dashboard-footer-actions">
-          <Link to="/stock-history">View stock history</Link>
-          <Link to="/audit-logs">Open audit logs</Link>
-        </div>
-      </article>
     </section>
   );
 };
