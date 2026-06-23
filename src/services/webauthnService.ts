@@ -9,7 +9,7 @@ import { supabase } from "../lib/supabaseClient";
  * Handles fingerprint biometric authentication registration and login
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3001";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 // ============================================================================
 // Registration Functions
@@ -35,7 +35,16 @@ export const initiateRegistration = async (userId: string, email: string) => {
     return { success: true, options };
   } catch (error) {
     console.error("Error initiating registration:", error);
-    return { success: false, error: String(error) };
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    if (errorMsg.includes("Failed to fetch") || errorMsg.includes("Network")) {
+      return { 
+        success: false, 
+        error: `Cannot connect to backend. Make sure it's running on ${API_BASE_URL}` 
+      };
+    }
+    
+    return { success: false, error: errorMsg };
   }
 };
 
@@ -68,7 +77,16 @@ export const completeRegistration = async (
     return { success: true, credentialId: result.credentialId };
   } catch (error) {
     console.error("Error completing registration:", error);
-    return { success: false, error: String(error) };
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    if (errorMsg.includes("Failed to fetch") || errorMsg.includes("Network")) {
+      return { 
+        success: false, 
+        error: `Cannot connect to backend. Make sure it's running on ${API_BASE_URL}` 
+      };
+    }
+    
+    return { success: false, error: errorMsg };
   }
 };
 
