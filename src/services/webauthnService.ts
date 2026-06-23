@@ -1,7 +1,6 @@
 import {
   startRegistration,
   startAuthentication,
-  browserSupportsWebauthnUserVerification,
 } from "@simplewebauthn/browser";
 import { supabase } from "../lib/supabaseClient";
 
@@ -316,5 +315,11 @@ export const isWebauthnSupported = (): boolean => {
 
 export const canUseFingerprint = async (): Promise<boolean> => {
   if (!isWebauthnSupported()) return false;
-  return await browserSupportsWebauthnUserVerification();
+  // Check if browser supports user verification
+  try {
+    const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+    return available;
+  } catch {
+    return false;
+  }
 };

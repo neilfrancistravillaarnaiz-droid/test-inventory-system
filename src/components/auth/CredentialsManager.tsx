@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { Fingerprint, Trash2, Plus, Loader, AlertCircle } from "lucide-react";
 import { getUserCredentials, deleteCredential } from "../../services/webauthnService";
-import Button from "../common/Button";
-import ConfirmDialog from "../common/ConfirmDialog";
-import Toast from "../common/Toast";
 
 type CredentialsManagerProps = {
   userId: string;
@@ -18,6 +15,41 @@ interface Credential {
 }
 
 const CredentialsManager = ({ userId, onAddNew }: CredentialsManagerProps) => {
+  // Simple Button wrapper
+  const Button = ({ children, onClick, className = "" }: any) => (
+    <button onClick={onClick} className={`px-4 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 ${className}`}>
+      {children}
+    </button>
+  );
+
+  // Simple ConfirmDialog wrapper
+  const ConfirmDialog = ({ isOpen, title, message, confirmText, cancelText, onConfirm, onCancel, isDangerous }: any) =>
+    !isOpen ? null : (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div className="bg-white rounded-lg shadow-lg max-w-sm w-full mx-4">
+          <div className="p-6">
+            <h2 className="text-lg font-bold mb-2">{title}</h2>
+            <p className="text-gray-600 mb-6">{message}</p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={onCancel} className="px-4 py-2 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300">
+                {cancelText}
+              </button>
+              <button onClick={onConfirm} className={`px-4 py-2 rounded-lg text-white ${isDangerous ? "bg-red-600 hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"}`}>
+                {confirmText}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+
+  // Simple Toast wrapper
+  const Toast = ({ message, type, onClose }: any) => (
+    <div className={`fixed bottom-4 right-4 p-4 rounded-lg text-white ${type === "success" ? "bg-green-600" : "bg-red-600"} z-50 flex items-center gap-2`}>
+      {message}
+      <button onClick={onClose} className="ml-4">✕</button>
+    </div>
+  );
   const [credentials, setCredentials] = useState<Credential[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<string | null>(null);

@@ -32,7 +32,6 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
   const [isRegister, setIsRegister] = useState(defaultRegister);
   const [loading, setLoading] = useState(false);
   const [showFingerprintLogin, setShowFingerprintLogin] = useState(false);
-
   const [loginEmail, setLoginEmail]       = useState("");
   const [loginPassword, setLoginPassword] = useState("");
 
@@ -256,7 +255,7 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
                   <div className="auth-fingerprint-section">
                     <FingerprintLogin
                       email={loginEmail}
-                      onSuccess={(user) => {
+                      onSuccess={() => {
                         navigate("/dashboard");
                       }}
                       onError={(error) => {

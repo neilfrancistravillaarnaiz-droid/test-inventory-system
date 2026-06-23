@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Fingerprint, AlertCircle, Loader } from "lucide-react";
 import { authenticateWithFingerprint, isWebauthnSupported } from "../../services/webauthnService";
-import Button from "../common/Button";
-import Toast from "../common/Toast";
 
 type FingerprintLoginProps = {
   email: string;
@@ -15,6 +13,24 @@ const FingerprintLogin = ({
   onSuccess,
   onError,
 }: FingerprintLoginProps) => {
+  // Simple Button wrapper
+  const Button = ({ children, onClick, disabled = false, className = "" }: any) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full px-4 py-2 rounded-lg font-medium transition ${className} ${disabled ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}
+    >
+      {children}
+    </button>
+  );
+
+  // Simple Toast wrapper
+  const Toast = ({ message, type, onClose }: any) => (
+    <div className={`fixed bottom-4 right-4 p-4 rounded-lg text-white ${type === "success" ? "bg-green-600" : "bg-red-600"} z-50 flex items-center gap-2`}>
+      {message}
+      <button onClick={onClose} className="ml-4">✕</button>
+    </div>
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
