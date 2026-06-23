@@ -656,6 +656,13 @@ body.light-mode .report-card span {
   color: #17301a !important;
 }
 
+/* Center the dashboard content and constrain width for better alignment */
+.dashboard-command-page {
+  max-width: min(1280px, calc(100% - 64px)) !important;
+  margin: 0 auto !important;
+  padding: 20px 24px !important;
+}
+
 .dashboard-command-header {
   display: flex !important;
   align-items: flex-start !important;
@@ -785,12 +792,57 @@ body.light-mode .report-card span {
 
 .dashboard-command-grid {
   display: grid !important;
-  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.9fr) !important;
+  grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr) !important;
   gap: 18px !important;
 }
 
 .dashboard-panel {
   padding: 22px !important;
+}
+
+/* Footer panel tweaks to align actions and add breathing room */
+.dashboard-footer-panel {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 16px !important;
+  padding: 24px !important;
+}
+
+.dashboard-footer-panel p {
+  margin: 8px 0 0 !important;
+  color: #5b805f !important;
+}
+
+/* Improve responsiveness for smaller screens */
+@media (max-width: 980px) {
+  .dashboard-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-command-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stock-chart {
+    height: 130px !important;
+  }
+
+  .dashboard-command-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .dashboard-stat-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-stat-card {
+    padding: 16px !important;
+  }
 }
 
 .panel-title-row {
