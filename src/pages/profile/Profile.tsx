@@ -39,6 +39,7 @@ const Profile = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [showFingerprintModal, setShowFingerprintModal] = useState(false);
+  const [refreshCredentials, setRefreshCredentials] = useState(0);
 
   useEffect(() => {
     setFullName(profile?.full_name || "");
@@ -396,6 +397,7 @@ const Profile = () => {
             <CredentialsManager
               userId={session?.user.id || ""}
               onAddNew={() => setShowFingerprintModal(true)}
+              key={refreshCredentials}
             />
           </div>
         </div>
@@ -476,6 +478,7 @@ const Profile = () => {
         onClose={() => setShowFingerprintModal(false)}
         onSuccess={() => {
           setShowFingerprintModal(false);
+          setRefreshCredentials((prev) => prev + 1);
           setShowSuccess(true);
         }}
       />

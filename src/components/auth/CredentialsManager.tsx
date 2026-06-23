@@ -15,9 +15,19 @@ interface Credential {
 }
 
 const CredentialsManager = ({ userId, onAddNew }: CredentialsManagerProps) => {
-  // Simple Button wrapper
-  const Button = ({ children, onClick, className = "" }: any) => (
-    <button onClick={onClick} className={`px-4 py-2 rounded-lg font-medium bg-blue-600 text-white hover:bg-blue-700 ${className}`}>
+  // Simple Button wrapper - with proper styling
+  const Button = ({ children, onClick, className = "", disabled = false, variant = "primary" }: any) => (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`px-6 py-3 rounded-full font-semibold transition flex items-center gap-2 ${
+        disabled ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"
+      } ${
+        variant === "danger"
+          ? "bg-red-600 text-white hover:bg-red-700"
+          : "bg-green-600 text-white hover:bg-green-700"
+      } ${className}`}
+    >
       {children}
     </button>
   );
@@ -130,9 +140,9 @@ const CredentialsManager = ({ userId, onAddNew }: CredentialsManagerProps) => {
           {onAddNew && (
             <Button
               onClick={onAddNew}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+              className="bg-green-600 hover:bg-green-700"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-5 h-5" />
               Add New
             </Button>
           )}
@@ -148,7 +158,7 @@ const CredentialsManager = ({ userId, onAddNew }: CredentialsManagerProps) => {
             {onAddNew && (
               <Button
                 onClick={onAddNew}
-                className="mt-4 bg-blue-600 hover:bg-blue-700"
+                className="bg-green-600 hover:bg-green-700"
               >
                 Register Fingerprint
               </Button>
@@ -177,7 +187,7 @@ const CredentialsManager = ({ userId, onAddNew }: CredentialsManagerProps) => {
                 <button
                   onClick={() => handleDeleteClick(credential.id)}
                   disabled={deleting === credential.id}
-                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50"
+                  className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition disabled:opacity-50 cursor-pointer"
                   title="Delete credential"
                 >
                   {deleting === credential.id ? (
