@@ -469,16 +469,16 @@ const Profile = () => {
         onClose={() => setShowSuccess(false)}
       />
 
-      {showFingerprintModal && (
-        <FingerprintRegistrationModal
-          userId={session?.user.id || ""}
-          onClose={() => setShowFingerprintModal(false)}
-          onSuccess={() => {
-            setShowFingerprintModal(false);
-            setShowSuccess(true);
-          }}
-        />
-      )}
+      <FingerprintRegistrationModal
+        isOpen={showFingerprintModal}
+        userId={session?.user.id || ""}
+        email={profile?.email || session?.user.email || ""}
+        onClose={() => setShowFingerprintModal(false)}
+        onSuccess={() => {
+          setShowFingerprintModal(false);
+          setShowSuccess(true);
+        }}
+      />
     </section>
   );
 };
