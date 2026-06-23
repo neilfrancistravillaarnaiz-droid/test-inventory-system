@@ -5,7 +5,7 @@ import {
   generateAuthenticationOptions,
   verifyAuthenticationResponse,
 } from "@simplewebauthn/server";
-import { supabase } from "./supabaseClient.js";
+import { supabase } from "../supabaseClient.js";
 
 const router = express.Router();
 
