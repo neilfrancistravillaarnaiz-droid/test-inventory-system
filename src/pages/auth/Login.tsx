@@ -11,6 +11,7 @@ import {
   Mail,
   Lock,
   User,
+  Fingerprint,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -19,6 +20,7 @@ import {
   logout,
   register,
 } from "../../services/authService";
+import FingerprintLogin from "../../components/auth/FingerprintLogin";
 
 type LoginProps = {
   defaultRegister?: boolean;
@@ -29,6 +31,7 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
 
   const [isRegister, setIsRegister] = useState(defaultRegister);
   const [loading, setLoading] = useState(false);
+  const [showFingerprintLogin, setShowFingerprintLogin] = useState(false);
 
   const [loginEmail, setLoginEmail]       = useState("");
   const [loginPassword, setLoginPassword] = useState("");
@@ -243,6 +246,44 @@ const Login = ({ defaultRegister = false }: LoginProps) => {
                 <button className="auth-submit-btn" type="submit" disabled={loading}>
                   {loading ? "Please wait…" : "Sign In"}
                 </button>
+
+                {/* Fingerprint Sign-In Section */}
+                <div className="auth-divider">
+                  <span>or</span>
+                </div>
+
+                {showFingerprintLogin ? (
+                  <div className="auth-fingerprint-section">
+                    <FingerprintLogin
+                      email={loginEmail}
+                      onSuccess={(user) => {
+                        navigate("/dashboard");
+                      }}
+                      onError={(error) => {
+                        alert(error);
+                        setShowFingerprintLogin(false);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowFingerprintLogin(false)}
+                      className="auth-back-btn"
+                    >
+                      ← Back to password login
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowFingerprintLogin(true)}
+                    disabled={!loginEmail.trim()}
+                    className="auth-fingerprint-btn"
+                    title={loginEmail.trim() ? "Sign in with fingerprint" : "Enter email first"}
+                  >
+                    <Fingerprint size={18} strokeWidth={2} />
+                    <span>Sign in with Fingerprint</span>
+                  </button>
+                )}
               </div>
             </form>
 

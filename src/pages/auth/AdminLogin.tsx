@@ -35,6 +35,7 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
     const maybeError = error as {
       message?: string;
       error_description?: string;
+      code?: string;
       name?: string;
       status?: number;
     };
@@ -49,6 +50,16 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
 
     if (maybeError.status === 400) {
       return "Invalid email, password, or OTP. Please check your credentials and try again.";
+    }
+
+    const details = [
+      maybeError.name,
+      maybeError.code,
+      maybeError.status ? `status ${maybeError.status}` : "",
+    ].filter(Boolean);
+
+    if (details.length > 0) {
+      return `${fallback} (${details.join(", ")})`;
     }
   }
 
@@ -152,10 +163,11 @@ const AdminLogin = () => {
     setLoading(false);
 
     if (otpResponse.error) {
+      console.error("Admin OTP send failed:", otpResponse.error);
       alert(
         getAuthErrorMessage(
           otpResponse.error,
-          "Could not send the email OTP. Please check Supabase SMTP and email template settings."
+          "Could not send the email OTP. Please check Supabase SMTP, Email provider, and Magic Link/OTP template settings."
         )
       );
       return;

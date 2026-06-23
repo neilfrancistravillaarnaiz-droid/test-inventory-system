@@ -32,6 +32,7 @@ export const requestAdminEmailOtp = async (email: string) => {
   return await supabase.auth.signInWithOtp({
     email,
     options: {
+      emailRedirectTo: `${window.location.origin}/admin-login`,
       shouldCreateUser: false,
     },
   });

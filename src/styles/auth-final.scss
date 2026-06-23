@@ -684,6 +684,78 @@
 }
 
 .auth-final-page .auth-back-btn:hover {
+  background: rgba(245, 214, 92, 0.12) !important;
+  border-color: rgba(155, 122, 0, 0.24) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   WebAuthn Fingerprint Login Styles
+   ═══════════════════════════════════════════════════════════════════ */
+
+.auth-final-page .auth-divider {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 16px 0 12px !important;
+  color: #9ca3af !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.auth-final-page .auth-divider::before,
+.auth-final-page .auth-divider::after {
+  content: "" !important;
+  flex: 1 !important;
+  height: 1px !important;
+  background: rgba(156, 163, 175, 0.25) !important;
+}
+
+.auth-final-page .auth-divider::before {
+  margin-right: 12px !important;
+}
+
+.auth-final-page .auth-divider::after {
+  margin-left: 12px !important;
+}
+
+.auth-final-page .auth-fingerprint-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.auth-final-page .auth-fingerprint-btn {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: 50px !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  border-radius: 999px !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
+  border: none !important;
+  box-shadow: 0 12px 26px rgba(139, 92, 246, 0.3) !important;
+  font-weight: 950 !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.auth-final-page .auth-fingerprint-btn:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 18px 36px rgba(139, 92, 246, 0.4) !important;
+}
+
+.auth-final-page .auth-fingerprint-btn:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+.auth-final-page .auth-fingerprint-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
   background: rgba(45, 122, 58, 0.12) !important;
 }
 

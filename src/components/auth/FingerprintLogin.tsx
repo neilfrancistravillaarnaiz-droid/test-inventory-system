@@ -1,0 +1,106 @@
+import { useState, useEffect } from "react";
+import { Fingerprint, AlertCircle, Loader } from "lucide-react";
+import { authenticateWithFingerprint, isWebauthnSupported } from "../../services/webauthnService";
+import Button from "../common/Button";
+import Toast from "../common/Toast";
+
+type FingerprintLoginProps = {
+  email: string;
+  onSuccess: (user: any) => void;
+  onError?: (error: string) => void;
+};
+
+const FingerprintLogin = ({
+  email,
+  onSuccess,
+  onError,
+}: FingerprintLoginProps) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+
+  const supported = isWebauthnSupported();
+
+  const handleFingerprintLogin = async () => {
+    if (!email) {
+      setError("Please enter your email first");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    const result = await authenticateWithFingerprint(email);
+
+    setLoading(false);
+
+    if (result.success) {
+      setToastMessage(result.message || "Successfully authenticated!");
+      setToastType("success");
+      setShowToast(true);
+      onSuccess(result.user);
+    } else {
+      const errorMessage = result.error || "Authentication failed";
+      setError(errorMessage);
+      setToastMessage(errorMessage);
+      setToastType("error");
+      setShowToast(true);
+      onError?.(errorMessage);
+    }
+  };
+
+  if (!supported) {
+    return (
+      <div className="flex items-center gap-3 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+        <AlertCircle className="w-5 h-5 text-yellow-600" />
+        <div className="text-sm text-yellow-700">
+          <p className="font-medium">Fingerprint not supported</p>
+          <p className="text-xs">Your browser doesn't support biometric authentication.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-3">
+        <Button
+          onClick={handleFingerprintLogin}
+          disabled={loading || !email}
+          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+        >
+          {loading ? (
+            <>
+              <Loader className="w-4 h-4 animate-spin" />
+              Verifying Fingerprint...
+            </>
+          ) : (
+            <>
+              <Fingerprint className="w-4 h-4" />
+              Sign in with Fingerprint
+            </>
+          )}
+        </Button>
+
+        {error && (
+          <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        )}
+      </div>
+
+      {showToast && (
+        <Toast
+          message={toastMessage}
+          type={toastType}
+          onClose={() => setShowToast(false)}
+        />
+      )}
+    </>
+  );
+};
+
+export default FingerprintLogin;
