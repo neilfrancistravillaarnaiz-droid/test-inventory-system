@@ -15,6 +15,7 @@ export type CurrentProfile = {
   email: string | null;
   role: UserRole | null;
   status: UserStatus | null;
+  created_at?: string | null;
 };
 
 export const useCurrentProfile = () => {
@@ -42,7 +43,7 @@ export const useCurrentProfile = () => {
       }
 
       const user = currentSession.user;
-      const columns = "id, full_name, email, role, status";
+      const columns = "id, full_name, email, role, status, created_at";
 
       let { data } = await supabase
         .from("profiles")

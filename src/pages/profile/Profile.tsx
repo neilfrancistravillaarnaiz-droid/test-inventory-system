@@ -1,30 +1,50 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import PageHeader from "../../components/common/PageHeader";
 import SuccessModal from "../../components/common/SuccessModal";
 import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 import { updateProfile, type ProfileInput } from "../../services/userService";
-import { ImagePlus, Trash2 } from "lucide-react";
+import { ImagePlus, KeyRound, ShieldCheck, Trash2, UserCog } from "lucide-react";
 import { supabase } from "../../lib/supabaseClient";
 import {
   deleteStoredImage,
   uploadProfileImage,
 } from "../../services/storageService";
+import { updatePassword } from "../../services/authService";
+import { getAuditLogs, type AuditLog } from "../../services/auditLogService";
+import { rolePermissions } from "../../constants/permissions";
 
 const DEFAULT_AVATAR = "https://i.pravatar.cc/120?img=12";
 
 const Profile = () => {
-  const { session, profile, role, loading } = useCurrentProfile();
+  const { session, profile, role, loading, can } = useCurrentProfile();
   const [fullName, setFullName] = useState("");
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [avatarPreview, setAvatarPreview] = useState(DEFAULT_AVATAR);
   const [photoSaving, setPhotoSaving] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
 
   useEffect(() => {
     setFullName(profile?.full_name || "");
     setAvatarPreview(session?.user.user_metadata?.avatar_url || DEFAULT_AVATAR);
   }, [profile, session]);
+
+  useEffect(() => {
+    const loadAuditLogs = async () => {
+      const { data, error } = await getAuditLogs();
+
+      if (!error) {
+        setAuditLogs(data || []);
+      }
+    };
+
+    void loadAuditLogs();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -118,6 +138,12 @@ const Profile = () => {
 
     const { error } = await updateProfile(profile.id, payload);
 
+    if (!error) {
+      await supabase.auth.updateUser({
+        data: { full_name: payload.full_name },
+      });
+    }
+
     setSaving(false);
 
     if (error) {
@@ -127,6 +153,67 @@ const Profile = () => {
 
     setShowSuccess(true);
   };
+
+  const handlePasswordSave = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (newPassword.length < 6) {
+      alert("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("Passwords do not match.");
+      return;
+    }
+
+    setPasswordSaving(true);
+    const { error } = await updatePassword(newPassword);
+    setPasswordSaving(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setNewPassword("");
+    setConfirmPassword("");
+    setShowSuccess(true);
+  };
+
+  const accessSummary = useMemo(() => {
+    const email = (profile?.email || session?.user.email || "").toLowerCase();
+
+    if (!email) {
+      return { accessCount: 0, lastOpenedAt: undefined as string | undefined };
+    }
+
+    const accessLogs = auditLogs.filter(
+      (log) =>
+        log.module === "Access" &&
+        log.action === "System Opened" &&
+        log.description.toLowerCase().includes(email)
+    );
+
+    return {
+      accessCount: accessLogs.length,
+      lastOpenedAt: accessLogs[0]?.created_at,
+    };
+  }, [auditLogs, profile?.email, session?.user.email]);
+
+  const permissionLabels = useMemo(
+    () =>
+      rolePermissions[role].map((permission) =>
+        permission
+          .split(":")
+          .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+          .join(" ")
+      ),
+    [role]
+  );
+
+  const formatDateTime = (value?: string | null) =>
+    value ? new Date(value).toLocaleString() : "Not recorded yet";
 
   if (loading) {
     return <div className="loader">Loading profile...</div>;
@@ -154,15 +241,23 @@ const Profile = () => {
     <section className="profile-page">
       <PageHeader
         title="My Profile"
-        description="View your identity, role, and account status."
+        description="Manage your identity, access, security, and profile picture."
       />
 
       <div className="settings-layout profile-layout">
         <form className="settings-form profile-form" onSubmit={handleSave}>
-          <h3>Profile Information</h3>
+          <div className="profile-section-heading">
+            <div>
+              <span>Account Center</span>
+              <h3>Profile Information</h3>
+            </div>
+            <ShieldCheck size={24} aria-hidden="true" />
+          </div>
 
           <div className="profile-photo-editor">
-            <img src={avatarPreview} alt="Profile preview" />
+            <div className="profile-avatar-frame">
+              <img src={avatarPreview} alt="Profile preview" />
+            </div>
             <div className="media-upload-actions">
               <label className="media-upload-button">
                 <ImagePlus size={17} aria-hidden="true" />
@@ -194,6 +289,21 @@ const Profile = () => {
               )}
               <small>JPG, PNG, or WebP. Maximum 5 MB.</small>
             </div>
+          </div>
+
+          <div className="profile-insight-grid">
+            <article>
+              <span>Member Since</span>
+              <strong>{formatDateTime(profile.created_at)}</strong>
+            </article>
+            <article>
+              <span>Last Opened</span>
+              <strong>{formatDateTime(accessSummary.lastOpenedAt)}</strong>
+            </article>
+            <article>
+              <span>System Opens</span>
+              <strong>{accessSummary.accessCount}</strong>
+            </article>
           </div>
 
           <div className="settings-grid">
@@ -250,8 +360,62 @@ const Profile = () => {
               your own profile details.
             </p>
           </div>
+
+          <div className="profile-permission-list">
+            <strong>Your Permissions</strong>
+            <div>
+              {permissionLabels.map((permission) => (
+                <span key={permission}>{permission}</span>
+              ))}
+            </div>
+          </div>
+
+          <div className="profile-quick-actions">
+            {can("users:manage") && (
+              <Link to="/users">
+                <UserCog size={17} aria-hidden="true" />
+                Manage Users
+              </Link>
+            )}
+            {can("audit:view") && <Link to="/audit-logs">View Audit Logs</Link>}
+          </div>
         </aside>
       </div>
+
+      <form className="settings-form profile-security-card" onSubmit={handlePasswordSave}>
+        <div className="profile-section-heading">
+          <div>
+            <span>Security</span>
+            <h3>Change Password</h3>
+          </div>
+          <KeyRound size={24} aria-hidden="true" />
+        </div>
+
+        <div className="settings-grid">
+          <div className="form-field">
+            <label>New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(event) => setNewPassword(event.target.value)}
+              placeholder="At least 6 characters"
+            />
+          </div>
+          <div className="form-field">
+            <label>Confirm Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              placeholder="Repeat new password"
+            />
+          </div>
+        </div>
+
+        <button type="submit" disabled={passwordSaving || !newPassword}>
+          {passwordSaving ? "Updating..." : "Update Password"}
+        </button>
+      </form>
 
       <SuccessModal
         show={showSuccess}
