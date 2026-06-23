@@ -658,9 +658,12 @@ body.light-mode .report-card span {
 
 /* Center the dashboard content and constrain width for better alignment */
 .dashboard-command-page {
+  display: flex !important;
+  flex-direction: column !important;
   max-width: min(1280px, calc(100% - 64px)) !important;
   margin: 0 auto !important;
   padding: 20px 24px !important;
+  gap: 20px !important;
 }
 
 .dashboard-command-header {
@@ -706,7 +709,6 @@ body.light-mode .report-card span {
   display: grid !important;
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   gap: 16px !important;
-  margin-bottom: 20px !important;
 }
 
 .dashboard-stat-card,
@@ -723,7 +725,7 @@ body.light-mode .report-card span {
 
 .dashboard-stat-card {
   min-height: 142px !important;
-  padding: 20px !important;
+  padding: 18px !important;
 }
 
 .stat-icon {
@@ -794,11 +796,10 @@ body.light-mode .report-card span {
   display: grid !important;
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr) !important;
   gap: 16px !important;
-  margin-bottom: 20px !important;
 }
 
 .dashboard-panel {
-  padding: 22px !important;
+  padding: 20px !important;
 }
 
 /* Footer panel tweaks to align actions and add breathing room */
@@ -807,7 +808,7 @@ body.light-mode .report-card span {
   align-items: center !important;
   justify-content: space-between !important;
   gap: 24px !important;
-  padding: 24px !important;
+  padding: 20px !important;
   margin-top: 0 !important;
 }
 
@@ -870,7 +871,7 @@ body.light-mode .report-card span {
   align-items: center !important;
   justify-content: space-between !important;
   gap: 12px !important;
-  margin-bottom: 18px !important;
+  margin-bottom: 14px !important;
 }
 
 .panel-title-row h3 {
@@ -960,7 +961,7 @@ body.light-mode .report-card span {
 .activity-list,
 .quick-action-list {
   display: grid !important;
-  gap: 12px !important;
+  gap: 10px !important;
 }
 
 .activity-item,
