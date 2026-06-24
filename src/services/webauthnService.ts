@@ -9,7 +9,7 @@ import { supabase } from "../lib/supabaseClient";
  * Handles fingerprint biometric authentication registration and login
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 // ============================================================================
 // Registration Functions
@@ -175,14 +175,27 @@ export const initiateAuthentication = async (email: string) => {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to initiate authentication");
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.message || 
+        (response.status === 404 ? "No fingerprint registered for this email" : "Failed to initiate authentication")
+      );
     }
 
     const options = await response.json();
     return { success: true, options };
   } catch (error) {
     console.error("Error initiating authentication:", error);
-    return { success: false, error: String(error) };
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    
+    if (errorMsg.includes("Failed to fetch") || errorMsg.includes("Network")) {
+      return { 
+        success: false, 
+        error: `Cannot connect to backend. Make sure it's running on ${API_BASE_URL}` 
+      };
+    }
+    
+    return { success: false, error: errorMsg };
   }
 };
 
@@ -253,6 +266,31 @@ export const authenticateWithFingerprint = async (email: string) => {
 
     if (!completeResponse.success) {
       throw new Error(completeResponse.error);
+    }
+
+    // Step 4: Use memory-only session (don't persist to localStorage)
+    // This ensures session is cleared on page reload
+    if (completeResponse.session?.access_token) {
+      // Store in sessionStorage (cleared on browser close) instead of localStorage
+      sessionStorage.setItem(
+        'sb-gyylrqquoxtuxujyagxm-auth-token',
+        JSON.stringify({
+          access_token: completeResponse.session.access_token,
+          refresh_token: completeResponse.session.refresh_token,
+          expires_at: Math.floor(Date.now() / 1000) + 3600, // 1 hour
+        })
+      );
+
+      // Also try to set in Supabase (may not persist)
+      try {
+        await supabase.auth.setSession({
+          access_token: completeResponse.session.access_token,
+          refresh_token: completeResponse.session.refresh_token,
+        });
+      } catch (e) {
+        // Ignore session set errors, user is still authenticated
+        console.warn("Could not set Supabase session:", e);
+      }
     }
 
     return {

@@ -402,6 +402,65 @@
   margin-bottom: 16px !important;
 }
 
+.auth-final-page .auth-method-selection {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-top: 12px !important;
+  margin-bottom: 16px !important;
+}
+
+.auth-final-page .auth-method-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #2d5a3d !important;
+  margin-bottom: 8px !important;
+  text-align: center !important;
+}
+
+.auth-final-page .auth-method-btn {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 16px 20px !important;
+  height: auto !important;
+  min-height: 100px !important;
+  border: 2px solid #d4e8dc !important;
+  border-radius: 12px !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 250, 247, 0.9) 100%) !important;
+  color: #2d5a3d !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+}
+
+.auth-final-page .auth-method-btn small {
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  color: #5a7d69 !important;
+  margin-top: 4px !important;
+}
+
+.auth-final-page .auth-method-btn:hover {
+  border-color: #b8d4c7 !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(240, 248, 244, 0.95) 100%) !important;
+  box-shadow: 0 8px 20px rgba(45, 90, 61, 0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.auth-final-page .auth-method-btn:active {
+  transform: translateY(0) !important;
+}
+
+.auth-final-page .auth-method-btn.email-method svg,
+.auth-final-page .auth-method-btn.fingerprint-method svg {
+  color: #2d7d5a !important;
+}
+
 .auth-final-page .stock-auth-right > .auth-footer {
   position: absolute !important;
   left: 50% !important;
@@ -726,7 +785,9 @@
 .auth-final-page .auth-fingerprint-section {
   display: flex !important;
   flex-direction: column !important;
-  gap: 0 !important;
+  gap: 16px !important;
+  margin-top: 12px !important;
+  margin-bottom: 12px !important;
 }
 
 .auth-final-page .auth-fingerprint-btn {
@@ -759,6 +820,41 @@
 
 .auth-final-page .auth-fingerprint-btn:disabled {
   opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+
+/* Fingerprint component button styles */
+.auth-final-page .auth-fingerprint-section button {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-height: 56px !important;
+  gap: 10px !important;
+  margin-bottom: 0 !important;
+  border-radius: 12px !important;
+  color: #ffffff !important;
+  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%) !important;
+  border: none !important;
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3) !important;
+  font-weight: 600 !important;
+  font-size: 15px !important;
+  cursor: pointer !important;
+  transition: all 0.3s ease !important;
+  padding: 12px 16px !important;
+}
+
+.auth-final-page .auth-fingerprint-section button:hover:not(:disabled) {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.4) !important;
+}
+
+.auth-final-page .auth-fingerprint-section button:active:not(:disabled) {
+  transform: translateY(0) !important;
+}
+
+.auth-final-page .auth-fingerprint-section button:disabled {
+  opacity: 0.6 !important;
   cursor: not-allowed !important;
 }
 

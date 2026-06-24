@@ -15,6 +15,54 @@ const rpName = "StockFlow Inventory";
 const origin = process.env.VITE_APP_ORIGIN || "http://localhost:5173";
 
 // ============================================================================
+// Setup & Debug Endpoints
+// ============================================================================
+
+/**
+ * GET /api/webauthn/setup
+ * Check if WebAuthn tables exist and are accessible
+ */
+router.get("/setup", async (req, res) => {
+  try {
+    // Test webauthn_challenges table
+    const challengesTest = await supabase
+      .from("webauthn_challenges")
+      .select("count()", { count: "exact" })
+      .limit(1);
+
+    // Test webauthn_credentials table
+    const credentialsTest = await supabase
+      .from("webauthn_credentials")
+      .select("count()", { count: "exact" })
+      .limit(1);
+
+    const result = {
+      rpID,
+      origin,
+      tables: {
+        webauthn_challenges: {
+          accessible: !challengesTest.error,
+          error: challengesTest.error?.message || null,
+        },
+        webauthn_credentials: {
+          accessible: !credentialsTest.error,
+          error: credentialsTest.error?.message || null,
+        },
+      },
+      message:
+        !challengesTest.error && !credentialsTest.error
+          ? "All WebAuthn tables are accessible ✓"
+          : "Some tables are missing or inaccessible. Run the webauthn-migration.sql in Supabase.",
+    };
+
+    res.json(result);
+  } catch (error) {
+    console.error("Setup check error:", error);
+    res.status(500).json({ message: `Setup check failed: ${error.message}` });
+  }
+});
+
+// ============================================================================
 // Registration Endpoints
 // ============================================================================
 
@@ -29,6 +77,8 @@ router.post("/register/start", async (req, res) => {
     if (!userId || !email) {
       return res.status(400).json({ message: "userId and email are required" });
     }
+
+    console.log("Starting registration for:", { userId, email });
 
     // Generate registration options
     const options = await generateRegistrationOptions({
@@ -46,24 +96,31 @@ router.post("/register/start", async (req, res) => {
     });
 
     // Store the challenge in the database for later verification
-    const { error } = await supabase
+    const { error, data } = await supabase
       .from("webauthn_challenges")
       .upsert(
         {
           user_id: userId,
           challenge: options.challenge,
           type: "registration",
-          created_at: new Date(),
+          created_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
-      );
+      )
+      .select();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Challenge storage error:", error);
+      return res.status(500).json({ 
+        message: `Failed to store challenge: ${error.message}. Make sure webauthn_challenges table exists in Supabase.` 
+      });
+    }
 
+    console.log("Challenge stored:", { challenge: options.challenge.substring(0, 20) + "..." });
     res.json(options);
   } catch (error) {
-    console.error("Registration start error:", error);
-    res.status(500).json({ message: "Failed to start registration" });
+    console.error("Registration start error:", error.message);
+    res.status(500).json({ message: `Registration failed: ${error.message}` });
   }
 });
 
@@ -81,6 +138,8 @@ router.post("/register/complete", async (req, res) => {
         .json({ message: "userId and attestationResponse are required" });
     }
 
+    console.log("Completing registration for:", userId);
+
     // Get the stored challenge
     const { data: challengeData, error: challengeError } = await supabase
       .from("webauthn_challenges")
@@ -89,13 +148,27 @@ router.post("/register/complete", async (req, res) => {
       .eq("type", "registration")
       .single();
 
-    if (challengeError || !challengeData) {
-      return res.status(400).json({ message: "Challenge not found" });
+    if (challengeError) {
+      console.error("Challenge retrieval error:", challengeError);
+      return res.status(400).json({ 
+        message: `Challenge not found: ${challengeError.message}` 
+      });
+    }
+
+    if (!challengeData) {
+      return res.status(400).json({ message: "Challenge not found for this user" });
     }
 
     // Verify the registration response
     let verification;
     try {
+      console.log("Verifying registration with:", {
+        rpID,
+        origin,
+        challengeLength: challengeData.challenge.length,
+        attestationResponseKeys: Object.keys(attestationResponse),
+      });
+      
       verification = await verifyRegistrationResponse({
         response: attestationResponse,
         expectedChallenge: challengeData.challenge,
@@ -103,27 +176,39 @@ router.post("/register/complete", async (req, res) => {
         expectedRPID: rpID,
       });
     } catch (error) {
-      console.error("Registration verification error:", error);
-      return res.status(400).json({ message: "Invalid registration response" });
+      console.error("Registration verification error:", error.message);
+      return res.status(400).json({ 
+        message: `Verification failed: ${error.message}` 
+      });
     }
 
     if (!verification.verified) {
+      console.error("Verification returned false");
       return res.status(400).json({ message: "Registration verification failed" });
     }
 
-    // Convert credential public key to Buffer
-    const credentialPublicKey = Buffer.from(
-      verification.registrationInfo.credentialPublicKey
-    );
+    console.log("Verification successful, storing credential...");
+
+    // Convert credential public key and ID
+    let credentialId, credentialPublicKey;
+    try {
+      credentialId = Buffer.from(
+        verification.registrationInfo.credentialID
+      ).toString('base64');
+      credentialPublicKey = Buffer.from(
+        verification.registrationInfo.credentialPublicKey
+      ).toString('base64');
+    } catch (e) {
+      console.error("Buffer conversion error:", e);
+      return res.status(500).json({ message: "Failed to process credential data" });
+    }
 
     // Store the credential in the database
     const { data: credential, error: insertError } = await supabase
       .from("webauthn_credentials")
       .insert({
         user_id: userId,
-        credential_id: Buffer.from(
-          verification.registrationInfo.credentialID
-        ),
+        credential_id: credentialId,
         credential_name:
           credentialName || `Device ${new Date().toLocaleDateString()}`,
         credential_public_key: credentialPublicKey,
@@ -134,23 +219,32 @@ router.post("/register/complete", async (req, res) => {
 
     if (insertError) {
       console.error("Credential insertion error:", insertError);
-      return res.status(500).json({ message: "Failed to save credential" });
+      return res.status(500).json({ 
+        message: `Failed to save credential: ${insertError.message}` 
+      });
     }
 
+    console.log("Credential stored, clearing challenge...");
+
     // Clear the challenge
-    await supabase
+    const { error: deleteError } = await supabase
       .from("webauthn_challenges")
       .delete()
       .eq("user_id", userId)
       .eq("type", "registration");
+
+    if (deleteError) {
+      console.error("Challenge deletion error:", deleteError);
+      // Don't fail here, registration is already successful
+    }
 
     res.json({
       message: "Registration successful",
       credentialId: credential[0]?.id,
     });
   } catch (error) {
-    console.error("Registration complete error:", error);
-    res.status(500).json({ message: "Failed to complete registration" });
+    console.error("Registration complete error:", error.message);
+    res.status(500).json({ message: `Registration error: ${error.message}` });
   }
 });
 
@@ -198,7 +292,7 @@ router.post("/authenticate/start", async (req, res) => {
     const options = await generateAuthenticationOptions({
       rpID,
       allowCredentials: credentials.map((cred) => ({
-        id: new Uint8Array(cred.credential_id),
+        id: new Uint8Array(Buffer.from(cred.credential_id, 'base64')),
         type: "public-key",
         transports: ["internal"],
       })),
@@ -264,8 +358,8 @@ router.post("/authenticate/complete", async (req, res) => {
       return res.status(400).json({ message: "Challenge not found" });
     }
 
-    // Get the credential
-    const credentialID = new Uint8Array(assertionResponse.id);
+    // Get the credential - convert assertionResponse.id from base64 string to buffer for comparison
+    const credentialIDFromResponse = Buffer.from(assertionResponse.id, 'base64');
     const { data: credential, error: credError } = await supabase
       .from("webauthn_credentials")
       .select("*")
@@ -276,9 +370,9 @@ router.post("/authenticate/complete", async (req, res) => {
       return res.status(404).json({ message: "Credential not found" });
     }
 
-    // Find matching credential
+    // Find matching credential by comparing base64 IDs
     const matchedCredential = credential.find(
-      (cred) => Buffer.from(cred.credential_id).toString() === Buffer.from(credentialID).toString()
+      (cred) => cred.credential_id === credentialIDFromResponse.toString('base64')
     );
 
     if (!matchedCredential) {
@@ -294,8 +388,8 @@ router.post("/authenticate/complete", async (req, res) => {
         expectedOrigin: origin,
         expectedRPID: rpID,
         credential: {
-          id: credentialID,
-          publicKey: Buffer.from(matchedCredential.credential_public_key),
+          id: credentialIDFromResponse,
+          publicKey: Buffer.from(matchedCredential.credential_public_key, 'base64'),
           signCount: matchedCredential.sign_count,
           transports: matchedCredential.transports,
         },
@@ -331,22 +425,66 @@ router.post("/authenticate/complete", async (req, res) => {
       .eq("user_id", profile.id)
       .eq("type", "authentication");
 
-    // Return user data (in a real app, you'd also return a session token)
-    res.json({
-      message: "Authentication successful",
-      user: {
-        id: profile.id,
-        email: profile.email,
-        full_name: profile.full_name,
-        role: profile.role,
-        status: profile.status,
-      },
-      session: {
-        // In a real app, generate and return a session token here
-        // For now, Supabase auth handles this
-        authenticated: true,
-      },
-    });
+    // Create a Supabase session by getting a fresh auth user
+    // We need to set up session using admin API
+    try {
+      // Get the Supabase auth user for this email
+      const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
+      
+      if (authError) {
+        console.error("Error fetching auth users:", authError);
+        return res.status(500).json({ message: "Failed to create session" });
+      }
+
+      const authUser = authUsers.users.find(u => u.email === email);
+      
+      if (!authUser) {
+        return res.status(404).json({ message: "Auth user not found" });
+      }
+
+      // Generate a session using admin API
+      const { data: session, error: sessionError } = await supabase.auth.admin.createSession({
+        user_id: authUser.id,
+      });
+
+      if (sessionError) {
+        console.error("Error creating session:", sessionError);
+        return res.status(500).json({ message: "Failed to create session" });
+      }
+
+      // Return user data with session tokens
+      res.json({
+        message: "Authentication successful",
+        user: {
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name,
+          role: profile.role,
+          status: profile.status,
+        },
+        session: {
+          access_token: session.session.access_token,
+          refresh_token: session.session.refresh_token,
+          authenticated: true,
+        },
+      });
+    } catch (sessionError) {
+      console.error("Session creation error:", sessionError);
+      // If session creation fails, still return user data
+      res.json({
+        message: "Authentication successful (session pending)",
+        user: {
+          id: profile.id,
+          email: profile.email,
+          full_name: profile.full_name,
+          role: profile.role,
+          status: profile.status,
+        },
+        session: {
+          authenticated: true,
+        },
+      });
+    }
   } catch (error) {
     console.error("Authentication complete error:", error);
     res.status(500).json({ message: "Failed to complete authentication" });

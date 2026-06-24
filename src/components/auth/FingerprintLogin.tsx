@@ -4,12 +4,14 @@ import { authenticateWithFingerprint, isWebauthnSupported } from "../../services
 
 type FingerprintLoginProps = {
   email: string;
+  password?: string;
   onSuccess: (user: any) => void;
   onError?: (error: string) => void;
 };
 
 const FingerprintLogin = ({
   email,
+  password,
   onSuccess,
   onError,
 }: FingerprintLoginProps) => {
@@ -48,21 +50,28 @@ const FingerprintLogin = ({
     setLoading(true);
     setError(null);
 
+    // Step 1: Verify fingerprint
     const result = await authenticateWithFingerprint(email);
 
     setLoading(false);
 
     if (result.success) {
-      setToastMessage(result.message || "Successfully authenticated!");
-      setToastType("success");
-      setShowToast(true);
-      onSuccess(result.user);
+      // Step 2: If password provided, use it to sign in. Otherwise, fingerprint auth is enough
+      if (password) {
+        // Pass both fingerprint verification and password to parent
+        onSuccess({ 
+          user: result.user, 
+          method: "fingerprint_with_password",
+          email,
+          password
+        });
+      } else {
+        // Fingerprint only authentication
+        onSuccess(result.user);
+      }
     } else {
       const errorMessage = result.error || "Authentication failed";
       setError(errorMessage);
-      setToastMessage(errorMessage);
-      setToastType("error");
-      setShowToast(true);
       onError?.(errorMessage);
     }
   };
@@ -107,14 +116,6 @@ const FingerprintLogin = ({
           </div>
         )}
       </div>
-
-      {showToast && (
-        <Toast
-          message={toastMessage}
-          type={toastType}
-          onClose={() => setShowToast(false)}
-        />
-      )}
     </>
   );
 };

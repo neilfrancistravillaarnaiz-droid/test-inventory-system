@@ -8,7 +8,15 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors());
+// CORS Configuration
+const corsOptions = {
+  origin: process.env.VITE_APP_ORIGIN || "http://localhost:5174",
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+app.use(cors(corsOptions));
 app.use(express.json({ limit: "1mb" }));
 
 const supabase = createClient(

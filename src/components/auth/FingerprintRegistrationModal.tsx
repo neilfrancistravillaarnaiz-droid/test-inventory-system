@@ -174,8 +174,8 @@ const FingerprintRegistrationModal = ({
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700">
                       Device Name (optional)
                     </label>
                     <input
@@ -183,10 +183,10 @@ const FingerprintRegistrationModal = ({
                       value={credentialName}
                       onChange={(e) => setCredentialName(e.target.value)}
                       placeholder="e.g., My Laptop, Office Desktop"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       disabled={loading}
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500">
                       This helps you identify which device this fingerprint is registered on.
                     </p>
                   </div>
@@ -206,19 +206,19 @@ const FingerprintRegistrationModal = ({
                     </div>
                   )}
 
-                  <div className="flex gap-3 pt-4 border-t border-gray-200">
-                    <Button
-                      variant="secondary"
+                  <div className="flex gap-3 pt-6 border-t border-gray-200">
+                    <button
+                      type="button"
                       onClick={onClose}
                       disabled={loading}
-                      className="flex-1"
+                      className="flex-1 px-4 py-3 rounded-lg font-medium transition bg-gray-200 text-gray-800 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
-                    </Button>
-                    <Button
+                    </button>
+                    <button
                       type="submit"
                       disabled={loading || !supported}
-                      className="flex-1 flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-3 rounded-lg font-medium transition bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {loading ? (
                         <>
@@ -231,7 +231,7 @@ const FingerprintRegistrationModal = ({
                           Register Fingerprint
                         </>
                       )}
-                    </Button>
+                    </button>
                   </div>
                 </>
               )}

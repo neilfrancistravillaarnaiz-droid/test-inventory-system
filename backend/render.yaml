@@ -1,0 +1,16 @@
+# Render deployment configuration
+services:
+  - type: web
+    name: stockflow-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
+    limits:
+      cpu: 0.5
+      memory: 512

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Bell,
   Bot,
@@ -22,6 +22,7 @@ import {
   requestAdminEmailOtp,
   verifyAdminEmailOtp,
 } from "../../services/authService";
+import { authenticateWithFingerprint } from "../../services/webauthnService";
 import { supabase } from "../../lib/supabaseClient";
 
 const PENDING_ADMIN_EMAIL_KEY = "stockflow-pending-admin-email";
@@ -70,17 +71,19 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"password" | "sendOtp" | "otp">("password");
+  const autoTriggerRef = useRef(false);
+  const [step, setStep] = useState<"methodSelection" | "password" | "sendOtp" | "otp" | "fingerprint" | "fingerprint-verify">("methodSelection");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
-  const [showFingerprintLogin, setShowFingerprintLogin] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"success" | "error">("error");
   const [modalMessage, setModalMessage] = useState("");
+  const [savedEmail, setSavedEmail] = useState("");
+  const [savedPassword, setSavedPassword] = useState("");
 
   const features = [
     { icon: Bot, title: "AI Inventory Assistant", desc: "Smart inventory answers instantly." },
@@ -92,6 +95,16 @@ const AdminLogin = () => {
   ];
 
   useEffect(() => {
+    // Check for saved fingerprint credentials
+    const hasSavedFingerprintCreds = sessionStorage.getItem("fp-email") && sessionStorage.getItem("fp-password");
+    
+    if (hasSavedFingerprintCreds) {
+      // If user has saved fingerprint credentials, require fingerprint verification first
+      setStep("fingerprint-verify");
+      return;
+    }
+
+    // Otherwise check for pending OTP flow
     const pendingEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY);
     if (pendingEmail) {
       setEmail(pendingEmail);
@@ -99,6 +112,134 @@ const AdminLogin = () => {
       setNotice("Admin password confirmed. Send an email OTP to continue.");
     }
   }, []);
+
+  const triggerFingerprintAuth = async () => {
+    setLoading(true);
+    try {
+      // Call fingerprint authentication
+      await authenticateWithFingerprint(email.toLowerCase().trim());
+
+      // Fingerprint verified - save credentials for next login
+      sessionStorage.setItem("fp-email", email.toLowerCase().trim());
+      sessionStorage.setItem("fp-password", password);
+
+      // Fingerprint verified, now authenticate with email+password
+      const { data, error } = await login(
+        email.toLowerCase().trim(),
+        password
+      );
+
+      if (error || !data.user) {
+        setLoading(false);
+        autoTriggerRef.current = false;
+        showModal(
+          "error",
+          getAuthErrorMessage(
+            error,
+            "Sign in failed. Please check your credentials."
+          )
+        );
+        return;
+      }
+
+      const { data: profile, error: profileError } =
+        await getProfileForAuthUser(data.user.id, data.user.email);
+
+      if (profileError || profile?.role !== "Admin") {
+        await supabase.auth.signOut();
+        setLoading(false);
+        autoTriggerRef.current = false;
+        showModal(
+          "error",
+          profileError
+            ? getAuthErrorMessage(
+                profileError,
+                "Could not verify your admin profile."
+              )
+            : "This portal is only for Admin accounts."
+        );
+        return;
+      }
+
+      // Fingerprint verified - go directly to dashboard, skip OTP
+      setLoading(false);
+      // Use a small delay to ensure state updates complete before navigation
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 100);
+    } catch (error) {
+      setLoading(false);
+      autoTriggerRef.current = false;
+      showModal(
+        "error",
+        error instanceof Error ? error.message : "Fingerprint authentication failed"
+      );
+    }
+  };
+
+  const triggerVerifyFingerprintOnly = async () => {
+    setLoading(true);
+    try {
+      // Get saved credentials
+      const savedEmail = sessionStorage.getItem("fp-email");
+      const savedPassword = sessionStorage.getItem("fp-password");
+
+      if (!savedEmail || !savedPassword) {
+        throw new Error("No saved credentials found. Please start fresh.");
+      }
+
+      // Call fingerprint authentication with saved email
+      await authenticateWithFingerprint(savedEmail);
+
+      // Fingerprint verified, now authenticate with saved email+password
+      const { data, error } = await login(savedEmail, savedPassword);
+
+      if (error || !data.user) {
+        setLoading(false);
+        autoTriggerRef.current = false;
+        showModal(
+          "error",
+          getAuthErrorMessage(
+            error,
+            "Sign in failed. Please check your saved credentials."
+          )
+        );
+        return;
+      }
+
+      const { data: profile, error: profileError } =
+        await getProfileForAuthUser(data.user.id, data.user.email);
+
+      if (profileError || profile?.role !== "Admin") {
+        await supabase.auth.signOut();
+        setLoading(false);
+        autoTriggerRef.current = false;
+        showModal(
+          "error",
+          profileError
+            ? getAuthErrorMessage(
+                profileError,
+                "Could not verify your admin profile."
+              )
+            : "This portal is only for Admin accounts."
+        );
+        return;
+      }
+
+      // Fingerprint verified - go directly to dashboard
+      setLoading(false);
+      setTimeout(() => {
+        navigate("/dashboard", { replace: true });
+      }, 100);
+    } catch (error) {
+      setLoading(false);
+      autoTriggerRef.current = false;
+      showModal(
+        "error",
+        error instanceof Error ? error.message : "Fingerprint authentication failed"
+      );
+    }
+  };
 
   const normalizedEmail = email.trim().toLowerCase();
 
@@ -235,7 +376,8 @@ const AdminLogin = () => {
   const restartLogin = async () => {
     sessionStorage.removeItem(PENDING_ADMIN_EMAIL_KEY);
     await supabase.auth.signOut();
-    setStep("password");
+    setStep("methodSelection");
+    setEmail("");
     setPassword("");
     setOtp("");
     setNotice("");
@@ -306,13 +448,16 @@ const AdminLogin = () => {
           <div className="auth-flip-box">
             <form
               className="auth-modern-card auth-login-side admin-auth-card"
-              onSubmit={
-                step === "password"
-                  ? handlePasswordStep
-                  : step === "sendOtp"
-                    ? handleSendOtpStep
-                    : handleOtpStep
-              }
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (step === "password") {
+                  handlePasswordStep(e);
+                } else if (step === "sendOtp") {
+                  handleSendOtpStep(e);
+                } else if (step === "otp") {
+                  handleOtpStep(e);
+                }
+              }}
             >
               <div className="auth-tabs admin-only-tabs">
                 <button type="button" className="active">
@@ -324,50 +469,227 @@ const AdminLogin = () => {
                 <div className="admin-lock-badge">
                   <ShieldCheck size={22} />
                 </div>
-                <div className="auth-card-heading">
-                  <h2>
-                    {step === "password"
-                      ? "Admin security"
-                      : step === "sendOtp"
-                        ? "Email verification"
-                        : "Email OTP"}
-                  </h2>
-                  <p>
-                    {step === "password"
-                      ? "Sign in with your admin password first."
-                      : step === "sendOtp"
-                        ? "Send a one-time code to your admin email."
-                        : "Enter the one-time code sent to your email."}
-                  </p>
-                </div>
 
-                {notice && <p className="auth-admin-notice">{notice}</p>}
-
-                <label htmlFor="admin-email">Admin Email</label>
-                <div className="auth-input-wrap">
-                  <span className="auth-input-icon" aria-hidden="true">
-                    <Mail size={16} strokeWidth={2} />
-                  </span>
-                  <input
-                    id="admin-email"
-                    type="email"
-                    placeholder="admin@ccd.edu.ph"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={step !== "password"}
-                    required
-                  />
-                </div>
-
-                {step === "password" && (
+                {/* Method Selection Screen */}
+                {step === "methodSelection" && (
                   <>
-                    <label htmlFor="admin-password">Password</label>
+                    <div className="auth-card-heading">
+                      <h2>Admin Login</h2>
+                      <p>Choose your authentication method</p>
+                    </div>
+                    <div className="auth-method-selection">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStep("password");
+                          setEmail("");
+                          setPassword("");
+                          sessionStorage.removeItem("fp-email");
+                          sessionStorage.removeItem("fp-password");
+                        }}
+                        className="auth-method-btn password-method"
+                      >
+                        <Lock size={24} strokeWidth={2} />
+                        <span>Sign in with Password</span>
+                        <small>Email verification with OTP</small>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setStep("fingerprint")}
+                        className="auth-method-btn fingerprint-method"
+                      >
+                        <Fingerprint size={24} strokeWidth={2} />
+                        <span>Sign in with Fingerprint</span>
+                        <small>Quick biometric authentication</small>
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {/* Password & OTP Flow */}
+                {step !== "methodSelection" && step !== "fingerprint" && (
+                  <>
+                    <div className="auth-card-heading">
+                      <h2>
+                        {step === "password"
+                          ? "Admin security"
+                          : step === "sendOtp"
+                            ? "Email verification"
+                            : "Email OTP"}
+                      </h2>
+                      <p>
+                        {step === "password"
+                          ? "Sign in with your admin password first."
+                          : step === "sendOtp"
+                            ? "Send a one-time code to your admin email."
+                            : "Enter the one-time code sent to your email."}
+                      </p>
+                    </div>
+
+                    {notice && <p className="auth-admin-notice">{notice}</p>}
+
+                    <label htmlFor="admin-email">Admin Email</label>
+                    <div className="auth-input-wrap">
+                      <span className="auth-input-icon" aria-hidden="true">
+                        <Mail size={16} strokeWidth={2} />
+                      </span>
+                      <input
+                        id="admin-email"
+                        type="email"
+                        placeholder="admin@ccd.edu.ph"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        disabled={step !== "password"}
+                        required
+                      />
+                    </div>
+
+                    {step === "password" && (
+                      <>
+                        <label htmlFor="admin-password">Password</label>
+                        <div className="auth-input-wrap">
+                          <span className="auth-input-icon" aria-hidden="true">
+                            <Lock size={16} strokeWidth={2} />
+                          </span>
+                          <input
+                            id="admin-password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Enter admin password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            required
+                          />
+                          <button
+                            type="button"
+                            className="password-eye"
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            onClick={() => setShowPassword(!showPassword)}
+                          >
+                            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {step === "otp" && (
+                      <>
+                        <label htmlFor="admin-otp">Email OTP</label>
+                        <div className="auth-input-wrap admin-otp-code">
+                          <span className="auth-input-icon" aria-hidden="true">
+                            <KeyRound size={16} strokeWidth={2} />
+                          </span>
+                          <input
+                            id="admin-otp"
+                            type="text"
+                            inputMode="numeric"
+                            placeholder="000000"
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
+                            required
+                          />
+                        </div>
+                      </>
+                    )}
+
+                    <button className="auth-submit-btn" type="submit" disabled={loading}>
+                      {loading
+                        ? "Verifying..."
+                        : step === "password"
+                          ? "Login"
+                          : step === "sendOtp"
+                            ? "Send Email OTP"
+                            : "Verify and Enter"}
+                    </button>
+
+                    <button
+                      type="button"
+                      className="auth-secondary-btn"
+                      onClick={restartLogin}
+                    >
+                      ← Back to method selection
+                    </button>
+                  </>
+                )}
+
+                {/* Fingerprint Verification Only (no credential entry needed) */}
+                {step === "fingerprint-verify" && (
+                  <>
+                    <div className="auth-card-heading">
+                      <h2>Verify Your Identity</h2>
+                      <p>Use your registered fingerprint to verify and sign in</p>
+                    </div>
+
+                    <div className="auth-fingerprint-section">
+                      <div className="flex flex-col items-center justify-center py-8">
+                        <Fingerprint size={48} className="text-green-600 mb-4" />
+                        <p className="text-center text-gray-700 mb-6">
+                          Click below and place your finger on the scanner to verify your identity and sign in automatically.
+                        </p>
+                        <button
+                          type="button"
+                          className="auth-primary-btn w-full"
+                          onClick={() => triggerVerifyFingerprintOnly()}
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <Fingerprint size={20} className="animate-spin" />
+                              Scanning Fingerprint...
+                            </>
+                          ) : (
+                            <>
+                              <Fingerprint size={20} />
+                              Verify with Fingerprint
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="auth-secondary-btn"
+                      onClick={() => {
+                        setStep("methodSelection");
+                        sessionStorage.removeItem("fp-email");
+                        sessionStorage.removeItem("fp-password");
+                      }}
+                    >
+                      ← Use Different Method
+                    </button>
+                  </>
+                )}
+
+                {/* Fingerprint Flow */}
+                {step === "fingerprint" && (
+                  <>
+                    <div className="auth-card-heading">
+                      <h2>Fingerprint Login</h2>
+                      <p>Enter your credentials and use your fingerprint to sign in</p>
+                    </div>
+
+                    <label htmlFor="fp-email">Admin Email</label>
+                    <div className="auth-input-wrap">
+                      <span className="auth-input-icon" aria-hidden="true">
+                        <Mail size={16} strokeWidth={2} />
+                      </span>
+                      <input
+                        id="fp-email"
+                        type="email"
+                        placeholder="admin@ccd.edu.ph"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+
+                    <label htmlFor="fp-password">Password</label>
                     <div className="auth-input-wrap">
                       <span className="auth-input-icon" aria-hidden="true">
                         <Lock size={16} strokeWidth={2} />
                       </span>
                       <input
-                        id="admin-password"
+                        id="fp-password"
                         type={showPassword ? "text" : "password"}
                         placeholder="Enter admin password"
                         value={password}
@@ -383,83 +705,45 @@ const AdminLogin = () => {
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
-                  </>
-                )}
 
-                {step === "otp" && (
-                  <>
-                    <label htmlFor="admin-otp">Email OTP</label>
-                    <div className="auth-input-wrap admin-otp-code">
-                      <span className="auth-input-icon" aria-hidden="true">
-                        <KeyRound size={16} strokeWidth={2} />
-                      </span>
-                      <input
-                        id="admin-otp"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="000000"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
+                    {email && password && (
+                      <div className="auth-fingerprint-section">
+                        <p className="text-sm text-gray-600 mb-4">
+                          Click below and use your registered fingerprint to verify your identity and sign in
+                        </p>
+                        <button
+                          type="button"
+                          className="auth-primary-btn"
+                          onClick={() => triggerFingerprintAuth()}
+                          disabled={loading}
+                        >
+                          {loading ? (
+                            <>
+                              <Fingerprint size={20} className="animate-spin" />
+                              Scanning Fingerprint...
+                            </>
+                          ) : (
+                            <>
+                              <Fingerprint size={20} />
+                              Sign In with Fingerprint
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
 
-                <button className="auth-submit-btn" type="submit" disabled={loading}>
-                  {loading
-                    ? "Verifying..."
-                    : step === "password"
-                      ? "Login"
-                      : step === "sendOtp"
-                        ? "Send Email OTP"
-                        : "Verify and Enter"}
-                </button>
-
-                {step === "otp" && !showFingerprintLogin && (
-                  <>
-                    <div className="auth-divider">
-                      <span>or</span>
-                    </div>
                     <button
                       type="button"
-                      onClick={() => setShowFingerprintLogin(true)}
-                      className="auth-fingerprint-btn"
+                      className="auth-secondary-btn"
+                      onClick={() => {
+                        setStep("methodSelection");
+                        setEmail("");
+                        setPassword("");
+                      }}
                     >
-                      <Fingerprint size={18} strokeWidth={2} />
-                      <span>Sign in with Fingerprint</span>
+                      ← Back to method selection
                     </button>
                   </>
-                )}
-
-                {showFingerprintLogin && step === "otp" && (
-                  <>
-                    <div className="auth-fingerprint-section">
-                      <FingerprintLogin
-                        email={email}
-                        onSuccess={() => {
-                          navigate("/dashboard");
-                        }}
-                        onError={(error) => {
-                          showModal("error", error);
-                          setShowFingerprintLogin(false);
-                        }}
-                      />
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setShowFingerprintLogin(false)}
-                      className="auth-back-btn"
-                    >
-                      ← Back to OTP
-                    </button>
-                  </>
-                )}
-
-                {step !== "password" && !showFingerprintLogin && (
-                  <button type="button" className="auth-secondary-btn" onClick={restartLogin}>
-                    Use a different admin account
-                  </button>
                 )}
               </div>
             </form>
@@ -476,36 +760,52 @@ const AdminLogin = () => {
       {/* Alert Modal */}
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className={`bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4 ${
-            modalType === "error" ? "border-l-4 border-red-500" : "border-l-4 border-green-500"
-          }`}>
+          <div
+            className={`bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4 ${
+              modalType === "error"
+                ? "border-l-4 border-red-500"
+                : "border-l-4 border-green-500"
+            }`}
+          >
             <div className="flex items-start gap-4">
-              <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                modalType === "error" ? "bg-red-100" : "bg-green-100"
-              }`}>
-                <span className={`text-sm font-bold ${
-                  modalType === "error" ? "text-red-600" : "text-green-600"
-                }`}>
+              <div
+                className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                  modalType === "error" ? "bg-red-100" : "bg-green-100"
+                }`}
+              >
+                <span
+                  className={`text-sm font-bold ${
+                    modalType === "error"
+                      ? "text-red-600"
+                      : "text-green-600"
+                  }`}
+                >
                   {modalType === "error" ? "!" : "✓"}
                 </span>
               </div>
               <div className="flex-1">
-                <h3 className={`font-semibold mb-1 ${
-                  modalType === "error" ? "text-red-900" : "text-green-900"
-                }`}>
+                <h3
+                  className={`font-semibold mb-1 ${
+                    modalType === "error" ? "text-red-900" : "text-green-900"
+                  }`}
+                >
                   {modalType === "error" ? "Error" : "Success"}
                 </h3>
-                <p className={`text-sm ${
-                  modalType === "error" ? "text-red-700" : "text-green-700"
-                }`}>
+                <p
+                  className={`text-sm ${
+                    modalType === "error"
+                      ? "text-red-700"
+                      : "text-green-700"
+                  }`}
+                >
                   {modalMessage}
                 </p>
               </div>
             </div>
-            <div className="mt-6 flex justify-end">
+            <div className="mt-4 flex gap-2 justify-end">
               <button
                 onClick={() => setModalOpen(false)}
-                className={`px-4 py-2 rounded-lg font-medium transition ${
+                className={`px-4 py-2 rounded font-medium transition ${
                   modalType === "error"
                     ? "bg-red-100 text-red-700 hover:bg-red-200"
                     : "bg-green-100 text-green-700 hover:bg-green-200"
