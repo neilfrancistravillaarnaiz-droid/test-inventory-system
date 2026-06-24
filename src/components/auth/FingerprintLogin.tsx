@@ -70,10 +70,10 @@ const FingerprintLogin = ({
   return (
     <>
       <div className="space-y-3">
-        <Button
+        <button
           onClick={handleFingerprintLogin}
           disabled={loading || !email}
-          className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+          className="w-full px-4 py-2 rounded-lg font-medium transition flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? (
             <>
@@ -86,7 +86,7 @@ const FingerprintLogin = ({
               Sign in with Fingerprint
             </>
           )}
-        </Button>
+        </button>
 
         {error && (
           <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
