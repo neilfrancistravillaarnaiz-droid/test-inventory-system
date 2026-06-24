@@ -17,37 +17,11 @@ const FingerprintRegistrationModal = ({
   email,
   onSuccess,
 }: FingerprintRegistrationModalProps) => {
-  // Simple Modal wrapper
-  const Modal = ({ isOpen, onClose, title, children }: any) =>
-    !isOpen ? null : (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg shadow-lg max-w-md w-full mx-4">
-          <div className="flex justify-between items-center p-6 border-b">
-            <h2 className="text-xl font-bold">{title}</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">✕</button>
-          </div>
-          <div className="p-6">{children}</div>
-        </div>
-      </div>
-    );
-
-
-
-  // Simple Toast wrapper
-  const Toast = ({ message, type, onClose }: any) => (
-    <div className={`fixed bottom-4 right-4 p-4 rounded-lg text-white ${type === "success" ? "bg-green-600" : "bg-red-600"} z-50 flex items-center gap-2`}>
-      {message}
-      <button onClick={onClose} className="ml-4">✕</button>
-    </div>
-  );
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [credentialName, setCredentialName] = useState("");
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   const supported = isWebauthnSupported();
 

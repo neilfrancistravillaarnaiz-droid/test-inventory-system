@@ -15,17 +15,6 @@ const FingerprintLogin = ({
   onSuccess,
   onError,
 }: FingerprintLoginProps) => {
-  // Simple Button wrapper
-  const Button = ({ children, onClick, disabled = false, className = "" }: any) => (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      className={`w-full px-4 py-2 rounded-lg font-medium transition ${className} ${disabled ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}
-    >
-      {children}
-    </button>
-  );
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
