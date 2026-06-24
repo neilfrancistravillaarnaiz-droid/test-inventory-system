@@ -78,6 +78,9 @@ const AdminLogin = () => {
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState("");
   const [showFingerprintLogin, setShowFingerprintLogin] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<"success" | "error">("error");
+  const [modalMessage, setModalMessage] = useState("");
 
   const features = [
     { icon: Bot, title: "AI Inventory Assistant", desc: "Smart inventory answers instantly." },
@@ -110,6 +113,12 @@ const AdminLogin = () => {
       </span>
     ));
 
+  const showModal = (type: "success" | "error", message: string) => {
+    setModalType(type);
+    setModalMessage(message);
+    setModalOpen(true);
+  };
+
   const handlePasswordStep = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -118,7 +127,8 @@ const AdminLogin = () => {
     const { data, error } = await login(normalizedEmail, password);
     if (error || !data.user) {
       setLoading(false);
-      alert(
+      showModal(
+        "error",
         getAuthErrorMessage(
           error,
           "Admin login failed. Please check your email and password."
@@ -135,7 +145,8 @@ const AdminLogin = () => {
     if (profileError || profile?.role !== "Admin") {
       await supabase.auth.signOut();
       setLoading(false);
-      alert(
+      showModal(
+        "error",
         profileError
           ? getAuthErrorMessage(
               profileError,
@@ -167,7 +178,8 @@ const AdminLogin = () => {
 
     if (otpResponse.error) {
       console.error("Admin OTP send failed:", otpResponse.error);
-      alert(
+      showModal(
+        "error",
         getAuthErrorMessage(
           otpResponse.error,
           "Could not send the email OTP. Please check Supabase SMTP, Email provider, and Magic Link/OTP template settings."
@@ -192,7 +204,8 @@ const AdminLogin = () => {
     const { data, error } = await verifyAdminEmailOtp(targetEmail, otp.trim());
     if (error || !data.user) {
       setLoading(false);
-      alert(
+      showModal(
+        "error",
         getAuthErrorMessage(
           error,
           "Invalid or expired OTP. Please request a new code and try again."
@@ -209,7 +222,7 @@ const AdminLogin = () => {
     if (profile?.role !== "Admin") {
       await supabase.auth.signOut();
       setLoading(false);
-      alert("This account is not allowed to use the Admin portal.");
+      showModal("error", "This account is not allowed to use the Admin portal.");
       return;
     }
 
@@ -428,7 +441,7 @@ const AdminLogin = () => {
                           navigate("/dashboard");
                         }}
                         onError={(error) => {
-                          alert(error);
+                          showModal("error", error);
                           setShowFingerprintLogin(false);
                         }}
                       />
@@ -459,6 +472,51 @@ const AdminLogin = () => {
 
         <p className="auth-footer">© 2026 StockFlow. All rights reserved.</p>
       </section>
+
+      {/* Alert Modal */}
+      {modalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className={`bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4 ${
+            modalType === "error" ? "border-l-4 border-red-500" : "border-l-4 border-green-500"
+          }`}>
+            <div className="flex items-start gap-4">
+              <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
+                modalType === "error" ? "bg-red-100" : "bg-green-100"
+              }`}>
+                <span className={`text-sm font-bold ${
+                  modalType === "error" ? "text-red-600" : "text-green-600"
+                }`}>
+                  {modalType === "error" ? "!" : "✓"}
+                </span>
+              </div>
+              <div className="flex-1">
+                <h3 className={`font-semibold mb-1 ${
+                  modalType === "error" ? "text-red-900" : "text-green-900"
+                }`}>
+                  {modalType === "error" ? "Error" : "Success"}
+                </h3>
+                <p className={`text-sm ${
+                  modalType === "error" ? "text-red-700" : "text-green-700"
+                }`}>
+                  {modalMessage}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button
+                onClick={() => setModalOpen(false)}
+                className={`px-4 py-2 rounded-lg font-medium transition ${
+                  modalType === "error"
+                    ? "bg-red-100 text-red-700 hover:bg-red-200"
+                    : "bg-green-100 text-green-700 hover:bg-green-200"
+                }`}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };
