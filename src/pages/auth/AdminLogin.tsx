@@ -616,34 +616,37 @@ const AdminLogin = () => {
                   <>
                     <div className="auth-card-heading">
                       <h2>Verify Your Identity</h2>
-                      <p>Use your registered fingerprint to verify and sign in</p>
+                      <p>Use your registered fingerprint to sign in</p>
                     </div>
 
                     <div className="auth-fingerprint-section">
-                      <div className="flex flex-col items-center justify-center py-8">
-                        <Fingerprint size={48} className="text-green-600 mb-4" />
-                        <p className="text-center text-gray-700 mb-6">
-                          Click below and place your finger on the scanner to verify your identity and sign in automatically.
+                      <div className="auth-fingerprint-prompt">
+                        <div className="auth-fingerprint-icon">
+                          <Fingerprint size={48} />
+                        </div>
+                        <p className="auth-fingerprint-text">
+                          Place your finger on the scanner to verify and sign in automatically.
                         </p>
-                        <button
-                          type="button"
-                          className="auth-primary-btn w-full"
-                          onClick={() => triggerVerifyFingerprintOnly()}
-                          disabled={loading}
-                        >
-                          {loading ? (
-                            <>
-                              <Fingerprint size={20} className="animate-spin" />
-                              Scanning Fingerprint...
-                            </>
-                          ) : (
-                            <>
-                              <Fingerprint size={20} />
-                              Verify with Fingerprint
-                            </>
-                          )}
-                        </button>
                       </div>
+
+                      <button
+                        type="button"
+                        className="auth-submit-btn"
+                        onClick={() => triggerVerifyFingerprintOnly()}
+                        disabled={loading}
+                      >
+                        {loading ? (
+                          <>
+                            <Fingerprint size={20} className="animate-spin" />
+                            Scanning Fingerprint...
+                          </>
+                        ) : (
+                          <>
+                            <Fingerprint size={20} />
+                            Verify with Fingerprint
+                          </>
+                        )}
+                      </button>
                     </div>
 
                     <button
@@ -708,12 +711,18 @@ const AdminLogin = () => {
 
                     {email && password && (
                       <div className="auth-fingerprint-section">
-                        <p className="text-sm text-gray-600 mb-4">
-                          Click below and use your registered fingerprint to verify your identity and sign in
-                        </p>
+                        <div className="auth-fingerprint-prompt">
+                          <div className="auth-fingerprint-icon">
+                            <Fingerprint size={40} />
+                          </div>
+                          <p className="auth-fingerprint-text">
+                            Use your registered fingerprint to verify and complete sign in
+                          </p>
+                        </div>
+
                         <button
                           type="button"
-                          className="auth-primary-btn"
+                          className="auth-submit-btn"
                           onClick={() => triggerFingerprintAuth()}
                           disabled={loading}
                         >
