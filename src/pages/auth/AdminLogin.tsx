@@ -14,7 +14,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import FingerprintLogin from "../../components/auth/FingerprintLogin";
+
 import {
   getProfileForAuthUser,
   login,
@@ -82,8 +82,7 @@ const AdminLogin = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"success" | "error">("error");
   const [modalMessage, setModalMessage] = useState("");
-  const [savedEmail, setSavedEmail] = useState("");
-  const [savedPassword, setSavedPassword] = useState("");
+
 
   const features = [
     { icon: Bot, title: "AI Inventory Assistant", desc: "Smart inventory answers instantly." },

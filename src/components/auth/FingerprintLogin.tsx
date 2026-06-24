@@ -26,18 +26,8 @@ const FingerprintLogin = ({
     </button>
   );
 
-  // Simple Toast wrapper
-  const Toast = ({ message, type, onClose }: any) => (
-    <div className={`fixed bottom-4 right-4 p-4 rounded-lg text-white ${type === "success" ? "bg-green-600" : "bg-red-600"} z-50 flex items-center gap-2`}>
-      {message}
-      <button onClick={onClose} className="ml-4">✕</button>
-    </div>
-  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error">("success");
 
   const supported = isWebauthnSupported();
 

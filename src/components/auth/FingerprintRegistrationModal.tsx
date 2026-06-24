@@ -31,17 +31,7 @@ const FingerprintRegistrationModal = ({
       </div>
     );
 
-  // Simple Button wrapper
-  const Button = ({ children, onClick, type = "button", disabled = false, variant = "primary", className = "" }: any) => (
-    <button
-      type={type}
-      onClick={onClick}
-      disabled={disabled}
-      className={`px-4 py-2 rounded-lg font-medium transition ${variant === "secondary" ? "bg-gray-200 text-gray-800" : "bg-blue-600 text-white"} ${className} ${disabled ? "opacity-50 cursor-not-allowed" : "hover:opacity-90"}`}
-    >
-      {children}
-    </button>
-  );
+
 
   // Simple Toast wrapper
   const Toast = ({ message, type, onClose }: any) => (
