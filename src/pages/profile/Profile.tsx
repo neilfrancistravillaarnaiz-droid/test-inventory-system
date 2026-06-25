@@ -4,11 +4,8 @@ import PageHeader from "../../components/common/PageHeader";
 import SuccessModal from "../../components/common/SuccessModal";
 import { useCurrentProfile } from "../../hooks/useCurrentProfile";
 import { updateProfile, type ProfileInput } from "../../services/userService";
-import CredentialsManager from "../../components/auth/CredentialsManager";
-import FingerprintRegistrationModal from "../../components/auth/FingerprintRegistrationModal";
 import {
   ClipboardList,
-  Fingerprint,
   ImagePlus,
   KeyRound,
   ShieldCheck,
@@ -38,8 +35,6 @@ const Profile = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
-  const [showFingerprintModal, setShowFingerprintModal] = useState(false);
-  const [refreshCredentials, setRefreshCredentials] = useState(0);
 
   useEffect(() => {
     setFullName(profile?.full_name || "");
@@ -385,21 +380,6 @@ const Profile = () => {
             </button>
           </form>
 
-          <div className="settings-form profile-security-card">
-            <div className="profile-section-heading">
-              <div>
-                <span>Security</span>
-                <h3>Fingerprint Authentication</h3>
-              </div>
-              <Fingerprint size={24} aria-hidden="true" />
-            </div>
-
-            <CredentialsManager
-              userId={session?.user.id || ""}
-              onAddNew={() => setShowFingerprintModal(true)}
-              key={refreshCredentials}
-            />
-          </div>
         </div>
 
         <aside className="settings-preview profile-summary">
@@ -469,18 +449,6 @@ const Profile = () => {
         message="Your profile information was saved successfully."
         confirmText="Okay"
         onClose={() => setShowSuccess(false)}
-      />
-
-      <FingerprintRegistrationModal
-        isOpen={showFingerprintModal}
-        userId={session?.user.id || ""}
-        email={profile?.email || session?.user.email || ""}
-        onClose={() => setShowFingerprintModal(false)}
-        onSuccess={() => {
-          setShowFingerprintModal(false);
-          setRefreshCredentials((prev) => prev + 1);
-          setShowSuccess(true);
-        }}
       />
     </section>
   );

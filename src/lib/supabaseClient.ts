@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Memory-only storage for fingerprint login (doesn't persist across page reloads)
+// Memory-only storage for auth sessions (doesn't persist across page reloads)
 class MemoryStorage implements Storage {
   private data: Record<string, string> = {};
 
