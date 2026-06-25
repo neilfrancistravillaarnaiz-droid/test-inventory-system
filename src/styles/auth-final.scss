@@ -953,7 +953,7 @@
   padding-bottom: 0 !important;
 }
 
-..admin-auth-page .auth-input-wrap {
+.admin-auth-page .auth-input-wrap {
   gap: 12px !important;
 }
 
@@ -961,6 +961,19 @@
   overflow: auto !important;
   min-height: 100svh !important;
   height: auto !important;
+}
+
+.admin-auth-page .admin-login-wrapper {
+  padding-bottom: 32px !important;
+}
+
+.admin-auth-page .auth-modern-card {
+  width: 100% !important;
+  max-width: 560px !important;
+}
+
+.admin-auth-page .auth-form-body {
+  min-height: 420px !important;
 }
 
 .admin-auth-page .admin-auth-card {
