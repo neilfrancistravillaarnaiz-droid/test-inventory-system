@@ -2,7 +2,6 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
-import webauthnRoutes from "./routes/webauthnRoutes.js";
 
 dotenv.config();
 
@@ -851,9 +850,6 @@ app.get("/stock-history", async (req, res) => {
 
   res.json(data);
 });
-
-// WebAuthn Routes
-app.use("/api/webauthn", webauthnRoutes);
 
 const PORT = process.env.PORT || 8000;
 const HOST = "0.0.0.0";
