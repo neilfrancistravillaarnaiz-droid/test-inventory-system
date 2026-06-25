@@ -221,12 +221,20 @@ const AdminLogin = () => {
       sessionStorage.setItem(PENDING_ADMIN_OTP_METHOD_KEY, "totp");
       setTotpSetupUrl(totpResponse.otpauthUrl || "");
       setTotpSecret(totpResponse.secret || "");
-      setStep(totpResponse.setupRequired ? "setupTotp" : "otp");
-      setNotice(
-        totpResponse.setupRequired
-          ? "Scan the QR code with your authenticator app, then enter the code below."
-          : "Your authenticator is ready. Enter the code from the app."
-      );
+      const hasQr = Boolean(totpResponse.otpauthUrl);
+
+      if (!hasQr) {
+        setLoading(false);
+        showModal(
+          "error",
+          totpResponse.message ||
+            "Unable to generate the authenticator QR code. Please check your backend or contact support."
+        );
+        return;
+      }
+
+      setStep("setupTotp");
+      setNotice("Scan the QR code with your authenticator app, then enter the code below.");
     }
   };
 
