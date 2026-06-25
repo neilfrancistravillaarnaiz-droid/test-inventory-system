@@ -124,8 +124,10 @@ const AdminLogin = () => {
 
     const normalizedEmail = email.trim().toLowerCase();
     const { data, error } = await login(normalizedEmail, password);
+    const authData = data as any;
+    const mfaChallenge = authData?.mfa;
 
-    if (error || (!data.user && !data.mfa)) {
+    if (error || (!data.user && !mfaChallenge)) {
       setLoading(false);
       showModal(
         "error",
@@ -157,7 +159,7 @@ const AdminLogin = () => {
       return;
     }
 
-    if (data.mfa) {
+    if (mfaChallenge) {
       setIsMfaFlow(true);
       setOtpMethod("totp");
       sessionStorage.setItem(PENDING_ADMIN_OTP_METHOD_KEY, "totp");
@@ -240,16 +242,15 @@ const AdminLogin = () => {
       const targetEmail =
         sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email;
 
-      let verifyResponse;
+      let verifyResponse: any;
 
       if (method === "totp") {
         verifyResponse = await verifyAdminTotp(targetEmail, otp.trim());
       } else {
-        const otpResponse = await verifyAdminEmailOtp(targetEmail, otp.trim());
-        verifyResponse = otpResponse;
+        verifyResponse = await verifyAdminEmailOtp(targetEmail, otp.trim());
       }
 
-      if (!verifyResponse?.success && verifyResponse?.error) {
+      if (verifyResponse.error) {
         setLoading(false);
         showModal(
           "error",
@@ -288,11 +289,11 @@ const AdminLogin = () => {
           return;
         }
       } else {
-        if (!verifyResponse.success) {
+        if (!verifyResponse?.data?.session && !verifyResponse?.data?.user) {
           setLoading(false);
           showModal(
             "error",
-            verifyResponse.message || "Invalid authenticator code. Please try again."
+            verifyResponse.error?.message || "Invalid authenticator code. Please try again."
           );
           return;
         }
