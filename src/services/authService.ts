@@ -1,5 +1,6 @@
 import { supabase } from "../lib/supabaseClient";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim() || "http://localhost:8000";
 export const ADMIN_OTP_STORAGE_KEY = "stockflow-admin-otp-verified-at";
 const ADMIN_OTP_WINDOW_MS = 1000 * 60 * 60 * 8;
 
@@ -46,21 +47,28 @@ export const verifyAdminEmailOtp = async (email: string, token: string) => {
   });
 };
 
-export const requestAdminPhoneOtp = async (phone: string) => {
-  return await supabase.auth.signInWithOtp({
-    phone,
-    options: {
-      shouldCreateUser: false,
+export const getAdminTotpSetup = async (email: string) => {
+  const response = await fetch(`${API_BASE_URL}/admin/totp/setup`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({ email }),
   });
+
+  return response.json();
 };
 
-export const verifyAdminPhoneOtp = async (phone: string, token: string) => {
-  return await supabase.auth.verifyOtp({
-    phone,
-    token,
-    type: "sms",
+export const verifyAdminTotp = async (email: string, token: string) => {
+  const response = await fetch(`${API_BASE_URL}/admin/totp/verify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, token }),
   });
+
+  return response.json();
 };
 
 export const markAdminOtpVerified = () => {

@@ -2,6 +2,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
+import { authenticator } from "otplib";
 
 dotenv.config();
 
@@ -85,6 +86,149 @@ app.get("/test-db", async (req, res) => {
     message: "Supabase Connected Successfully",
     sample: data,
   });
+});
+
+app.post("/admin/totp/setup", async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is required to set up TOTP authenticator.",
+      });
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id,email,totp_secret,totp_enabled")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (profileError) {
+      return res.status(500).json({
+        success: false,
+        message: profileError.message,
+      });
+    }
+
+    if (!profile) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin profile not found for the provided email.",
+      });
+    }
+
+    const issuer = process.env.TOTP_ISSUER || "StockFlow";
+    const secret = profile.totp_secret || authenticator.generateSecret();
+    const otpauthUrl = authenticator.keyuri(email, issuer, secret);
+
+    if (!profile.totp_secret) {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ totp_secret: secret, totp_enabled: false })
+        .eq("id", profile.id);
+
+      if (updateError) {
+        return res.status(500).json({
+          success: false,
+          message: updateError.message,
+        });
+      }
+    }
+
+    return res.json({
+      success: true,
+      setupRequired: !profile.totp_enabled,
+      otpauthUrl,
+      secret: profile.totp_enabled ? undefined : secret,
+      message: profile.totp_enabled
+        ? "Your authenticator is already configured. Enter the code shown in your app."
+        : "Scan the QR code or enter the secret manually in your Authenticator app.",
+    });
+  } catch (error) {
+    console.error("TOTP setup error:", error);
+    res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unable to set up TOTP authenticator.",
+    });
+  }
+});
+
+app.post("/admin/totp/verify", async (req, res) => {
+  try {
+    const email = String(req.body?.email || "").trim().toLowerCase();
+    const token = String(req.body?.token || "").trim();
+
+    if (!email || !token) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and TOTP token are required for verification.",
+      });
+    }
+
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("id,totp_secret,totp_enabled,role")
+      .eq("email", email)
+      .maybeSingle();
+
+    if (profileError) {
+      return res.status(500).json({
+        success: false,
+        message: profileError.message,
+      });
+    }
+
+    if (!profile || !profile.totp_secret) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "TOTP authenticator is not configured for this account. Please set it up first.",
+      });
+    }
+
+    authenticator.options = { window: 1 };
+    const isValid = authenticator.check(token, profile.totp_secret);
+
+    if (!isValid) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid authenticator code.",
+      });
+    }
+
+    if (!profile.totp_enabled) {
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ totp_enabled: true })
+        .eq("id", profile.id);
+
+      if (updateError) {
+        return res.status(500).json({
+          success: false,
+          message: updateError.message,
+        });
+      }
+    }
+
+    return res.json({
+      success: true,
+      verified: true,
+      totpEnabled: true,
+    });
+  } catch (error) {
+    console.error("TOTP verify error:", error);
+    res.status(500).json({
+      success: false,
+      message:
+        error instanceof Error
+          ? error.message
+          : "Unable to verify TOTP authenticator code.",
+    });
+  }
 });
 
 const formatCurrency = (value) =>

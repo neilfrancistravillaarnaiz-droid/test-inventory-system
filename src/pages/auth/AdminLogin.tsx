@@ -10,26 +10,25 @@ import {
   Lock,
   Mail,
   MapPin,
-  Phone,
   ScanLine,
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
 
 import {
   getProfileForAuthUser,
   login,
   markAdminOtpVerified,
   requestAdminEmailOtp,
-  requestAdminPhoneOtp,
   verifyAdminEmailOtp,
-  verifyAdminPhoneOtp,
+  getAdminTotpSetup,
+  verifyAdminTotp,
 } from "../../services/authService";
 import { supabase } from "../../lib/supabaseClient";
 
 const PENDING_ADMIN_EMAIL_KEY = "stockflow-pending-admin-email";
-const PENDING_ADMIN_PHONE_KEY = "stockflow-pending-admin-phone";
 const PENDING_ADMIN_OTP_METHOD_KEY = "stockflow-pending-admin-otp-method";
 
 const getAuthErrorMessage = (error: unknown, fallback: string) => {
@@ -77,25 +76,26 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
 const AdminLogin = () => {
   const navigate = useNavigate();
   const pendingEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || "";
-  const pendingPhone = sessionStorage.getItem(PENDING_ADMIN_PHONE_KEY) || "";
-  const pendingOtpMethod = sessionStorage.getItem(PENDING_ADMIN_OTP_METHOD_KEY) as "email" | "phone" | null;
-  
+  const pendingOtpMethod = sessionStorage.getItem(PENDING_ADMIN_OTP_METHOD_KEY) as "email" | "totp" | null;
   const initialStep = pendingOtpMethod ? "otp" : pendingEmail ? "chooseOtp" : "password";
 
-  const [step, setStep] = useState<"password" | "chooseOtp" | "sendOtp" | "otp">(
-    initialStep as "password" | "chooseOtp" | "sendOtp" | "otp"
+  const [step, setStep] = useState<"password" | "chooseOtp" | "setupTotp" | "otp">(
+    initialStep as "password" | "chooseOtp" | "setupTotp" | "otp"
   );
   const [email, setEmail] = useState(pendingEmail);
-  const [phone, setPhone] = useState(pendingPhone);
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
-  const [otpMethod, setOtpMethod] = useState<"email" | "phone">("email");
+  const [otpMethod, setOtpMethod] = useState<"email" | "totp">("email");
+  const [totpSetupUrl, setTotpSetupUrl] = useState("");
+  const [totpSecret, setTotpSecret] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState(
-    pendingOtpMethod === "email" ? "Admin password confirmed. Verify with email OTP." : 
-    pendingOtpMethod === "phone" ? "Admin password confirmed. Verify with phone OTP." :
-    ""
+    pendingOtpMethod === "email"
+      ? "Admin password confirmed. Verify with email OTP."
+      : pendingOtpMethod === "totp"
+      ? "Admin password confirmed. Verify with your authenticator app."
+      : ""
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"success" | "error">("error");
@@ -168,10 +168,10 @@ const AdminLogin = () => {
     setLoading(true);
     setNotice("");
 
-    if (otpMethod === "email") {
-      const targetEmail =
-        sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email.trim().toLowerCase();
+    const targetEmail =
+      sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email.trim().toLowerCase();
 
+    if (otpMethod === "email") {
       const otpResponse = await requestAdminEmailOtp(targetEmail);
       setLoading(false);
 
@@ -192,60 +192,30 @@ const AdminLogin = () => {
       setStep("otp");
       setNotice("Email OTP sent. Check your email and enter the code here.");
     } else {
-      if (!phone.trim()) {
-        setLoading(false);
-        showModal("error", "Please enter your phone number to receive an OTP.");
-        return;
-      }
-
-      const otpResponse = await requestAdminPhoneOtp(phone.trim());
+      const totpResponse = await getAdminTotpSetup(targetEmail);
       setLoading(false);
 
-      if (otpResponse.error) {
-        console.error("Admin phone OTP send failed:", otpResponse.error);
+      if (!totpResponse?.success) {
+        console.error("Admin TOTP setup failed:", totpResponse);
         showModal(
           "error",
-          getAuthErrorMessage(
-            otpResponse.error,
-            "Could not send the phone OTP. Please check Supabase SMS provider settings and your phone number."
-          )
+          totpResponse?.message ||
+            "Could not initialize authenticator setup. Please contact support."
         );
         return;
       }
 
-      sessionStorage.setItem(PENDING_ADMIN_PHONE_KEY, phone.trim());
-      sessionStorage.setItem(PENDING_ADMIN_OTP_METHOD_KEY, "phone");
-      setStep("otp");
-      setNotice("Phone OTP sent. Check your SMS and enter the code here.");
-    }
-  };
-
-  const handleSendOtpStep = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setNotice("");
-
-    const targetEmail =
-      sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email.trim().toLowerCase();
-
-    const otpResponse = await requestAdminEmailOtp(targetEmail);
-    setLoading(false);
-
-    if (otpResponse.error) {
-      console.error("Admin OTP send failed:", otpResponse.error);
-      showModal(
-        "error",
-        getAuthErrorMessage(
-          otpResponse.error,
-          "Could not send the email OTP. Please check Supabase SMTP, Email provider, and Magic Link/OTP template settings."
-        )
+      sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, targetEmail);
+      sessionStorage.setItem(PENDING_ADMIN_OTP_METHOD_KEY, "totp");
+      setTotpSetupUrl(totpResponse.otpauthUrl || "");
+      setTotpSecret(totpResponse.secret || "");
+      setStep(totpResponse.setupRequired ? "setupTotp" : "otp");
+      setNotice(
+        totpResponse.setupRequired
+          ? "Scan the QR code with your authenticator app, then enter the code below."
+          : "Your authenticator is ready. Enter the code from the app."
       );
-      return;
     }
-
-    sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, targetEmail);
-    setStep("otp");
-    setNotice("OTP sent. Check your email, then enter the code here.");
   };
 
   const handleOtpStep = async (e: React.FormEvent) => {
@@ -253,50 +223,76 @@ const AdminLogin = () => {
     setLoading(true);
     setNotice("");
 
-    const otpMethodFromStorage = sessionStorage.getItem(PENDING_ADMIN_OTP_METHOD_KEY) as "email" | "phone" | null;
+    const otpMethodFromStorage = sessionStorage.getItem(PENDING_ADMIN_OTP_METHOD_KEY) as "email" | "totp" | null;
     const method = otpMethodFromStorage || otpMethod;
 
     try {
-      let verifyResult;
+      const targetEmail =
+        sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email;
 
-      if (method === "phone") {
-        const targetPhone = sessionStorage.getItem(PENDING_ADMIN_PHONE_KEY) || phone;
-        verifyResult = await verifyAdminPhoneOtp(targetPhone, otp.trim());
+      let verifyResponse;
+
+      if (method === "totp") {
+        verifyResponse = await verifyAdminTotp(targetEmail, otp.trim());
       } else {
-        const targetEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email;
-        verifyResult = await verifyAdminEmailOtp(targetEmail, otp.trim());
+        const otpResponse = await verifyAdminEmailOtp(targetEmail, otp.trim());
+        verifyResponse = otpResponse;
       }
 
-      const { data, error } = verifyResult;
-
-      if (error || !data.user) {
+      if (!verifyResponse?.success && verifyResponse?.error) {
         setLoading(false);
         showModal(
           "error",
           getAuthErrorMessage(
-            error,
-            "Invalid or expired OTP. Please request a new code and try again."
+            verifyResponse.error,
+            "Invalid or expired code. Please try again."
           )
         );
         return;
       }
 
-      const { data: profile } = await getProfileForAuthUser(
-        data.user.id,
-        data.user.email || (method === "email" ? sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) : undefined)
-      );
+      if (method === "email") {
+        const { data, error } = verifyResponse;
 
-      if (profile?.role !== "Admin") {
-        await supabase.auth.signOut();
-        setLoading(false);
-        showModal("error", "This account is not allowed to use the Admin portal.");
-        return;
+        if (error || !data.user) {
+          setLoading(false);
+          showModal(
+            "error",
+            getAuthErrorMessage(
+              error,
+              "Invalid or expired OTP. Please request a new code and try again."
+            )
+          );
+          return;
+        }
+
+        const { data: profile } = await getProfileForAuthUser(
+          data.user.id,
+          data.user.email || targetEmail
+        );
+
+        if (profile?.role !== "Admin") {
+          await supabase.auth.signOut();
+          setLoading(false);
+          showModal("error", "This account is not allowed to use the Admin portal.");
+          return;
+        }
+      } else {
+        if (!verifyResponse.success) {
+          setLoading(false);
+          showModal(
+            "error",
+            verifyResponse.message || "Invalid authenticator code. Please try again."
+          );
+          return;
+        }
       }
 
       markAdminOtpVerified();
       sessionStorage.removeItem(PENDING_ADMIN_EMAIL_KEY);
-      sessionStorage.removeItem(PENDING_ADMIN_PHONE_KEY);
       sessionStorage.removeItem(PENDING_ADMIN_OTP_METHOD_KEY);
+      setTotpSetupUrl("");
+      setTotpSecret("");
       setLoading(false);
       navigate("/dashboard");
     } catch (err) {
@@ -307,15 +303,15 @@ const AdminLogin = () => {
 
   const restartLogin = async () => {
     sessionStorage.removeItem(PENDING_ADMIN_EMAIL_KEY);
-    sessionStorage.removeItem(PENDING_ADMIN_PHONE_KEY);
     sessionStorage.removeItem(PENDING_ADMIN_OTP_METHOD_KEY);
     await supabase.auth.signOut();
     setStep("password");
     setEmail("");
-    setPhone("");
     setPassword("");
     setOtp("");
     setOtpMethod("email");
+    setTotpSetupUrl("");
+    setTotpSecret("");
     setNotice("");
   };
 
@@ -407,9 +403,7 @@ const AdminLogin = () => {
                 handlePasswordStep(e);
               } else if (step === "chooseOtp") {
                 handleChooseOtpStep(e);
-              } else if (step === "sendOtp") {
-                handleSendOtpStep(e);
-              } else if (step === "otp") {
+              } else if (step === "otp" || step === "setupTotp") {
                 handleOtpStep(e);
               }
             }}
@@ -431,22 +425,22 @@ const AdminLogin = () => {
                     ? "Admin security"
                     : step === "chooseOtp"
                     ? "Choose verification method"
-                    : step === "sendOtp"
-                    ? "Email verification"
+                    : step === "setupTotp"
+                    ? "Setup Authenticator"
                     : otpMethod === "email"
                     ? "Email OTP"
-                    : "Phone OTP"}
+                    : "Authenticator Code"}
                 </h2>
                 <p>
                   {step === "password"
                     ? "Sign in with your admin password first."
                     : step === "chooseOtp"
-                    ? "Choose to verify with email or phone OTP."
-                    : step === "sendOtp"
-                    ? "Send a one-time code to your admin email."
+                    ? "Choose to verify with email OTP or TOTP authenticator."
+                    : step === "setupTotp"
+                    ? "Scan the QR code using your authenticator app, then enter the code."
                     : otpMethod === "email"
                     ? "Enter the one-time code sent to your email."
-                    : "Enter the one-time code sent to your phone."}
+                    : "Enter the code from your authenticator app."}
                 </p>
               </div>
 
@@ -515,42 +509,36 @@ const AdminLogin = () => {
                       <input
                         type="radio"
                         name="otpMethod"
-                        value="phone"
-                        checked={otpMethod === "phone"}
-                        onChange={(e) => setOtpMethod(e.target.value as "phone")}
+                        value="totp"
+                        checked={otpMethod === "totp"}
+                        onChange={(e) => setOtpMethod(e.target.value as "totp")}
                       />
                       <span className="auth-method-label">
-                        <Phone size={16} strokeWidth={2} />
-                        Phone OTP
+                        <KeyRound size={16} strokeWidth={2} />
+                        Authenticator
                       </span>
                     </label>
                   </div>
-
-                  {otpMethod === "phone" && (
-                    <>
-                      <label htmlFor="admin-phone">Phone Number</label>
-                      <div className="auth-input-wrap">
-                        <span className="auth-input-icon" aria-hidden="true">
-                          <Phone size={16} strokeWidth={2} />
-                        </span>
-                        <input
-                          id="admin-phone"
-                          type="tel"
-                          placeholder="+1 (555) 000-0000"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          required={otpMethod === "phone"}
-                        />
-                      </div>
-                    </>
-                  )}
                 </>
               )}
 
-              {step === "otp" && (
+              {step === "setupTotp" && totpSetupUrl && (
+                <div className="auth-totp-setup">
+                  <label>Scan this QR code</label>
+                  <div className="auth-qr-code">
+                    <QRCodeCanvas value={totpSetupUrl} size={180} level="H" includeMargin={true} />
+                  </div>
+                  <p className="auth-totp-instructions">
+                    Use an authenticator app such as Google Authenticator, Authy, or Microsoft Authenticator.
+                    If your app cannot scan the code, enter this secret manually: <strong>{totpSecret}</strong>
+                  </p>
+                </div>
+              )}
+
+              {(step === "otp" || step === "setupTotp") && (
                 <>
                   <label htmlFor="admin-otp">
-                    {otpMethod === "email" ? "Email OTP" : "Phone OTP"}
+                    {otpMethod === "email" ? "Email OTP" : "Authenticator Code"}
                   </label>
                   <div className="auth-input-wrap admin-otp-code">
                     <span className="auth-input-icon" aria-hidden="true">
@@ -577,9 +565,7 @@ const AdminLogin = () => {
                   : step === "chooseOtp"
                   ? otpMethod === "email"
                     ? "Send Email OTP"
-                    : "Send Phone OTP"
-                  : step === "sendOtp"
-                  ? "Send Email OTP"
+                    : "Set Up Authenticator"
                   : "Verify and Enter"}
               </button>
 
