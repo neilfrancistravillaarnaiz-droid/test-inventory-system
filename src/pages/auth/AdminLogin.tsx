@@ -10,6 +10,7 @@ import {
   Lock,
   Mail,
   MapPin,
+  Phone,
   ScanLine,
   ShieldCheck,
   TrendingUp,
@@ -21,11 +22,15 @@ import {
   login,
   markAdminOtpVerified,
   requestAdminEmailOtp,
+  requestAdminPhoneOtp,
   verifyAdminEmailOtp,
+  verifyAdminPhoneOtp,
 } from "../../services/authService";
 import { supabase } from "../../lib/supabaseClient";
 
 const PENDING_ADMIN_EMAIL_KEY = "stockflow-pending-admin-email";
+const PENDING_ADMIN_PHONE_KEY = "stockflow-pending-admin-phone";
+const PENDING_ADMIN_OTP_METHOD_KEY = "stockflow-pending-admin-otp-method";
 
 const getAuthErrorMessage = (error: unknown, fallback: string) => {
   if (!error) return fallback;
@@ -72,18 +77,25 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
 const AdminLogin = () => {
   const navigate = useNavigate();
   const pendingEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || "";
-  const initialStep = pendingEmail ? "sendOtp" : "password";
+  const pendingPhone = sessionStorage.getItem(PENDING_ADMIN_PHONE_KEY) || "";
+  const pendingOtpMethod = sessionStorage.getItem(PENDING_ADMIN_OTP_METHOD_KEY) as "email" | "phone" | null;
+  
+  const initialStep = pendingOtpMethod ? "otp" : pendingEmail ? "chooseOtp" : "password";
 
-  const [step, setStep] = useState<"password" | "sendOtp" | "otp">(
-    initialStep as "password" | "sendOtp"
+  const [step, setStep] = useState<"password" | "chooseOtp" | "sendOtp" | "otp">(
+    initialStep as "password" | "chooseOtp" | "sendOtp" | "otp"
   );
   const [email, setEmail] = useState(pendingEmail);
+  const [phone, setPhone] = useState(pendingPhone);
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [otpMethod, setOtpMethod] = useState<"email" | "phone">("email");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState(
-    pendingEmail ? "Admin password confirmed. Send an email OTP to continue." : ""
+    pendingOtpMethod === "email" ? "Admin password confirmed. Verify with email OTP." : 
+    pendingOtpMethod === "phone" ? "Admin password confirmed. Verify with phone OTP." :
+    ""
   );
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"success" | "error">("error");
@@ -147,8 +159,65 @@ const AdminLogin = () => {
     setLoading(false);
 
     sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, email.trim().toLowerCase());
-    setStep("sendOtp");
-    setNotice("Admin password confirmed. Send an email OTP to continue.");
+    setStep("chooseOtp");
+    setNotice("Admin password confirmed. Choose how to verify.");
+  };
+
+  const handleChooseOtpStep = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setNotice("");
+
+    if (otpMethod === "email") {
+      const targetEmail =
+        sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email.trim().toLowerCase();
+
+      const otpResponse = await requestAdminEmailOtp(targetEmail);
+      setLoading(false);
+
+      if (otpResponse.error) {
+        console.error("Admin email OTP send failed:", otpResponse.error);
+        showModal(
+          "error",
+          getAuthErrorMessage(
+            otpResponse.error,
+            "Could not send the email OTP. Please check Supabase SMTP, Email provider, and Magic Link/OTP template settings."
+          )
+        );
+        return;
+      }
+
+      sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, targetEmail);
+      sessionStorage.setItem(PENDING_ADMIN_OTP_METHOD_KEY, "email");
+      setStep("otp");
+      setNotice("Email OTP sent. Check your email and enter the code here.");
+    } else {
+      if (!phone.trim()) {
+        setLoading(false);
+        showModal("error", "Please enter your phone number to receive an OTP.");
+        return;
+      }
+
+      const otpResponse = await requestAdminPhoneOtp(phone.trim());
+      setLoading(false);
+
+      if (otpResponse.error) {
+        console.error("Admin phone OTP send failed:", otpResponse.error);
+        showModal(
+          "error",
+          getAuthErrorMessage(
+            otpResponse.error,
+            "Could not send the phone OTP. Please check Supabase SMS provider settings and your phone number."
+          )
+        );
+        return;
+      }
+
+      sessionStorage.setItem(PENDING_ADMIN_PHONE_KEY, phone.trim());
+      sessionStorage.setItem(PENDING_ADMIN_OTP_METHOD_KEY, "phone");
+      setStep("otp");
+      setNotice("Phone OTP sent. Check your SMS and enter the code here.");
+    }
   };
 
   const handleSendOtpStep = async (e: React.FormEvent) => {
@@ -184,47 +253,69 @@ const AdminLogin = () => {
     setLoading(true);
     setNotice("");
 
-    const targetEmail =
-      sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email.trim().toLowerCase();
+    const otpMethodFromStorage = sessionStorage.getItem(PENDING_ADMIN_OTP_METHOD_KEY) as "email" | "phone" | null;
+    const method = otpMethodFromStorage || otpMethod;
 
-    const { data, error } = await verifyAdminEmailOtp(targetEmail, otp.trim());
-    if (error || !data.user) {
-      setLoading(false);
-      showModal(
-        "error",
-        getAuthErrorMessage(
-          error,
-          "Invalid or expired OTP. Please request a new code and try again."
-        )
+    try {
+      let verifyResult;
+
+      if (method === "phone") {
+        const targetPhone = sessionStorage.getItem(PENDING_ADMIN_PHONE_KEY) || phone;
+        verifyResult = await verifyAdminPhoneOtp(targetPhone, otp.trim());
+      } else {
+        const targetEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || email;
+        verifyResult = await verifyAdminEmailOtp(targetEmail, otp.trim());
+      }
+
+      const { data, error } = verifyResult;
+
+      if (error || !data.user) {
+        setLoading(false);
+        showModal(
+          "error",
+          getAuthErrorMessage(
+            error,
+            "Invalid or expired OTP. Please request a new code and try again."
+          )
+        );
+        return;
+      }
+
+      const { data: profile } = await getProfileForAuthUser(
+        data.user.id,
+        data.user.email || (method === "email" ? sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) : undefined)
       );
-      return;
-    }
 
-    const { data: profile } = await getProfileForAuthUser(
-      data.user.id,
-      data.user.email || targetEmail
-    );
+      if (profile?.role !== "Admin") {
+        await supabase.auth.signOut();
+        setLoading(false);
+        showModal("error", "This account is not allowed to use the Admin portal.");
+        return;
+      }
 
-    if (profile?.role !== "Admin") {
-      await supabase.auth.signOut();
+      markAdminOtpVerified();
+      sessionStorage.removeItem(PENDING_ADMIN_EMAIL_KEY);
+      sessionStorage.removeItem(PENDING_ADMIN_PHONE_KEY);
+      sessionStorage.removeItem(PENDING_ADMIN_OTP_METHOD_KEY);
       setLoading(false);
-      showModal("error", "This account is not allowed to use the Admin portal.");
-      return;
+      navigate("/dashboard");
+    } catch (err) {
+      setLoading(false);
+      showModal("error", "An error occurred during verification. Please try again.");
     }
-
-    markAdminOtpVerified();
-    sessionStorage.removeItem(PENDING_ADMIN_EMAIL_KEY);
-    setLoading(false);
-    navigate("/dashboard");
   };
 
   const restartLogin = async () => {
     sessionStorage.removeItem(PENDING_ADMIN_EMAIL_KEY);
+    sessionStorage.removeItem(PENDING_ADMIN_PHONE_KEY);
+    sessionStorage.removeItem(PENDING_ADMIN_OTP_METHOD_KEY);
     await supabase.auth.signOut();
     setStep("password");
     setEmail("");
+    setPhone("");
     setPassword("");
     setOtp("");
+    setOtpMethod("email");
     setNotice("");
   };
 
@@ -314,6 +405,8 @@ const AdminLogin = () => {
               e.preventDefault();
               if (step === "password") {
                 handlePasswordStep(e);
+              } else if (step === "chooseOtp") {
+                handleChooseOtpStep(e);
               } else if (step === "sendOtp") {
                 handleSendOtpStep(e);
               } else if (step === "otp") {
@@ -336,16 +429,24 @@ const AdminLogin = () => {
                 <h2>
                   {step === "password"
                     ? "Admin security"
+                    : step === "chooseOtp"
+                    ? "Choose verification method"
                     : step === "sendOtp"
                     ? "Email verification"
-                    : "Email OTP"}
+                    : otpMethod === "email"
+                    ? "Email OTP"
+                    : "Phone OTP"}
                 </h2>
                 <p>
                   {step === "password"
                     ? "Sign in with your admin password first."
+                    : step === "chooseOtp"
+                    ? "Choose to verify with email or phone OTP."
                     : step === "sendOtp"
                     ? "Send a one-time code to your admin email."
-                    : "Enter the one-time code sent to your email."}
+                    : otpMethod === "email"
+                    ? "Enter the one-time code sent to your email."
+                    : "Enter the one-time code sent to your phone."}
                 </p>
               </div>
 
@@ -394,9 +495,63 @@ const AdminLogin = () => {
                 </>
               )}
 
+              {step === "chooseOtp" && (
+                <>
+                  <div className="auth-otp-method-selector">
+                    <label className="auth-method-option">
+                      <input
+                        type="radio"
+                        name="otpMethod"
+                        value="email"
+                        checked={otpMethod === "email"}
+                        onChange={(e) => setOtpMethod(e.target.value as "email")}
+                      />
+                      <span className="auth-method-label">
+                        <Mail size={16} strokeWidth={2} />
+                        Email OTP
+                      </span>
+                    </label>
+                    <label className="auth-method-option">
+                      <input
+                        type="radio"
+                        name="otpMethod"
+                        value="phone"
+                        checked={otpMethod === "phone"}
+                        onChange={(e) => setOtpMethod(e.target.value as "phone")}
+                      />
+                      <span className="auth-method-label">
+                        <Phone size={16} strokeWidth={2} />
+                        Phone OTP
+                      </span>
+                    </label>
+                  </div>
+
+                  {otpMethod === "phone" && (
+                    <>
+                      <label htmlFor="admin-phone">Phone Number</label>
+                      <div className="auth-input-wrap">
+                        <span className="auth-input-icon" aria-hidden="true">
+                          <Phone size={16} strokeWidth={2} />
+                        </span>
+                        <input
+                          id="admin-phone"
+                          type="tel"
+                          placeholder="+1 (555) 000-0000"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          required={otpMethod === "phone"}
+                        />
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
               {step === "otp" && (
                 <>
-                  <label htmlFor="admin-otp">Email OTP</label>
+                  <label htmlFor="admin-otp">
+                    {otpMethod === "email" ? "Email OTP" : "Phone OTP"}
+                  </label>
                   <div className="auth-input-wrap admin-otp-code">
                     <span className="auth-input-icon" aria-hidden="true">
                       <KeyRound size={16} strokeWidth={2} />
@@ -419,6 +574,10 @@ const AdminLogin = () => {
                   ? "Verifying..."
                   : step === "password"
                   ? "Login"
+                  : step === "chooseOtp"
+                  ? otpMethod === "email"
+                    ? "Send Email OTP"
+                    : "Send Phone OTP"
                   : step === "sendOtp"
                   ? "Send Email OTP"
                   : "Verify and Enter"}

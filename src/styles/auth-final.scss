@@ -943,6 +943,41 @@
   font-weight: 950 !important;
 }
 
+.admin-auth-page .auth-otp-method-selector {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  margin-bottom: 18px !important;
+  padding: 14px !important;
+  border-radius: 16px !important;
+  background: rgba(45, 122, 58, 0.08) !important;
+  border: 1px solid rgba(45, 122, 58, 0.14) !important;
+}
+
+.admin-auth-page .auth-method-option {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  cursor: pointer !important;
+  user-select: none !important;
+}
+
+.admin-auth-page .auth-method-option input[type="radio"] {
+  width: 18px !important;
+  height: 18px !important;
+  cursor: pointer !important;
+  accent-color: #2d7a3a !important;
+}
+
+.admin-auth-page .auth-method-label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  color: #175624 !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+
 .admin-auth-page .auth-submit-btn {
   width: 100% !important;
   min-height: 60px !important;

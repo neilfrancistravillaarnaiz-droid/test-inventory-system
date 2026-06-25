@@ -46,6 +46,23 @@ export const verifyAdminEmailOtp = async (email: string, token: string) => {
   });
 };
 
+export const requestAdminPhoneOtp = async (phone: string) => {
+  return await supabase.auth.signInWithOtp({
+    phone,
+    options: {
+      shouldCreateUser: false,
+    },
+  });
+};
+
+export const verifyAdminPhoneOtp = async (phone: string, token: string) => {
+  return await supabase.auth.verifyOtp({
+    phone,
+    token,
+    type: "sms",
+  });
+};
+
 export const markAdminOtpVerified = () => {
   sessionStorage.setItem(ADMIN_OTP_STORAGE_KEY, String(Date.now()));
 };
