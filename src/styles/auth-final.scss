@@ -893,9 +893,10 @@
   position: relative !important;
   width: 100% !important;
   height: auto !important;
-  min-height: 520px !important;
+  min-height: 0 !important;
   max-width: 560px !important;
   margin: 0 auto !important;
+  overflow: visible !important;
 }
 
 .admin-auth-page .auth-tabs a {
@@ -914,6 +915,8 @@
   grid-template-columns: 1fr !important;
   height: auto !important;
   padding: 18px 24px !important;
+  background: rgba(255, 255, 255, 0.86) !important;
+  border-radius: 34px 34px 0 0 !important;
 }
 
 .admin-auth-page .admin-only-tabs button {
@@ -929,18 +932,20 @@
   display: grid !important;
   place-items: center !important;
   padding: 32px 18px 48px !important;
+  min-height: 100vh !important;
 }
 
 .admin-auth-page .admin-login-wrapper {
   position: relative !important;
   width: min(560px, 100%) !important;
   max-width: 560px !important;
-  min-height: 520px !important;
   margin: 0 auto !important;
+  padding-bottom: 24px !important;
 }
 
 .admin-auth-page .auth-form-body {
   gap: 18px !important;
+  padding: clamp(30px, 4vh, 44px) clamp(28px, 3.5vw, 38px) !important;
 }
 
 .admin-auth-page .auth-card-heading {
@@ -948,12 +953,47 @@
   padding-bottom: 0 !important;
 }
 
-.admin-auth-page .auth-input-wrap {
+..admin-auth-page .auth-input-wrap {
   gap: 12px !important;
 }
 
+.admin-auth-page {
+  overflow: auto !important;
+  min-height: 100svh !important;
+  height: auto !important;
+}
+
+.admin-auth-page .admin-auth-card {
+  min-height: auto !important;
+  max-height: none !important;
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-width: 560px !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+}
+
+.admin-auth-page .auth-modern-card {
+  position: relative !important;
+  inset: auto !important;
+  width: 100% !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+.admin-auth-page .auth-login-side {
+  position: relative !important;
+  transform: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
 .admin-auth-page .auth-input-wrap input {
-  min-height: 54px !important;
+  min-height: 56px !important;
 }
 
 .admin-auth-page .auth-secondary-btn {
