@@ -13,6 +13,7 @@ export type CurrentProfile = {
   id: string;
   full_name: string | null;
   email: string | null;
+  phone?: string | null;
   role: UserRole | null;
   status: UserStatus | null;
   created_at?: string | null;

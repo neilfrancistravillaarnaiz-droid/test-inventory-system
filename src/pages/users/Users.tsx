@@ -26,6 +26,7 @@ type UserAccessSummary = {
 const emptyForm: ProfileInput = {
   full_name: "",
   email: "",
+  phone: null,
   role: "Viewer",
   status: "Active",
 };
@@ -267,6 +268,18 @@ const Users = () => {
               }
               placeholder="user@company.com"
               required
+            />
+          </label>
+
+          <label>
+            Phone Number (Optional - for OTP login)
+            <input
+              type="tel"
+              value={form.phone || ""}
+              onChange={(event) =>
+                setForm((prev) => ({ ...prev, phone: event.target.value || null }))
+              }
+              placeholder="+1 (555) 000-0000"
             />
           </label>
 

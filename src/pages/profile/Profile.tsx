@@ -26,6 +26,7 @@ const DEFAULT_AVATAR = "https://i.pravatar.cc/120?img=12";
 const Profile = () => {
   const { session, profile, role, loading, can } = useCurrentProfile();
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -38,6 +39,7 @@ const Profile = () => {
 
   useEffect(() => {
     setFullName(profile?.full_name || "");
+    setPhone(profile?.phone || "");
     setAvatarPreview(session?.user.user_metadata?.avatar_url || DEFAULT_AVATAR);
   }, [profile, session]);
 
@@ -139,6 +141,7 @@ const Profile = () => {
     const payload: ProfileInput = {
       full_name: fullName.trim() || profile.email || "StockFlow User",
       email: profile.email || "",
+      phone: phone.trim() || null,
       role,
       status: profile.status || "Active",
     };
@@ -327,6 +330,16 @@ const Profile = () => {
               <div className="form-field">
                 <label>Email Address</label>
                 <input value={profile.email || ""} readOnly />
+              </div>
+
+              <div className="form-field">
+                <label>Phone Number (Optional - for OTP login)</label>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(event) => setPhone(event.target.value)}
+                  placeholder="+1 (555) 000-0000"
+                />
               </div>
 
               <div className="form-field">

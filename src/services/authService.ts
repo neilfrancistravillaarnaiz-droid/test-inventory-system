@@ -13,14 +13,14 @@ export const login = async (email: string, password: string) => {
 export const getProfileForAuthUser = async (userId: string, email?: string | null) => {
   let response = await supabase
     .from("profiles")
-    .select("id, full_name, email, role, status")
+    .select("id, full_name, email, phone, role, status")
     .eq("id", userId)
     .maybeSingle();
 
   if (!response.data && email) {
     response = await supabase
       .from("profiles")
-      .select("id, full_name, email, role, status")
+      .select("id, full_name, email, phone, role, status")
       .eq("email", email)
       .maybeSingle();
   }
