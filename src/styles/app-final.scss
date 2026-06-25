@@ -3779,6 +3779,8 @@ textarea,
   display: flex !important;
   flex-direction: column !important;
   gap: 14px !important;
+  width: 100% !important;
+  max-width: 560px !important;
 }
 
 .supplier-page .supplier-list {
