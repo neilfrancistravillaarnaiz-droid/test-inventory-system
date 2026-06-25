@@ -2,7 +2,7 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import { createClient } from "@supabase/supabase-js";
-import { authenticator } from "otplib";
+import * as otplib from "otplib";
 
 dotenv.config();
 
@@ -119,8 +119,12 @@ app.post("/admin/totp/setup", async (req, res) => {
     }
 
     const issuer = process.env.TOTP_ISSUER || "StockFlow";
-    const secret = profile.totp_secret || authenticator.generateSecret();
-    const otpauthUrl = authenticator.keyuri(email, issuer, secret);
+    const secret = profile.totp_secret || otplib.generateSecret();
+    const otpauthUrl = otplib.generateURI({
+      label: email,
+      issuer,
+      secret,
+    });
 
     if (!profile.totp_secret) {
       const { error: updateError } = await supabase
@@ -190,8 +194,11 @@ app.post("/admin/totp/verify", async (req, res) => {
       });
     }
 
-    authenticator.options = { window: 1 };
-    const isValid = authenticator.check(token, profile.totp_secret);
+    const isValid = otplib.verify({
+      token,
+      secret: profile.totp_secret,
+      window: 1,
+    });
 
     if (!isValid) {
       return res.status(401).json({
