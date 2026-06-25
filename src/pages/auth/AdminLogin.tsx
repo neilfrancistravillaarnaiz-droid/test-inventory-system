@@ -155,7 +155,6 @@ const AdminLogin = () => {
       return;
     }
 
-    await supabase.auth.signOut();
     setLoading(false);
 
     sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, email.trim().toLowerCase());
