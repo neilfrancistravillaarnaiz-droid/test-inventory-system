@@ -90,6 +90,7 @@ const AdminLogin = () => {
   const [totpSecret, setTotpSecret] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isMfaFlow, setIsMfaFlow] = useState(false);
   const [notice, setNotice] = useState(
     pendingOtpMethod === "email"
       ? "Admin password confirmed. Verify with email OTP."
@@ -123,7 +124,8 @@ const AdminLogin = () => {
 
     const normalizedEmail = email.trim().toLowerCase();
     const { data, error } = await login(normalizedEmail, password);
-    if (error || !data.user) {
+
+    if (error || (!data.user && !data.mfa)) {
       setLoading(false);
       showModal(
         "error",
@@ -135,19 +137,19 @@ const AdminLogin = () => {
       return;
     }
 
-    const { data: profile, error: profileError } = await getProfileForAuthUser(
-      data.user.id,
-      data.user.email
+    const profileResult = await getProfileForAuthUser(
+      data.user?.id || "",
+      data.user?.email || normalizedEmail
     );
 
-    if (profileError || profile?.role !== "Admin") {
+    if (profileResult.error || profileResult.data?.role !== "Admin") {
       await supabase.auth.signOut();
       setLoading(false);
       showModal(
         "error",
-        profileError
+        profileResult.error
           ? getAuthErrorMessage(
-              profileError,
+              profileResult.error,
               "Could not verify your admin profile. Please check your profile role."
             )
           : "This portal is only for Admin accounts."
@@ -155,11 +157,20 @@ const AdminLogin = () => {
       return;
     }
 
-    setLoading(false);
+    if (data.mfa) {
+      setIsMfaFlow(true);
+      setOtpMethod("totp");
+      sessionStorage.setItem(PENDING_ADMIN_OTP_METHOD_KEY, "totp");
+      setNotice("Admin password confirmed. Enter your authenticator code.");
+      setStep("otp");
+    } else {
+      setIsMfaFlow(false);
+      setNotice("Admin password confirmed. Choose how to verify.");
+      setStep("chooseOtp");
+    }
 
-    sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, email.trim().toLowerCase());
-    setStep("chooseOtp");
-    setNotice("Admin password confirmed. Choose how to verify.");
+    setLoading(false);
+    sessionStorage.setItem(PENDING_ADMIN_EMAIL_KEY, normalizedEmail);
   };
 
   const handleChooseOtpStep = async (e: React.FormEvent) => {
@@ -311,6 +322,7 @@ const AdminLogin = () => {
     setOtpMethod("email");
     setTotpSetupUrl("");
     setTotpSecret("");
+    setIsMfaFlow(false);
     setNotice("");
   };
 
@@ -488,7 +500,7 @@ const AdminLogin = () => {
                 </>
               )}
 
-              {step === "chooseOtp" && (
+              {step === "chooseOtp" && !isMfaFlow && (
                 <>
                   <div className="auth-otp-method-selector">
                     <label className="auth-method-option">
