@@ -83,10 +83,10 @@ Access to XMLHttpRequest blocked by CORS policy
 
 **Test CORS:**
 ```bash
-curl -H "Origin: https://your-vercel-url" \
+curl -H "Origin: https://ccdinventorysystem.vercel.app" \
      -H "Access-Control-Request-Method: POST" \
      -H "Access-Control-Request-Headers: Content-Type" \
-     -X OPTIONS https://stockflow-backend.onrender.com/health
+     -X OPTIONS https://test-inventory-system.onrender.com/health
 ```
 
 ---
@@ -100,13 +100,13 @@ curl -H "Origin: https://your-vercel-url" \
 1. Upgrade to Render Hobby plan ($7/month) - services always running
 2. Use monitoring service (uptime robot, etc.):
    - Free tier: https://uptimerobot.com
-   - Add URL: `https://stockflow-backend.onrender.com/health`
+   - Add URL: `https://test-inventory-system.onrender.com/health`
    - Set interval: 5 minutes
 3. Add to Vercel cron jobs:
    ```javascript
    // pages/api/keep-alive.js
    export default async function handler(req, res) {
-     await fetch('https://stockflow-backend.onrender.com/health');
+     await fetch('https://test-inventory-system.onrender.com/health');
      res.status(200).json({ ok: true });
    }
    ```
@@ -125,7 +125,7 @@ curl -H "Origin: https://your-vercel-url" \
 
 **Check service status:**
 ```bash
-curl -i https://stockflow-backend.onrender.com/health
+curl -i https://test-inventory-system.onrender.com/health
 ```
 
 ---
@@ -172,12 +172,12 @@ console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
 ### Issue 3: API Calls Failing (404s)
 **Error:**
 ```
-GET https://stockflow-backend.onrender.com/api/... 404
+GET https://test-inventory-system.onrender.com/api/... 404
 ```
 
 **Solutions:**
 1. Check `VITE_BACKEND_URL` is set correctly (no trailing slash)
-2. Verify backend is running: `curl https://stockflow-backend.onrender.com/health`
+2. Verify backend is running: `curl https://test-inventory-system.onrender.com/health`
 3. Check backend deployed successfully
 4. Verify API routes exist in backend
 5. Check network tab - what URL is actually being called?
@@ -231,7 +231,7 @@ No credentials registered for this user
 1. Check Vercel Analytics
 2. Verify backend isn't spinning down:
    ```bash
-   curl -w "Time: %{time_total}s\n" https://stockflow-backend.onrender.com/health
+   curl -w "Time: %{time_total}s\n" https://test-inventory-system.onrender.com/health
    ```
 3. If > 10 seconds, backend is spinning up
 4. Upgrade Render to paid plan or add monitoring
@@ -260,7 +260,7 @@ CORS error in console
 **Test manually:**
 ```bash
 # From your Vercel URL
-fetch('https://stockflow-backend.onrender.com/health')
+fetch('https://test-inventory-system.onrender.com/health')
   .then(r => r.json())
   .then(console.log)
   .catch(console.error)
@@ -356,10 +356,10 @@ Policy violation or permission denied
 ### Check Backend Health
 ```bash
 # Test if server is running
-curl https://stockflow-backend.onrender.com/health
+curl https://test-inventory-system.onrender.com/health
 
 # Check backend configuration
-curl https://stockflow-backend.onrender.com/ai/debug-config
+curl https://test-inventory-system.onrender.com/ai/debug-config
 ```
 
 ### Check Logs
@@ -376,10 +376,10 @@ curl https://stockflow-backend.onrender.com/ai/debug-config
 ### Check Deployment Status
 ```bash
 # Vercel deployment
-curl -i https://your-domain.vercel.app
+curl -i https://ccdinventorysystem.vercel.app
 
 # Render deployment
-curl -i https://stockflow-backend.onrender.com
+curl -i https://test-inventory-system.onrender.com
 ```
 
 ---

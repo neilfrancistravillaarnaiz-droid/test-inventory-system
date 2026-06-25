@@ -26,13 +26,13 @@
 ┌──────────────────────────────────────────────────────────┐
 │               Vercel CDN (Global)                        │
 │          (Frontend - React/Vite Build)                   │
-│           https://your-domain.vercel.app                 │
+│           https://ccdinventorysystem.vercel.app                 │
 └──────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────┐
 │            Render App Server (Single Region)            │
 │       (Backend - Node.js Express API)                    │
-│  https://stockflow-backend.onrender.com                  │
+│  https://test-inventory-system.onrender.com                  │
 └──────────────────────────────────────────────────────────┘
                             ↓
 ┌──────────────────────────────────────────────────────────┐
@@ -80,7 +80,7 @@ npm start  # in backend
 
 # 3. Test both work
 curl http://localhost:8000/health
-# Visit http://localhost:5174
+# Visit http://localhost:5173
 ```
 
 ### Phase 2: Deploy Backend (10 minutes)
@@ -95,7 +95,7 @@ curl http://localhost:8000/health
 6. Add Environment Variables (Advanced):
    - `SUPABASE_URL=...`
    - `SUPABASE_SERVICE_ROLE_KEY=...`
-   - `VITE_APP_ORIGIN=https://your-vercel-domain` (add later)
+   - `VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app` (add later)
 7. Click "Create Web Service"
 8. **Get your backend URL** when deployed ✅
 
@@ -113,25 +113,26 @@ curl http://localhost:8000/health
 8. Add Environment Variables (Settings → Env Vars):
    - `VITE_SUPABASE_URL=...`
    - `VITE_SUPABASE_ANON_KEY=...`
-   - `VITE_BACKEND_URL=https://stockflow-backend.onrender.com`
-   - `VITE_APP_DOMAIN=<your-vercel-domain>`
-   - `VITE_APP_ORIGIN=https://<your-vercel-domain>`
+   - `VITE_BACKEND_URL=https://test-inventory-system.onrender.com`
+   - `VITE_API_BASE_URL=https://test-inventory-system.onrender.com`
+   - `VITE_APP_DOMAIN=ccdinventorysystem.vercel.app`
+   - `VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app`
 9. Go to Deployments → Click latest → "Redeploy"
 
 ### Phase 4: Connect Services (2 minutes)
 1. Go back to Render Dashboard
 2. Select stockflow-backend
 3. Environment → Edit `VITE_APP_ORIGIN`
-4. Set to: `https://<your-vercel-domain>`
+4. Set to: `https://ccdinventorysystem.vercel.app`
 5. Service auto-redeploys
 
 ### Phase 5: Test (5 minutes)
 ```bash
 # Test backend
-curl https://stockflow-backend.onrender.com/health
+curl https://test-inventory-system.onrender.com/health
 
 # Test frontend - visit URL
-https://your-domain.vercel.app
+https://ccdinventorysystem.vercel.app
 
 # Test connection
 # Open DevTools → Network tab → Try login
@@ -151,9 +152,10 @@ https://your-domain.vercel.app
 ```
 VITE_SUPABASE_URL=<from-supabase>
 VITE_SUPABASE_ANON_KEY=<from-supabase>
-VITE_BACKEND_URL=https://stockflow-backend.onrender.com
-VITE_APP_DOMAIN=your-domain.vercel.app
-VITE_APP_ORIGIN=https://your-domain.vercel.app
+VITE_BACKEND_URL=https://test-inventory-system.onrender.com
+VITE_API_BASE_URL=https://test-inventory-system.onrender.com
+VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
+VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
 ```
 
 ### Create in Render
@@ -162,8 +164,8 @@ PORT=3000
 NODE_ENV=production
 SUPABASE_URL=<from-supabase>
 SUPABASE_SERVICE_ROLE_KEY=<from-supabase>
-VITE_APP_ORIGIN=https://your-domain.vercel.app
-VITE_APP_DOMAIN=your-domain.vercel.app
+VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
+VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
 ```
 
 ---
@@ -205,8 +207,8 @@ VITE_APP_DOMAIN=your-domain.vercel.app
 
 | Aspect | Local | Production |
 |--------|-------|-----------|
-| **Backend URL** | localhost:8000 | stockflow-backend.onrender.com |
-| **Frontend URL** | localhost:5174 | your-domain.vercel.app |
+| **Backend URL** | localhost:8000 | test-inventory-system.onrender.com |
+| **Frontend URL** | localhost:5173 | ccdinventorysystem.vercel.app |
 | **Database** | Supabase cloud | Same Supabase project |
 | **Sessions** | Memory (lost on reload) | Memory (lost on reload) |
 | **Logs** | Console output | Render/Vercel dashboards |
@@ -217,10 +219,10 @@ VITE_APP_DOMAIN=your-domain.vercel.app
 ## Common URLs After Deployment
 
 ```
-Frontend:  https://your-domain.vercel.app
-Backend:   https://stockflow-backend.onrender.com
-API:       https://stockflow-backend.onrender.com
-Health:    https://stockflow-backend.onrender.com/health
+Frontend:  https://ccdinventorysystem.vercel.app
+Backend:   https://test-inventory-system.onrender.com
+API:       https://test-inventory-system.onrender.com
+Health:    https://test-inventory-system.onrender.com/health
 Supabase:  https://your-project.supabase.co
 ```
 

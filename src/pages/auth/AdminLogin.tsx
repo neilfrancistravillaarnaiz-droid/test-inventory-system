@@ -1,7 +1,9 @@
 ﻿import { useState } from "react";
 import {
+  AlertCircle,
   Bell,
   Bot,
+  CheckCircle2,
   Eye,
   EyeOff,
   KeyRound,
@@ -433,49 +435,40 @@ const AdminLogin = () => {
       </section>
 
       {modalOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div
+          className="auth-status-modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="admin-auth-modal-title"
+          onClick={() => setModalOpen(false)}
+        >
           <div
-            className={`bg-white rounded-lg shadow-lg p-6 max-w-sm w-full mx-4 ${
-              modalType === "error"
-                ? "border-l-4 border-red-500"
-                : "border-l-4 border-green-500"
-            }`}
+            className={`auth-status-modal ${modalType}`}
+            onClick={(event) => event.stopPropagation()}
           >
-            <div className="flex items-start gap-4">
-              <div
-                className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                  modalType === "error" ? "bg-red-100" : "bg-green-100"
-                }`}
-              >
-                <span
-                  className={`text-sm font-bold ${
-                    modalType === "error" ? "text-red-600" : "text-green-600"
-                  }`}
-                >
-                  {modalType === "error" ? "!" : "✓"}
-                </span>
-              </div>
-              <div className="flex-1">
-                <h3
-                  className={`font-semibold mb-1 ${
-                    modalType === "error" ? "text-red-900" : "text-green-900"
-                  }`}
-                >
-                  {modalType === "error" ? "Error" : "Success"}
-                </h3>
-                <p className={`text-sm ${modalType === "error" ? "text-red-700" : "text-green-700"}`}>
-                  {modalMessage}
-                </p>
-              </div>
+            <div className="auth-status-modal-icon" aria-hidden="true">
+              {modalType === "error" ? (
+                <AlertCircle size={30} strokeWidth={2.4} />
+              ) : (
+                <CheckCircle2 size={30} strokeWidth={2.4} />
+              )}
             </div>
-            <div className="mt-4 flex gap-2 justify-end">
+
+            <div className="auth-status-modal-copy">
+              <p className="auth-status-modal-kicker">
+                {modalType === "error" ? "Admin Login" : "Admin Verified"}
+              </p>
+              <h2 id="admin-auth-modal-title">
+                {modalType === "error" ? "Something needs attention" : "Success"}
+              </h2>
+              <p>{modalMessage}</p>
+            </div>
+
+            <div className="auth-status-modal-actions">
               <button
+                type="button"
                 onClick={() => setModalOpen(false)}
-                className={`px-4 py-2 rounded font-medium transition ${
-                  modalType === "error"
-                    ? "bg-red-100 text-red-700 hover:bg-red-200"
-                    : "bg-green-100 text-green-700 hover:bg-green-200"
-                }`}
+                className="auth-submit-btn"
               >
                 Close
               </button>

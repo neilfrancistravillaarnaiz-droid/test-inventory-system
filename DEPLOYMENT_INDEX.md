@@ -180,8 +180,8 @@ Your deployment documentation is complete! Here's what we've created:
 
 After deployment, you should have:
 
-✅ Backend responding at `https://stockflow-backend.onrender.com/health`
-✅ Frontend loading at `https://your-domain.vercel.app`
+✅ Backend responding at `https://test-inventory-system.onrender.com/health`
+✅ Frontend loading at `https://ccdinventorysystem.vercel.app`
 ✅ API calls working (Network tab shows 200s)
 ✅ No CORS errors in console
 ✅ Login flow working
@@ -243,9 +243,9 @@ After deployment, you should have:
 ```
 Users Browser
     ↓
-[Vercel Frontend] (your-domain.vercel.app)
+[Vercel Frontend] (ccdinventorysystem.vercel.app)
     ↓
-[Render Backend] (stockflow-backend.onrender.com)
+[Render Backend] (test-inventory-system.onrender.com)
     ↓
 [Supabase] (Database)
 ```

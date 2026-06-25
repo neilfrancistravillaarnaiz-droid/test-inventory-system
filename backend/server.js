@@ -8,8 +8,26 @@ dotenv.config();
 const app = express();
 
 // CORS Configuration
+const isProduction = process.env.NODE_ENV === "production";
+const allowedOrigins = process.env.VITE_APP_ORIGIN
+  ? process.env.VITE_APP_ORIGIN.split(",").map((origin) => origin.trim()).filter(Boolean)
+  : isProduction
+  ? []
+  : ["http://localhost:5173", "http://localhost:5174"];
+
+if (isProduction && allowedOrigins.length === 0) {
+  console.warn(
+    "VITE_APP_ORIGIN is not set. Add your Vercel frontend URL in Render environment variables."
+  );
+}
+
 const corsOptions = {
-  origin: process.env.VITE_APP_ORIGIN || "http://localhost:5174",
+  origin:
+    allowedOrigins.length === 0
+      ? false
+      : allowedOrigins.length === 1
+      ? allowedOrigins[0]
+      : allowedOrigins,
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -857,5 +875,3 @@ const HOST = "0.0.0.0";
 app.listen(PORT, HOST, () => {
   console.log(`Backend running at http://${HOST}:${PORT}`);
 });
-
-

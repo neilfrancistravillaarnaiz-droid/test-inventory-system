@@ -21,16 +21,17 @@
 3. Deploy → Settings → Environment Variables:
    - VITE_SUPABASE_URL
    - VITE_SUPABASE_ANON_KEY
-   - VITE_BACKEND_URL=https://stockflow-backend.onrender.com
-   - VITE_APP_DOMAIN
-   - VITE_APP_ORIGIN
+   - VITE_BACKEND_URL=https://test-inventory-system.onrender.com
+   - VITE_API_BASE_URL=https://test-inventory-system.onrender.com
+   - VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
+   - VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
 4. Deployments → Redeploy
 ```
 
 ### Step 3: Connect Services
 ```
 Render → stockflow-backend → Environment
-Update: VITE_APP_ORIGIN=https://your-vercel-domain
+Update: VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
 ```
 
 ---
@@ -46,17 +47,18 @@ Update: VITE_APP_ORIGIN=https://your-vercel-domain
 ```
 VITE_SUPABASE_URL=
 VITE_SUPABASE_ANON_KEY=
-VITE_BACKEND_URL=https://stockflow-backend.onrender.com
-VITE_APP_DOMAIN=
-VITE_APP_ORIGIN=https://
+VITE_BACKEND_URL=https://test-inventory-system.onrender.com
+VITE_API_BASE_URL=https://test-inventory-system.onrender.com
+VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
+VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
 ```
 
 ### Render → Add These
 ```
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-VITE_APP_ORIGIN=https://your-vercel-domain
-VITE_APP_DOMAIN=
+VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
+VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
 ```
 
 ---
@@ -65,13 +67,13 @@ VITE_APP_DOMAIN=
 
 ```bash
 # Test backend is running
-curl https://stockflow-backend.onrender.com/health
+curl https://test-inventory-system.onrender.com/health
 
 # Test frontend loads
-Open https://your-domain.vercel.app in browser
+Open https://ccdinventorysystem.vercel.app in browser
 
 # Check API connection (in browser console)
-fetch('https://stockflow-backend.onrender.com/health')
+fetch('https://test-inventory-system.onrender.com/health')
   .then(r => r.json())
   .then(console.log)
 ```
@@ -93,9 +95,9 @@ fetch('https://stockflow-backend.onrender.com/health')
 ## 📱 URLs After Deploy
 
 ```
-Frontend:  https://your-domain.vercel.app
-Backend:   https://stockflow-backend.onrender.com
-Health:    https://stockflow-backend.onrender.com/health
+Frontend:  https://ccdinventorysystem.vercel.app
+Backend:   https://test-inventory-system.onrender.com
+Health:    https://test-inventory-system.onrender.com/health
 ```
 
 ---
@@ -133,7 +135,7 @@ Always use platform environment variables!
 
 ## 🎯 Success Criteria
 
-✅ Backend responds to `curl https://stockflow-backend.onrender.com/health`
+✅ Backend responds to `curl https://test-inventory-system.onrender.com/health`
 ✅ Frontend loads without 404 errors
 ✅ Console has no CORS errors
 ✅ API calls go to your Render backend

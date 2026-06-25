@@ -3,7 +3,7 @@
 ## Pre-Deployment Checklist
 
 ### Local Testing
-- [ ] Run `npm run dev` in root - frontend loads at localhost:5174
+- [ ] Run `npm run dev` in root - frontend loads at localhost:5173
 - [ ] Run `npm start` in backend - server runs at localhost:8000
 - [ ] Test /health endpoint: `curl http://localhost:8000/health`
 
@@ -59,18 +59,18 @@
    NODE_ENV=production
    SUPABASE_URL=<your-supabase-url>
    SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
-   VITE_APP_ORIGIN=<your-vercel-url>
-   VITE_APP_DOMAIN=<your-vercel-domain>
+   VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
+   VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
    ```
 
 6. **Deploy**
    - Click "Create Web Service"
    - Wait for build (2-3 minutes)
-   - Get your URL: `https://stockflow-backend.onrender.com`
+   - Get your URL: `https://test-inventory-system.onrender.com`
 
 7. **Test Backend**
    ```bash
-   curl https://stockflow-backend.onrender.com/health
+   curl https://test-inventory-system.onrender.com/health
    ```
 
 ---
@@ -102,9 +102,10 @@
    ```
    VITE_SUPABASE_URL=<your-supabase-url>
    VITE_SUPABASE_ANON_KEY=<your-anon-key>
-   VITE_BACKEND_URL=https://stockflow-backend.onrender.com
-   VITE_APP_DOMAIN=<your-vercel-domain>
-   VITE_APP_ORIGIN=https://<your-vercel-domain>
+   VITE_BACKEND_URL=https://test-inventory-system.onrender.com
+   VITE_API_BASE_URL=https://test-inventory-system.onrender.com
+   VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
+   VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
    ```
 
 5. **Redeploy with Environment Variables**
@@ -171,8 +172,9 @@
 VITE_SUPABASE_URL         → Supabase Dashboard > Settings > API > URL
 VITE_SUPABASE_ANON_KEY    → Supabase Dashboard > Settings > API > Anon Key
 VITE_BACKEND_URL          → Your Render backend URL
+VITE_API_BASE_URL         → Your Render backend URL
 VITE_APP_DOMAIN           → Your Vercel domain
-VITE_APP_ORIGIN           → https://your-domain
+VITE_APP_ORIGIN           → https://ccdinventorysystem.vercel.app
 ```
 
 ### Backend (Render)

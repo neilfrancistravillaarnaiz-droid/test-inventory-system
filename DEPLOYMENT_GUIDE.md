@@ -31,8 +31,8 @@ In Render dashboard, go to **Environment** and add:
 PORT=3000
 SUPABASE_URL=your_supabase_url_here
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key_here
-VITE_APP_DOMAIN=stockflow-backend.onrender.com
-VITE_APP_ORIGIN=https://your-frontend-vercel-url.vercel.app
+VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
+VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
 ```
 
 **Where to find these values:**
@@ -44,7 +44,7 @@ VITE_APP_ORIGIN=https://your-frontend-vercel-url.vercel.app
 1. Click **"Create Web Service"**
 2. Render will automatically deploy from your GitHub repo
 3. Wait for build to complete (takes 2-3 minutes)
-4. Copy your backend URL: `https://stockflow-backend.onrender.com`
+4. Copy your backend URL: `https://test-inventory-system.onrender.com`
 
 ### ⚠️ Important Note
 Free Render services spin down after 15 minutes of inactivity. To keep it running:
@@ -75,19 +75,21 @@ In Vercel, go to **Settings** → **Environment Variables** and add:
 ```
 VITE_SUPABASE_URL=your_supabase_url_here
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
-VITE_APP_DOMAIN=your-domain.vercel.app
-VITE_APP_ORIGIN=https://your-domain.vercel.app
-VITE_BACKEND_URL=https://stockflow-backend.onrender.com
+VITE_APP_DOMAIN=ccdinventorysystem.vercel.app
+VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app
+VITE_BACKEND_URL=https://test-inventory-system.onrender.com
+VITE_API_BASE_URL=https://test-inventory-system.onrender.com
 ```
 
 **Where to find these values:**
 - `VITE_SUPABASE_URL`: Supabase Dashboard → Settings → API → URL
 - `VITE_SUPABASE_ANON_KEY`: Supabase Dashboard → Settings → API → Anon Key
 - `VITE_BACKEND_URL`: Your Render backend URL from Part 1
+- `VITE_API_BASE_URL`: Your Render backend URL from Part 1
 
 ### Step 4: Update Backend for Frontend URL
 Go back to **Render Dashboard** and update:
-- `VITE_APP_ORIGIN=https://your-domain.vercel.app` (your new Vercel URL)
+- `VITE_APP_ORIGIN=https://ccdinventorysystem.vercel.app` (your new Vercel URL)
 
 ### Step 5: Deploy
 1. Click **"Deploy"**
@@ -112,7 +114,7 @@ const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY!;
 In `backend/server.js`, update CORS to allow your Vercel frontend:
 ```javascript
 app.use(cors({
-  origin: process.env.VITE_APP_ORIGIN || "http://localhost:5174",
+  origin: process.env.VITE_APP_ORIGIN,
   credentials: true
 }));
 ```
@@ -137,6 +139,7 @@ app.use(cors({
 - [ ] `VITE_SUPABASE_URL`
 - [ ] `VITE_SUPABASE_ANON_KEY`
 - [ ] `VITE_BACKEND_URL` (Render backend URL)
+- [ ] `VITE_API_BASE_URL` (Render backend URL)
 - [ ] `VITE_APP_DOMAIN`
 - [ ] `VITE_APP_ORIGIN`
 
@@ -153,17 +156,17 @@ app.use(cors({
 
 ### 1. Test Backend
 ```
-curl https://stockflow-backend.onrender.com/health
+curl https://test-inventory-system.onrender.com/health
 ```
 Should return: `{"success":true,"message":"Backend is healthy"}`
 
 ### 2. Test Frontend
-Visit: `https://your-domain.vercel.app`
+Visit: `https://ccdinventorysystem.vercel.app`
 Should load the inventory app
 
 ### 3. Test Backend Health
 ```
-curl https://stockflow-backend.onrender.com/health
+curl https://test-inventory-system.onrender.com/health
 ```
 
 ---

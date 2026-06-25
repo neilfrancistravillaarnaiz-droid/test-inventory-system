@@ -6,7 +6,7 @@
 
 **Test Command:**
 ```bash
-curl -i https://stockflow-backend.onrender.com/health
+curl -i https://test-inventory-system.onrender.com/health
 ```
 
 **Expected Response:**
@@ -28,7 +28,7 @@ Content-Type: application/json
 ### 2. Frontend Load Test (2 minutes)
 
 **Steps:**
-1. Visit: `https://your-domain.vercel.app`
+1. Visit: `https://ccdinventorysystem.vercel.app`
 2. Open DevTools: F12
 3. Check Console tab for errors
 4. Check Network tab - all resources load?
@@ -50,7 +50,7 @@ Content-Type: application/json
 
 **In Browser Console (F12):**
 ```javascript
-fetch('https://stockflow-backend.onrender.com/health')
+fetch('https://test-inventory-system.onrender.com/health')
   .then(r => r.json())
   .then(data => console.log('Backend OK:', data))
   .catch(err => console.error('Backend Error:', err))
@@ -72,7 +72,7 @@ Backend OK: {success: true, message: "Backend is healthy"}
 
 **Test Command:**
 ```bash
-curl https://stockflow-backend.onrender.com/health
+curl https://test-inventory-system.onrender.com/health
 ```
 
 **Expected Response:**
@@ -95,7 +95,7 @@ curl https://stockflow-backend.onrender.com/health
 ### 5. Authentication Flow Test (5 minutes)
 
 **Steps:**
-1. Go to `https://your-domain.vercel.app/admin-login`
+1. Go to `https://ccdinventorysystem.vercel.app/admin-login`
 2. Try login with password/OTP method
 3. Check if it reaches backend
 4. Verify admin account exists in Supabase
@@ -138,14 +138,14 @@ console.log('App Origin:', import.meta.env.VITE_APP_ORIGIN)
 
 **Should Show:**
 ```
-Backend URL: https://stockflow-backend.onrender.com
+Backend URL: https://test-inventory-system.onrender.com
 Supabase URL: https://your-project.supabase.co
-App Domain: your-domain.vercel.app
-App Origin: https://your-domain.vercel.app
+App Domain: ccdinventorysystem.vercel.app
+App Origin: https://ccdinventorysystem.vercel.app
 ```
 
 **Test Backend Variables:**
-Go to `https://stockflow-backend.onrender.com/ai/debug-config`
+Go to `https://test-inventory-system.onrender.com/ai/debug-config`
 
 **Should Show:**
 ```json
@@ -175,7 +175,7 @@ Go to `https://stockflow-backend.onrender.com/ai/debug-config`
 ```javascript
 // In browser console
 console.time('Backend Response');
-fetch('https://stockflow-backend.onrender.com/health')
+fetch('https://test-inventory-system.onrender.com/health')
   .then(r => r.json())
   .then(() => console.timeEnd('Backend Response'));
 ```
@@ -206,7 +206,7 @@ fetch('https://stockflow-backend.onrender.com/health')
 1. Go to https://uptimerobot.com
 2. Sign up (free)
 3. Add new monitor:
-   - URL: `https://stockflow-backend.onrender.com/health`
+   - URL: `https://test-inventory-system.onrender.com/health`
    - Check interval: Every 5 minutes
    - Alert contacts: Your email
 4. Activate
