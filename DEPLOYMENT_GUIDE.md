@@ -102,11 +102,6 @@ Go back to **Render Dashboard** and update:
 ### Frontend API Configuration
 Update your frontend code to use the Render backend URL.
 
-**In `src/services/webauthnService.ts` (line ~12):**
-```typescript
-const API_BASE_URL = process.env.VITE_BACKEND_URL || "https://stockflow-backend.onrender.com";
-```
-
 **In `src/lib/supabaseClient.ts`:**
 ```typescript
 const supabaseUrl = process.env.VITE_SUPABASE_URL!;
@@ -135,13 +130,6 @@ app.use(cors({
    - `anon` public key
    - `service_role` secret key
 
-### 2. Enable WebAuthn Tables
-Run the migration SQL in your Supabase database:
-1. Go to **SQL Editor** → **New Query**
-2. Paste the SQL from `webauthn-migration.sql`
-3. Execute it
-
----
 
 ## Environment Variables Checklist
 
@@ -173,9 +161,9 @@ Should return: `{"success":true,"message":"Backend is healthy"}`
 Visit: `https://your-domain.vercel.app`
 Should load the inventory app
 
-### 3. Test WebAuthn Setup
+### 3. Test Backend Health
 ```
-curl https://stockflow-backend.onrender.com/api/webauthn/setup
+curl https://stockflow-backend.onrender.com/health
 ```
 
 ---
@@ -193,10 +181,10 @@ curl https://stockflow-backend.onrender.com/api/webauthn/setup
 - Check that backend CORS allows your frontend origin
 - Clear browser cache and redeploy
 
-### WebAuthn Not Working
-- Verify backend can reach Supabase (test with `/api/webauthn/setup`)
+### Backend Not Working
+- Verify backend can reach Supabase
 - Check `SUPABASE_SERVICE_ROLE_KEY` is correct
-- Verify WebAuthn tables exist in Supabase
+- Verify database tables exist in Supabase
 
 ### Render Service Spinning Down
 - Free tier services spin down after 15 mins inactivity

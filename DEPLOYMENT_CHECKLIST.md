@@ -6,8 +6,6 @@
 - [ ] Run `npm run dev` in root - frontend loads at localhost:5174
 - [ ] Run `npm start` in backend - server runs at localhost:8000
 - [ ] Test /health endpoint: `curl http://localhost:8000/health`
-- [ ] Test WebAuthn setup: `curl http://localhost:8000/api/webauthn/setup`
-- [ ] Test fingerprint login flow locally
 
 ### Code Review
 - [ ] No `.env` files committed to GitHub
@@ -17,7 +15,6 @@
 - [ ] No hardcoded localhost URLs in production code
 
 ### Supabase Setup
-- [ ] WebAuthn migration SQL executed (`webauthn-migration.sql`)
 - [ ] Service Role Key generated
 - [ ] Anon Key available
 - [ ] RLS policies configured (if needed)
@@ -216,7 +213,7 @@ VITE_APP_DOMAIN           → Your Vercel domain
 
 ✅ **Backend is working if:**
 - `/health` endpoint returns 200
-- `/api/webauthn/setup` returns database info
+- API endpoints return expected responses
 - CORS errors don't appear in frontend
 
 ✅ **Frontend is working if:**
@@ -226,7 +223,7 @@ VITE_APP_DOMAIN           → Your Vercel domain
 
 ✅ **Full integration working if:**
 - Can complete login flow
-- WebAuthn endpoints respond
+- API endpoints respond
 - Data loads from Supabase
 
 ---

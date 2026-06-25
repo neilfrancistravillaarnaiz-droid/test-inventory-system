@@ -68,37 +68,25 @@ Backend OK: {success: true, message: "Backend is healthy"}
 
 ---
 
-### 4. WebAuthn Setup Verification (2 minutes)
+### 4. Backend Verification (2 minutes)
 
 **Test Command:**
 ```bash
-curl https://stockflow-backend.onrender.com/api/webauthn/setup
+curl https://stockflow-backend.onrender.com/health
 ```
 
 **Expected Response:**
 ```json
 {
-  "rpID": "stockflow-backend.onrender.com",
-  "origin": "https://your-domain.vercel.app",
-  "tables": {
-    "webauthn_challenges": {
-      "accessible": true,
-      "error": null
-    },
-    "webauthn_credentials": {
-      "accessible": true,
-      "error": null
-    }
-  },
-  "message": "All WebAuthn tables are accessible ✓"
+  "success": true,
+  "message": "Backend is healthy"
 }
 ```
 
-**If Tables Not Accessible:**
-1. Go to Supabase SQL Editor
-2. Run `webauthn-migration.sql`
-3. Wait for completion
-4. Test again
+**If the backend is not responding:**
+1. Check Render logs
+2. Verify environment variables are set
+3. Redeploy the backend
 
 ---
 
@@ -181,7 +169,7 @@ Go to `https://stockflow-backend.onrender.com/ai/debug-config`
 - Health check: < 100ms (first request may be 5-30s if spinning up)
 - API calls: < 500ms
 - Page load: < 2 seconds (after first load)
-- WebAuthn setup: < 200ms
+- Backend health check: < 200ms
 
 **Test:**
 ```javascript
@@ -249,7 +237,7 @@ fetch('https://stockflow-backend.onrender.com/health')
 - [ ] No CORS errors in console
 - [ ] API requests reach backend (Network tab)
 - [ ] Environment variables are set
-- [ ] WebAuthn tables accessible
+- [ ] Database tables accessible
 - [ ] Database connectivity working
 - [ ] Login flow works (at least password method)
 - [ ] Performance acceptable
@@ -312,9 +300,9 @@ git push origin v1.0-production
 **Cause:** Database or auth issue
 **Fix:** Check Supabase, verify account exists
 
-### Issue: WebAuthn Not Working
+### Issue: Authentication Not Working
 **Cause:** Tables missing or user has no credentials
-**Fix:** Run migration SQL, register credentials
+**Fix:** Verify database schema and authentication data
 
 ---
 
@@ -393,7 +381,7 @@ You now have a production deployment with:
 - ✅ Global CDN frontend (Vercel)
 - ✅ Cloud backend (Render)
 - ✅ Managed database (Supabase)
-- ✅ WebAuthn security
+- ✅ Authentication security
 - ✅ Monitoring in place
 
 **Your app is live and ready for users!**

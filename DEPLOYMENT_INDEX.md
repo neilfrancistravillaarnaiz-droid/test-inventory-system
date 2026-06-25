@@ -62,7 +62,7 @@ Your deployment documentation is complete! Here's what we've created:
 
 ### 5. **DEPLOYMENT_VERIFICATION.md** 🧪 AFTER DEPLOY
 **Best for:** Testing after deployment
-- Immediate tests (Backend, Frontend, API, WebAuthn)
+- Immediate tests (Backend, Frontend, API)
 - Detailed verification tests (Auth, DB, Env vars)
 - Performance verification
 - Security verification checklist
@@ -185,7 +185,7 @@ After deployment, you should have:
 ✅ API calls working (Network tab shows 200s)
 ✅ No CORS errors in console
 ✅ Login flow working
-✅ WebAuthn endpoint responding
+✅ Backend API responding
 ✅ All environment variables set
 ✅ Monitoring configured
 
@@ -247,7 +247,7 @@ Users Browser
     ↓
 [Render Backend] (stockflow-backend.onrender.com)
     ↓
-[Supabase] (Database + WebAuthn Storage)
+[Supabase] (Database)
 ```
 
 ---

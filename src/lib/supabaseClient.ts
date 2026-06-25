@@ -32,7 +32,7 @@ class MemoryStorage implements Storage {
   }
 }
 
-// Use memory-only storage for fingerprint authentication
+// Use memory-only storage for auth sessions
 // Sessions will NOT persist across page reloads
 const memoryStorage = new MemoryStorage();
 

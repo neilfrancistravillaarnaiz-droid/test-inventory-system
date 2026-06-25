@@ -26,7 +26,7 @@
 ### Issue 2: "Cannot find module" Errors
 **Error:**
 ```
-Error: Cannot find module '@simplewebauthn/server'
+Error: Cannot find module '<module-name>'
 ```
 
 **Solutions:**
@@ -86,7 +86,7 @@ Access to XMLHttpRequest blocked by CORS policy
 curl -H "Origin: https://your-vercel-url" \
      -H "Access-Control-Request-Method: POST" \
      -H "Access-Control-Request-Headers: Content-Type" \
-     -X OPTIONS https://stockflow-backend.onrender.com/api/webauthn/setup
+     -X OPTIONS https://stockflow-backend.onrender.com/health
 ```
 
 ---
@@ -172,7 +172,7 @@ console.log('Supabase URL:', import.meta.env.VITE_SUPABASE_URL);
 ### Issue 3: API Calls Failing (404s)
 **Error:**
 ```
-GET https://stockflow-backend.onrender.com/api/webauthn/... 404
+GET https://stockflow-backend.onrender.com/api/... 404
 ```
 
 **Solutions:**
@@ -184,7 +184,7 @@ GET https://stockflow-backend.onrender.com/api/webauthn/... 404
 
 ---
 
-### Issue 4: WebAuthn Not Working
+### Issue 4: Authentication Not Working
 **Error:**
 ```
 User not found
@@ -193,18 +193,11 @@ No credentials registered for this user
 
 **Solutions:**
 1. Verify user exists in Supabase
-2. User must have registered fingerprint first
-3. Check `webauthn_credentials` table in Supabase
-4. Verify `webauthn_challenges` table exists
-5. Run migration if tables missing:
-   ```sql
-   -- Execute webauthn-migration.sql in Supabase SQL Editor
-   ```
+2. User must have a registered credential or valid login method
+3. Check the relevant credentials table in Supabase
+4. Verify authentication-related database tables exist
+5. Run migration if tables missing
 
-**Debug WebAuthn:**
-```bash
-curl https://stockflow-backend.onrender.com/api/webauthn/setup
-```
 
 ---
 
@@ -294,7 +287,7 @@ fetch('https://stockflow-backend.onrender.com/health')
 
 ---
 
-### Issue 3: WebAuthn Fails in Production
+### Issue 3: Production Authentication Fails
 **Error:**
 ```
 Error: User not found
@@ -303,12 +296,12 @@ Error initiating authentication
 
 **Solutions:**
 1. Verify user exists in profiles table
-2. Check WebAuthn tables created:
+2. Check required tables created:
    ```sql
-   SELECT * FROM webauthn_credentials;
-   SELECT * FROM webauthn_challenges;
+   SELECT * FROM credentials;
+   SELECT * FROM challenges;
    ```
-3. Verify user has at least one registered credential
+3. Verify user can authenticate
 4. Check RLS policies if enabled
 
 ---
@@ -318,11 +311,11 @@ Error initiating authentication
 ### Issue 1: Tables Don't Exist
 **Error:**
 ```
-relation "webauthn_credentials" does not exist
+relation "credentials" does not exist
 ```
 
 **Solution:**
-1. Run `webauthn-migration.sql` in Supabase SQL Editor
+1. Run the migration SQL in Supabase SQL Editor
 2. Wait for execution to complete
 3. Refresh table list in Data Editor
 4. Tables should appear
@@ -365,10 +358,7 @@ Policy violation or permission denied
 # Test if server is running
 curl https://stockflow-backend.onrender.com/health
 
-# Test WebAuthn setup
-curl https://stockflow-backend.onrender.com/api/webauthn/setup
-
-# Check configuration
+# Check backend configuration
 curl https://stockflow-backend.onrender.com/ai/debug-config
 ```
 

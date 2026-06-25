@@ -37,7 +37,7 @@
                             ↓
 ┌──────────────────────────────────────────────────────────┐
 │            Supabase (PostgreSQL + Services)              │
-│    (Database, Auth, WebAuthn Storage)                    │
+│    (Database, Auth)                    │
 │         https://your-project.supabase.co                 │
 └──────────────────────────────────────────────────────────┘
 ```
@@ -175,7 +175,6 @@ VITE_APP_DOMAIN=your-domain.vercel.app
 - [ ] Network tab shows API calls to Render backend
 - [ ] No CORS errors in Console
 - [ ] Login flow works
-- [ ] WebAuthn endpoint responds
 - [ ] All environment variables are set
 - [ ] No sensitive data in code
 
@@ -220,7 +219,7 @@ VITE_APP_DOMAIN=your-domain.vercel.app
 ```
 Frontend:  https://your-domain.vercel.app
 Backend:   https://stockflow-backend.onrender.com
-API:       https://stockflow-backend.onrender.com/api/webauthn
+API:       https://stockflow-backend.onrender.com
 Health:    https://stockflow-backend.onrender.com/health
 Supabase:  https://your-project.supabase.co
 ```

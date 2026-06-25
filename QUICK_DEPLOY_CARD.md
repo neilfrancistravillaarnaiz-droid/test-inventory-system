@@ -87,7 +87,6 @@ fetch('https://stockflow-backend.onrender.com/health')
 | Blank page | Clear cache, hard refresh (Ctrl+Shift+R) |
 | Build fails | Run `npm run build` locally first |
 | Slow response | Free Render may be spinning up |
-| WebAuthn fails | Verify user exists in Supabase |
 
 ---
 
