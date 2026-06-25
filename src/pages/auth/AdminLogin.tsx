@@ -193,7 +193,7 @@ const AdminLogin = () => {
           "error",
           getAuthErrorMessage(
             otpResponse.error,
-            "Could not send the email OTP. Please check Supabase SMTP, Email provider, and Magic Link/OTP template settings."
+            "Could not send the email OTP. Please check Supabase If you want, I can also help make the QR-code setup screen more explicit for Google Authenticator., Email provider, and Magic Link/OTP template settings."
           )
         );
         return;
@@ -541,8 +541,10 @@ const AdminLogin = () => {
                     <QRCodeCanvas value={totpSetupUrl} size={180} level="H" includeMargin={true} />
                   </div>
                   <p className="auth-totp-instructions">
-                    Use an authenticator app such as Google Authenticator, Authy, or Microsoft Authenticator.
-                    If your app cannot scan the code, enter this secret manually: <strong>{totpSecret}</strong>
+                    Open Google Authenticator on your phone and tap the plus (+) button.
+                    Select “Scan a QR code” and point your camera at the image above.
+                    If scanning fails, choose “Enter a setup key” and type this secret manually:
+                    <strong>{totpSecret}</strong>
                   </p>
                 </div>
               )}
