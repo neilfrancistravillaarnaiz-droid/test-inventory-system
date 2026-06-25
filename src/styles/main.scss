@@ -2492,10 +2492,15 @@ body.light-mode .product-location-card p { color: #2d7a3a; }
 }
 .auth-feature {
   align-items: center !important;
-  padding: 12px 13px !important;
+  padding: 18px 18px !important;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,0.04) !important;
+  border: 1px solid rgba(255,255,255,0.06) !important;
+  box-shadow: 0 24px 60px rgba(10,26,14,0.06) !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
 }
-.auth-feature h3 { margin-bottom: 2px !important; }
-.auth-feature p { line-height: 1.35 !important; }
+.auth-feature h3 { margin-bottom: 2px !important; color: var(--green-800) !important; font-weight: 900 !important; }
+.auth-feature p { line-height: 1.35 !important; color: var(--green-200) !important; }
 
 .auth-trust {
   position: relative;
