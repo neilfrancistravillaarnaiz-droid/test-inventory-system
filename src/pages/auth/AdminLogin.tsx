@@ -250,13 +250,13 @@ const AdminLogin = () => {
         verifyResponse = await verifyAdminEmailOtp(targetEmail, otp.trim());
       }
 
-      if (verifyResponse.error) {
+      if (verifyResponse?.error || verifyResponse?.success === false) {
         setLoading(false);
         showModal(
           "error",
           getAuthErrorMessage(
-            verifyResponse.error,
-            "Invalid or expired code. Please try again."
+            verifyResponse.error || { message: verifyResponse?.message },
+            verifyResponse?.message || "Invalid or expired code. Please try again."
           )
         );
         return;
@@ -289,11 +289,11 @@ const AdminLogin = () => {
           return;
         }
       } else {
-        if (!verifyResponse?.data?.session && !verifyResponse?.data?.user) {
+        if (!verifyResponse?.success || !verifyResponse?.verified) {
           setLoading(false);
           showModal(
             "error",
-            verifyResponse.error?.message || "Invalid authenticator code. Please try again."
+            verifyResponse?.message || "Invalid authenticator code. Please try again."
           );
           return;
         }

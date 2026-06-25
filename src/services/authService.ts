@@ -60,11 +60,15 @@ export const getAdminTotpSetup = async (email: string) => {
 };
 
 export const verifyAdminTotp = async (email: string, token: string) => {
-  return await supabase.auth.verifyOtp({
-    email,
-    token,
-    type: "totp",
+  const response = await fetch(`${API_BASE_URL}/admin/totp/verify`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, token }),
   });
+
+  return response.json();
 };
 
 export const markAdminOtpVerified = () => {
