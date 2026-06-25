@@ -890,6 +890,12 @@
 .admin-auth-page .admin-auth-card {
   min-height: auto !important;
   max-height: none !important;
+  position: relative !important;
+  width: 100% !important;
+  height: auto !important;
+  min-height: 520px !important;
+  max-width: 560px !important;
+  margin: 0 auto !important;
 }
 
 .admin-auth-page .auth-tabs a {
@@ -906,6 +912,52 @@
 
 .admin-auth-page .admin-only-tabs {
   grid-template-columns: 1fr !important;
+  height: auto !important;
+  padding: 18px 24px !important;
+}
+
+.admin-auth-page .admin-only-tabs button {
+  width: 100% !important;
+  justify-content: center !important;
+  padding: 18px 22px !important;
+  border-radius: 22px !important;
+  background: rgba(45, 122, 58, 0.08) !important;
+  color: #1f6b32 !important;
+}
+
+.admin-auth-page .stock-auth-right {
+  display: grid !important;
+  place-items: center !important;
+  padding: 32px 18px 48px !important;
+}
+
+.admin-auth-page .admin-login-wrapper {
+  position: relative !important;
+  width: min(560px, 100%) !important;
+  max-width: 560px !important;
+  min-height: 520px !important;
+  margin: 0 auto !important;
+}
+
+.admin-auth-page .auth-form-body {
+  gap: 18px !important;
+}
+
+.admin-auth-page .auth-card-heading {
+  margin-bottom: 18px !important;
+  padding-bottom: 0 !important;
+}
+
+.admin-auth-page .auth-input-wrap {
+  gap: 12px !important;
+}
+
+.admin-auth-page .auth-input-wrap input {
+  min-height: 54px !important;
+}
+
+.admin-auth-page .auth-secondary-btn {
+  margin-top: 16px !important;
 }
 
 .admin-auth-page .admin-only-tabs button {

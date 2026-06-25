@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState } from "react";
 import {
   Bell,
   Bot,
@@ -69,13 +69,20 @@ const getAuthErrorMessage = (error: unknown, fallback: string) => {
 
 const AdminLogin = () => {
   const navigate = useNavigate();
-  const [step, setStep] = useState<"password" | "sendOtp" | "otp">("password");
-  const [email, setEmail] = useState("");
+  const pendingEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY) || "";
+  const initialStep = pendingEmail ? "sendOtp" : "password";
+
+  const [step, setStep] = useState<"password" | "sendOtp" | "otp">(
+    initialStep as "password" | "sendOtp"
+  );
+  const [email, setEmail] = useState(pendingEmail);
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState("");
+  const [notice, setNotice] = useState(
+    pendingEmail ? "Admin password confirmed. Send an email OTP to continue." : ""
+  );
   const [modalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState<"success" | "error">("error");
   const [modalMessage, setModalMessage] = useState("");
@@ -88,15 +95,6 @@ const AdminLogin = () => {
     { icon: ScanLine, title: "Barcode & QR Scanning", desc: "Scan barcodes and QR codes fast." },
     { icon: ShieldCheck, title: "Audit Trail Monitoring", desc: "Monitor actions with audit logs." },
   ];
-
-  useEffect(() => {
-    const pendingEmail = sessionStorage.getItem(PENDING_ADMIN_EMAIL_KEY);
-    if (pendingEmail) {
-      setEmail(pendingEmail);
-      setStep("sendOtp");
-      setNotice("Admin password confirmed. Send an email OTP to continue.");
-    }
-  }, []);
 
   const showModal = (type: "success" | "error", message: string) => {
     setModalType(type);
@@ -307,134 +305,128 @@ const AdminLogin = () => {
         <div className="right-bg-circle circle-b" />
         <div className="right-bg-diamond" />
 
-        <div className="auth-flip-wrapper admin-login-wrapper">
-          <div className="auth-flip-box">
-            <form
-              className="auth-modern-card auth-login-side admin-auth-card"
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (step === "password") {
-                  handlePasswordStep(e);
-                } else if (step === "sendOtp") {
-                  handleSendOtpStep(e);
-                } else if (step === "otp") {
-                  handleOtpStep(e);
-                }
-              }}
-            >
-              <div className="auth-tabs admin-only-tabs">
-                <button type="button" className="active">
-                  Admin Login
-                </button>
-              </div>
-
-              <div className="auth-form-body">
-                <div className="admin-lock-badge">
-                  <ShieldCheck size={22} />
-                </div>
-
-                <div className="auth-card-heading">
-                  <h2>
-                    {step === "password"
-                      ? "Admin security"
-                      : step === "sendOtp"
-                      ? "Email verification"
-                      : "Email OTP"}
-                  </h2>
-                  <p>
-                    {step === "password"
-                      ? "Sign in with your admin password first."
-                      : step === "sendOtp"
-                      ? "Send a one-time code to your admin email."
-                      : "Enter the one-time code sent to your email."}
-                  </p>
-                </div>
-
-                {notice && <p className="auth-admin-notice">{notice}</p>}
-
-                <label htmlFor="admin-email">Admin Email</label>
-                <div className="auth-input-wrap">
-                  <span className="auth-input-icon" aria-hidden="true">
-                    <Mail size={16} strokeWidth={2} />
-                  </span>
-                  <input
-                    id="admin-email"
-                    type="email"
-                    placeholder="admin@ccd.edu.ph"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    disabled={step !== "password"}
-                    required
-                  />
-                </div>
-
-                {step === "password" && (
-                  <>
-                    <label htmlFor="admin-password">Password</label>
-                    <div className="auth-input-wrap">
-                      <span className="auth-input-icon" aria-hidden="true">
-                        <Lock size={16} strokeWidth={2} />
-                      </span>
-                      <input
-                        id="admin-password"
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Enter admin password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                      <button
-                        type="button"
-                        className="password-eye"
-                        aria-label={showPassword ? "Hide password" : "Show password"}
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                      </button>
-                    </div>
-                  </>
-                )}
-
-                {step === "otp" && (
-                  <>
-                    <label htmlFor="admin-otp">Email OTP</label>
-                    <div className="auth-input-wrap admin-otp-code">
-                      <span className="auth-input-icon" aria-hidden="true">
-                        <KeyRound size={16} strokeWidth={2} />
-                      </span>
-                      <input
-                        id="admin-otp"
-                        type="text"
-                        inputMode="numeric"
-                        placeholder="000000"
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        required
-                      />
-                    </div>
-                  </>
-                )}
-
-                <button className="auth-submit-btn" type="submit" disabled={loading}>
-                  {loading
-                    ? "Verifying..."
-                    : step === "password"
-                    ? "Login"
-                    : step === "sendOtp"
-                    ? "Send Email OTP"
-                    : "Verify and Enter"}
-                </button>
-
-                <button type="button" className="auth-secondary-btn" onClick={restartLogin}>
-                  ← Back to start
-                </button>
-              </div>
-            </form>
-
-            <div className="auth-modern-card auth-register-side admin-placeholder-side" aria-hidden="true">
-              <button type="button">Create Account</button>
+        <div className="admin-login-wrapper">
+          <form
+            className="auth-modern-card auth-login-side admin-auth-card"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (step === "password") {
+                handlePasswordStep(e);
+              } else if (step === "sendOtp") {
+                handleSendOtpStep(e);
+              } else if (step === "otp") {
+                handleOtpStep(e);
+              }
+            }}
+          >
+            <div className="auth-tabs admin-only-tabs">
+              <button type="button" className="active">
+                Admin Login
+              </button>
             </div>
-          </div>
+
+            <div className="auth-form-body">
+              <div className="admin-lock-badge">
+                <ShieldCheck size={22} />
+              </div>
+
+              <div className="auth-card-heading">
+                <h2>
+                  {step === "password"
+                    ? "Admin security"
+                    : step === "sendOtp"
+                    ? "Email verification"
+                    : "Email OTP"}
+                </h2>
+                <p>
+                  {step === "password"
+                    ? "Sign in with your admin password first."
+                    : step === "sendOtp"
+                    ? "Send a one-time code to your admin email."
+                    : "Enter the one-time code sent to your email."}
+                </p>
+              </div>
+
+              {notice && <p className="auth-admin-notice">{notice}</p>}
+
+              <label htmlFor="admin-email">Admin Email</label>
+              <div className="auth-input-wrap">
+                <span className="auth-input-icon" aria-hidden="true">
+                  <Mail size={16} strokeWidth={2} />
+                </span>
+                <input
+                  id="admin-email"
+                  type="email"
+                  placeholder="admin@ccd.edu.ph"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={step !== "password"}
+                  required
+                />
+              </div>
+
+              {step === "password" && (
+                <>
+                  <label htmlFor="admin-password">Password</label>
+                  <div className="auth-input-wrap">
+                    <span className="auth-input-icon" aria-hidden="true">
+                      <Lock size={16} strokeWidth={2} />
+                    </span>
+                    <input
+                      id="admin-password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter admin password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="password-eye"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {step === "otp" && (
+                <>
+                  <label htmlFor="admin-otp">Email OTP</label>
+                  <div className="auth-input-wrap admin-otp-code">
+                    <span className="auth-input-icon" aria-hidden="true">
+                      <KeyRound size={16} strokeWidth={2} />
+                    </span>
+                    <input
+                      id="admin-otp"
+                      type="text"
+                      inputMode="numeric"
+                      placeholder="000000"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      required
+                    />
+                  </div>
+                </>
+              )}
+
+              <button className="auth-submit-btn" type="submit" disabled={loading}>
+                {loading
+                  ? "Verifying..."
+                  : step === "password"
+                  ? "Login"
+                  : step === "sendOtp"
+                  ? "Send Email OTP"
+                  : "Verify and Enter"}
+              </button>
+
+              <button type="button" className="auth-secondary-btn" onClick={restartLogin}>
+                ← Back to start
+              </button>
+            </div>
+          </form>
         </div>
 
         <p className="auth-footer">© 2026 StockFlow. All rights reserved.</p>
